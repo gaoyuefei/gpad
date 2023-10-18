@@ -1,4 +1,4 @@
-FROM  registry-vecps-ns.gaccloud.com.cn/tenant-kpyx/devops_library:openjdk_8u201
+FROM  registry-vecps-ns.gaccloud.com.cn/tenant-yfuu/devops_library:openjdk_8u201
 
 #把部署包放到容器的/root目录
 ADD gpad-modules/gpad-system/target/gpad-system.jar /root
