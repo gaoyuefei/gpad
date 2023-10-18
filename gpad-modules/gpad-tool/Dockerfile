@@ -1,6 +1,6 @@
 FROM  registry-vecps-ns.gaccloud.com.cn/tenant-yfuu/devops_library:openjdk_8u201
 
-#把部署包放到容器的/root目录
+#把部署包放到容器的/root目录。
 ADD gpad-modules/gpad-tool/target/gpad-tool.jar /root
 #把配置文件放到容器的/root目录
 ADD gpad-modules/gpad-tool/src/main/resources/bootstrap.yml /root
