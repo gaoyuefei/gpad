@@ -1,0 +1,2 @@
+com.gpad.common.redis.configure.RedisConfig
+com.gpad.common.redis.service.RedisService

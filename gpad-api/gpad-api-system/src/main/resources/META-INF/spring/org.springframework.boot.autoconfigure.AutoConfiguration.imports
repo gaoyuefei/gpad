@@ -1,0 +1,3 @@
+com.gpad.system.api.factory.RemoteUserFallbackFactory
+com.gpad.system.api.factory.RemoteLogFallbackFactory
+com.gpad.system.api.factory.RemoteFileFallbackFactory

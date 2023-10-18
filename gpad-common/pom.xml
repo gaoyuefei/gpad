@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.gpad</groupId>
+        <artifactId>gpad</artifactId>
+        <version>3.6.3</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <modules>
+        <module>gpad-common-log</module>
+        <module>gpad-common-core</module>
+        <module>gpad-common-redis</module>
+        <module>gpad-common-seata</module>
+        <module>gpad-common-swagger</module>
+        <module>gpad-common-security</module>
+        <module>gpad-common-datascope</module>
+        <module>gpad-common-datasource</module>
+    </modules>
+
+    <artifactId>gpad-common</artifactId>
+    <packaging>pom</packaging>
+
+    <description>
+        gpad-common通用模块
+    </description>
+
+</project>

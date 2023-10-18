@@ -1,0 +1,2 @@
+com.gpad.common.log.service.AsyncLogService
+com.gpad.common.log.aspect.LogAspect
