@@ -1,6 +1,4 @@
-package com.gpad.common.core.constant;
-
-import jdk.nashorn.internal.objects.annotations.Getter;
+package com.gpad.gpadtool.constant;
 
 /**
  * @author Donald.Lee

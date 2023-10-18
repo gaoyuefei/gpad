@@ -2,7 +2,7 @@ package com.gpad.gpadtool.utils;
 
 
 import com.alibaba.fastjson.JSONObject;
-import com.gpad.common.core.constant.StatusCode;
+import com.gpad.gpadtool.constant.StatusCode;
 import com.gpad.common.core.exception.ServiceException;
 import com.gpad.common.core.utils.sign.Base64;
 import org.apache.commons.lang3.StringUtils;
