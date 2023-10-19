@@ -18,6 +18,8 @@ spring:
       config:
         # 配置中心地址
         server-addr: 10.156.35.114:8848
+        username: nacos
+        password: nacos
         # 配置文件格式
         file-extension: yml
         # 共享配置
