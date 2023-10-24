@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.gpad.gpadtool.constant.StatusCode;
+import com.gpad.common.core.constant.StatusCode;
 import com.gpad.common.core.exception.ServiceException;
 import com.gpad.gpadtool.constant.IsBigCustomer;
 import com.gpad.gpadtool.constant.OrderType;
@@ -35,16 +35,16 @@ public class OrderNoService {
     @Autowired
     private OrderNoRepository orderNoRepository;
 
-    public OrderNoDto getByBusinessNo(String businessNo){
+    public OrderNoDto getByBussinessNo(String BussinessNo){
         LambdaQueryWrapper<OrderNo> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(OrderNo::getBusinessNo,businessNo);
+        wrapper.eq(OrderNo::getBussinessNo,BussinessNo);
         OrderNo orderNo = orderNoRepository.getOne(wrapper);
         return JSONObject.parseObject(JSONObject.toJSONString(orderNo),OrderNoDto.class);
     }
 
-    public List<OrderNoDto> getByBusinessNos(List<String> businessNos){
+    public List<OrderNoDto> getByBussinessNos(List<String> BussinessNos){
         LambdaQueryWrapper<OrderNo> wrapper = Wrappers.lambdaQuery();
-        wrapper.in(OrderNo::getBusinessNo,businessNos);
+        wrapper.in(OrderNo::getBussinessNo,BussinessNos);
         List<OrderNo> orderNos = orderNoRepository.list(wrapper);
         List<OrderNoDto> result = new ArrayList<>();
         orderNos.forEach(o->result.add(JSONObject.parseObject(JSONObject.toJSONString(o),OrderNoDto.class)));
@@ -64,8 +64,8 @@ public class OrderNoService {
 
 
     public void saveOrUpdateOrderNo(OrderNoDto orderNoDto){
-        OrderNoDto byBusinessNo = this.getByBusinessNo(orderNoDto.getBusinessNo());
-        if (byBusinessNo==null){
+        OrderNoDto byBussinessNo = this.getByBussinessNo(orderNoDto.getBussinessNo());
+        if (byBussinessNo==null){
             saveOrderNoDto(orderNoDto);
         }else {
             updateById(orderNoDto);
@@ -73,8 +73,8 @@ public class OrderNoService {
     }
 
     public OrderNoDto updateById(OrderNoDto orderNoDto){
-        OrderNoDto byBusinessNo = this.getByBusinessNo(orderNoDto.getBusinessNo());
-        orderNoDto.setId(byBusinessNo.getId());
+        OrderNoDto byBussinessNo = this.getByBussinessNo(orderNoDto.getBussinessNo());
+        orderNoDto.setId(byBussinessNo.getId());
         orderNoDto.setUpdateTime(new Date());
         orderNoRepository.updateById(JSONObject.parseObject(JSONObject.toJSONString(orderNoDto),OrderNo.class));
         return orderNoDto;
@@ -95,12 +95,12 @@ public class OrderNoService {
         if (size != orderNoDtos.size()){
             throw new ServiceException("集合订单中不能包含非大客户订单!请检查数据后重新操作或者联系管理员!",StatusCode.FAILURE.getValue());
         }
-        List<String> businessNos = new ArrayList<>();
+        List<String> BussinessNos = new ArrayList<>();
         //检查集合订单里的数据是否已存在其他集合中
-        orderNoDtos.forEach(o->businessNos.add(o.getBusinessNo()));
-        List<OrderNoDto> byBusinessNos = this.getByBusinessNos(businessNos);
+        orderNoDtos.forEach(o->BussinessNos.add(o.getBussinessNo()));
+        List<OrderNoDto> byBussinessNos = this.getByBussinessNos(BussinessNos);
         List<String> otherSetNos = new ArrayList<>();
-        byBusinessNos.forEach(b->otherSetNos.add(b.getMergeOrderId()));
+        byBussinessNos.forEach(b->otherSetNos.add(b.getMergeOrderId()));
         if (CollectionUtils.isNotEmpty(otherSetNos)){
             throw new ServiceException("订单【"+JSONObject.toJSONString(otherSetNos)+"】已存在于其他集合订单，请重新选择!",StatusCode.FAILURE.getValue());
         }
@@ -112,7 +112,7 @@ public class OrderNoService {
             //生成集合订单ID
             o.setMergeOrderId(UuidUtil.generateUuid());
             //添加是否集合订单标记
-            o.setOrderType(OrderType.MERGE_ORDER.getCode());
+            o.setOrderType(OrderType.MERGE_ORDER.getCode()+"");
         });
         this.batchSaveOrUpdateOrderNoList(orderNoDtos);
         return orderNoDtos;

@@ -28,7 +28,7 @@ public class OrderNo {
     /**
      * 订单号
      */
-    private String businessNo;
+    private String bussinessNo;
 
     /**
      * 集合订单id

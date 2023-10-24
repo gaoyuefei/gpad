@@ -26,9 +26,9 @@ public class OrderDetailService {
     @Autowired
     private OrderDetailRepository orderDetailRepository;
 
-    public OrderDetailDto getByBusinessNo(String businessNo) {
+    public OrderDetailDto getBybussinessNo(String bussinessNo) {
         LambdaQueryWrapper<OrderDetail> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(OrderDetail::getBusinessNo,businessNo);
+        wrapper.eq(OrderDetail::getBussinessNo,bussinessNo);
         OrderDetail OrderDetail = orderDetailRepository.getOne(wrapper);
         return JSONObject.parseObject(JSONObject.toJSONString(OrderDetail),OrderDetailDto.class);
     }
@@ -44,8 +44,8 @@ public class OrderDetailService {
     }
 
     public void saveOrUpdateOrderDetail(OrderDetailDto orderDetailDto){
-        OrderDetailDto byBusinessNo = this.getByBusinessNo(orderDetailDto.getBusinessNo());
-        if (byBusinessNo==null){
+        OrderDetailDto bybussinessNo = this.getBybussinessNo(orderDetailDto.getBussinessNo());
+        if (bybussinessNo==null){
             saveOrderDetailDto(orderDetailDto);
         }else {
             updateById(orderDetailDto);
@@ -53,8 +53,8 @@ public class OrderDetailService {
     }
 
     public OrderDetailDto updateById(OrderDetailDto orderDetailDto){
-        OrderDetailDto byBusinessNo = this.getByBusinessNo(orderDetailDto.getBusinessNo());
-        orderDetailDto.setId(byBusinessNo.getId());
+        OrderDetailDto bybussinessNo = this.getBybussinessNo(orderDetailDto.getBussinessNo());
+        orderDetailDto.setId(bybussinessNo.getId());
         orderDetailDto.setUpdateTime(new Date());
         orderDetailRepository.updateById(JSONObject.parseObject(JSONObject.toJSONString(orderDetailDto), OrderDetail.class));
         return orderDetailDto;
@@ -67,9 +67,10 @@ public class OrderDetailService {
         return orderDetailDto;
     }
 
-    public OrderDetailDto getOrderDetailByBusinessNo(String businessNo){
-        LambdaQueryWrapper<OrderDetail> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(OrderDetail::getBigSeriesName,businessNo);
-        return null;
+    public OrderDetailDto getOrderDetailBybussinessNo(String bussinessNo){
+//        LambdaQueryWrapper<OrderDetail> wrapper = Wrappers.lambdaQuery();
+//        wrapper.eq(OrderDetail::getBigSeriesName,bussinessNo);
+        OrderDetail one = orderDetailRepository.lambdaQuery().eq(OrderDetail::getBussinessNo, bussinessNo).one();
+        return JSONObject.parseObject(JSONObject.toJSONString(one), OrderDetailDto.class);
     }
 }

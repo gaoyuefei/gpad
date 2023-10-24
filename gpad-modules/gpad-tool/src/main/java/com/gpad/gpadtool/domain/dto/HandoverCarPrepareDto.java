@@ -4,7 +4,9 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Donald.Lee
@@ -16,27 +18,46 @@ import java.util.Date;
 @Data
 @ApiModel(value = "HandoverCarPrepareDto",description = "交车准备Dto")
 public class HandoverCarPrepareDto {
+
     @ApiModelProperty(value = "id")
     private String id;
+
+    @NotBlank
     @ApiModelProperty(value = "订单号")
-    private String businessNo;
-    @ApiModelProperty(value = "放款状态")
+    private String bussinessNo;
+
+    @ApiModelProperty(value = "放款状态()0:未放款，1:已办理")
     private Integer loanStatus;
-    @ApiModelProperty(value = "销售统一发票")
+
+    @ApiModelProperty(value = "销售统一发票 0:未开具，1:已开具")
     private Integer unifiedSalesInvoice;
+
+    @ApiModelProperty(value = "购置税办理 0:未办理，1:已办理")
+    private Integer purchaseTax;
+
+    @ApiModelProperty(value = "车辆保险0:未购买，1已购买")
+    private Integer carInsure;
+
+    @ApiModelProperty(value = "车辆牌照(0=默认,1=正式牌,2=绿牌,3=临牌)")
+    private Integer carLicense;
+
     @ApiModelProperty(value = "车辆合格证")
     private Integer carCertificate;
-    @ApiModelProperty(value = "车辆保险")
-    private Integer carInsure;
-    @ApiModelProperty(value = "用品及随车附件")
-    private Integer supplies;
-    @ApiModelProperty(value = "车辆牌照(0=未办理,1=正式牌,2=临牌)")
-    private Integer carLicense;
+
     @ApiModelProperty(value = "车牌号")
     private String licensePlateNum;
+
     @ApiModelProperty(value = "交车准备项备注")
     private String remark;
+
+    @ApiModelProperty(value = "用品及随车附件(0:默认值 1:脚垫 2:地板升级 3:迎宾毯 4:车内窗帘5:迎宾踏板6:车漆保护膜)")
+    private List<Integer> supplies;
+
+    @ApiModelProperty(value = "车况检查及交车仪式")
+    private List<FileInfoDto> linkType;
+
     private Date createTime;
+
     private Date updateTime;
     
 }

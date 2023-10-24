@@ -15,7 +15,7 @@ import lombok.Data;
 @ApiModel(value = "ChangeOrderStatusVo",description = "对接GRT接收订单状态变更Dto")
 public class ChangeOrderStatusVo {
     @ApiModelProperty(value =  "订单号")
-    private String businessNo;
+    private String bussinessNo;
     @ApiModelProperty(value =  "订单状态")
     private String orderStatus;
 }

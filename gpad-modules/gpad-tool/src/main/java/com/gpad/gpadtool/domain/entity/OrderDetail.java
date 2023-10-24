@@ -5,19 +5,23 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.annotations.ApiModel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.util.Date;
 
 @Data
+@Builder
 @Accessors(chain = true)
 @TableName("grt_order_detail")
 @JsonSerialize
 @ApiModel(value = "OrderDetail",description = "GTR订单详情表")
 public class OrderDetail {
 
-    @TableId(type = IdType.AUTO)
+    @TableId(type = IdType.ASSIGN_ID)
     /**
      * id
      */
@@ -26,7 +30,7 @@ public class OrderDetail {
     /**
      * 订单号
      */
-    private String businessNo;
+    private String bussinessNo;
 
     /**
      * 开票完成时间
@@ -162,6 +166,10 @@ public class OrderDetail {
      * 客户交车备注
      */
     private String remark;
+    /**
+     * 版本号
+     */
+    private String version;
 
     /**
      * create_time

@@ -19,13 +19,13 @@ public class OrderNoDto {
     @ApiModelProperty(value =  "id")
     private String id;
     @ApiModelProperty(value =  "订单号")
-    private String businessNo;
+    private String bussinessNo;
     @ApiModelProperty(value =  "集合订单ID")
     private String mergeOrderId;
     @ApiModelProperty(value =  "订单状态")
     private String orderStatus;
     @ApiModelProperty(value =  "订单类型")
-    private Integer orderType;
+    private String orderType;
     @ApiModelProperty(value =  "店代码")
     private String dealerCode;
     @ApiModelProperty(value =  "是否大客户订单")

@@ -16,7 +16,7 @@ import lombok.Data;
 public class OrderReserveVo {
 
     @ApiModelProperty(value =  "订单号")
-    private String businessNo;
+    private String bussinessNo;
     @ApiModelProperty(value =  "订单类型（普通订单，集合订单）")
     private String orderType;
     @ApiModelProperty(value =  "预约人")
@@ -28,7 +28,7 @@ public class OrderReserveVo {
 
     public OrderReserveDto toOrderReserveDto(){
         OrderReserveDto orderReserveDto = new OrderReserveDto();
-        orderReserveDto.setBusinessNo(this.businessNo);
+        orderReserveDto.setBussinessNo(this.bussinessNo);
         orderReserveDto.setOrderType(this.orderType);
         orderReserveDto.setReservationUser(customerName);
         orderReserveDto.setReservationPhone(this.mobilePhone);

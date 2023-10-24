@@ -1,7 +1,7 @@
 package com.gpad.gpadtool.utils;
 
 import cn.hutool.core.io.FileTypeUtil;
-import com.gpad.gpadtool.constant.StatusCode;
+import com.gpad.common.core.constant.StatusCode;
 import com.gpad.common.core.exception.ServiceException;
 import com.gpad.gpadtool.constant.FileTypeConstant;
 import lombok.extern.slf4j.Slf4j;

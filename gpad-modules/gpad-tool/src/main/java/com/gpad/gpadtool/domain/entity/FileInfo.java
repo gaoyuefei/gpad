@@ -12,7 +12,7 @@ public class FileInfo {
 
     @TableId
     private String id;
-    private String businessNo;
+    private String bussinessNo;
     private Integer linkType;
     private String coverImgId;
     private String title;

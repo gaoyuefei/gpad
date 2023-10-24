@@ -20,7 +20,7 @@ public class OrderDetailDto {
     @ApiModelProperty(value = "id")
     private String id;
     @ApiModelProperty(value = "订单号")
-    private String businessNo;
+    private String bussinessNo;
     @ApiModelProperty(value = "开票完成时间")
     private String invoiceDate;
     @ApiModelProperty(value = "开票状态")

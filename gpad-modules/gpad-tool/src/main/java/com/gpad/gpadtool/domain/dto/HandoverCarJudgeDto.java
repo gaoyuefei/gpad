@@ -14,7 +14,7 @@ public class HandoverCarJudgeDto {
     @ApiModelProperty(value = "id")
     private Long id;
     @ApiModelProperty(value = "订单号")
-    private String businessNo;
+    private String bussinessNo;
     @ApiModelProperty(value = "满意度：1--5")
     private Integer satisfaction;
     @ApiModelProperty(value = "APP售后权益是否激活：1是0否")

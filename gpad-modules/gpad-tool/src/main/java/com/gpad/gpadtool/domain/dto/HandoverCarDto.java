@@ -12,7 +12,7 @@ import java.util.List;
 public class HandoverCarDto {
 
     @ApiModelProperty(value = "订单号")
-    private String businessNo;
+    private String bussinessNo;
     @ApiModelProperty(value = "订单类型（1=普通订单、2=集合订单）")
     private Integer orderType;
     @ApiModelProperty(value = "交车流程信息Dto")

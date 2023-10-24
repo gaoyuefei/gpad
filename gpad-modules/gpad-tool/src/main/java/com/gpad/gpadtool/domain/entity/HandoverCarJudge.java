@@ -23,7 +23,7 @@ public class HandoverCarJudge implements Serializable {
     /**
      * 订单号
      */
-    private String businessNo;
+    private String bussinessNo;
 
     /**
      * 满意度：1--5

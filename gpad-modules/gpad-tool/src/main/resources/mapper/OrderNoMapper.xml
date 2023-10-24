@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gpad.gpadtool.mapper.OrderNoMapper">
+
+
+    <resultMap id = "orderNoResultMap" type = "com.gpad.gpadtool.domain.entity.OrderNo">
+        <id column = "id" property = "id"/>
+    </resultMap>
+
+    <select id = "pageOrderList" resultMap = "orderNoResultMap">
+        SELECT * FROM grt_order_no
+        where 1 = 1
+        <if test="orderListByPageVo !=null and orderListByPageVo.orderStatus != null and orderListByPageVo.orderStatus != ''">
+            AND order_status = #{orderListByPageVo.orderStatus}
+        </if>
+        <if test="orderListByPageVo !=null and orderListByPageVo.customerName != null and orderListByPageVo.customerName != ''">
+            AND customer_name like CONCAT('%',#{orderListByPageVo.customerName},'%')
+        </if>
+        <if test="orderListByPageVo !=null and orderListByPageVo.mobilePhone != null and orderListByPageVo.mobilePhone != ''">
+            AND mobile_phone like CONCAT('%',#{orderListByPageVo.mobilePhone},'%')
+        </if>
+        <if test="orderListByPageVo !=null and orderListByPageVo.isOverTime != null and orderListByPageVo.isOverTime == '0'">
+            AND reservation_handover_date &gt;= now()
+        </if>
+        <if test="orderListByPageVo !=null and orderListByPageVo.isOverTime != null and orderListByPageVo.isOverTime == '1'">
+            AND reservation_handover_date &lt;= now()
+        </if>
+        <if test="orderListByPageVo.reservationHandoverDateStart !=null and orderListByPageVo.reservationHandoverDateEnd != null ">
+            AND (reservation_handover_date &gt;= #{orderListByPageVo.reservationHandoverDateStart}
+            AND reservation_handover_date &lt;= #{orderListByPageVo.reservationHandoverDateEnd})
+        </if>
+        <if test="orderListByPageVo.finishHandoverDateStart !=null and orderListByPageVo.finishHandoverDateEnd != null ">
+            AND (finish_handover_date &gt;= #{orderListByPageVo.finishHandoverDateStart}
+            AND finish_handover_date &lt;= #{orderListByPageVo.finishHandoverDateEnd})
+        </if>
+        <if test="orderListByPageVo.sheetCreateDateStart !=null and orderListByPageVo.sheetCreateDateEnd != null ">
+            AND (sheet_create_date &gt;= #{orderListByPageVo.sheetCreateDateStart}
+            AND sheet_create_date &lt;= #{orderListByPageVo.sheetCreateDateEnd})
+        </if>
+        ORDER BY business_no ASC
+    </select>
+
+    <select id = "getOrderListByParam" resultMap = "orderNoResultMap">
+        SELECT * FROM grt_order_no
+        where 1 = 1
+<!--        <if test="orderListByPageVo !=null and orderListByPageVo.orderStatus != null and orderListByPageVo.orderStatus != ''">-->
+<!--            AND order_status = #{orderListByPageVo.orderStatus}-->
+<!--        </if>-->
+<!--        <if test="orderListByPageVo !=null and orderListByPageVo.customerName != null and orderListByPageVo.customerName != ''">-->
+<!--            AND customer_name like CONCAT('%',#{orderListByPageVo.customerName},'%')-->
+<!--        </if>-->
+<!--        <if test="orderListByPageVo !=null and orderListByPageVo.mobilePhone != null and orderListByPageVo.mobilePhone != ''">-->
+<!--            AND mobile_phone like CONCAT('%',#{orderListByPageVo.mobilePhone},'%')-->
+<!--        </if>-->
+<!--        <if test="orderListByPageVo !=null and orderListByPageVo.isOverTime != null and orderListByPageVo.isOverTime == '1'">-->
+<!--            AND delivering_date &gt;= now()-->
+<!--        </if>-->
+<!--        <if test="orderListByPageVo !=null and orderListByPageVo.isOverTime != null and orderListByPageVo.isOverTime == '2'">-->
+<!--            AND delivering_date &lt;= now()-->
+<!--        </if>-->
+<!--        <if test="orderListByPageVo.reservationHandoverDateStart !=null and orderListByPageVo.reservationHandoverDateEnd != null ">-->
+<!--            AND (delivering_date &gt;= #{orderListByPageVo.reservationHandoverDateStart}-->
+<!--            AND delivering_date &lt;= #{orderListByPageVo.reservationHandoverDateEnd})-->
+<!--        </if>-->
+<!--        <if test="orderListByPageVo.finishHandoverDateStart !=null and orderListByPageVo.finishHandoverDateEnd != null ">-->
+<!--            AND (finish_date &gt;= #{orderListByPageVo.finishHandoverDateStart}-->
+<!--            AND finish_date &lt;= #{orderListByPageVo.finishHandoverDateEnd})-->
+<!--        </if>-->
+<!--        <if test="orderListByPageVo.sheetCreateDateStart !=null and orderListByPageVo.sheetCreateDateEnd != null ">-->
+<!--            AND (sheet_create_date &gt;= #{orderListByPageVo.sheetCreateDateStart}-->
+<!--            AND sheet_create_date &lt;= #{orderListByPageVo.sheetCreateDateEnd})-->
+<!--        </if>-->
+        ORDER BY business_no ASC
+    </select>
+
+
+</mapper>

@@ -1,11 +1,12 @@
 package com.gpad.gpadtool.service;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.nacos.common.utils.UuidUtils;
-import com.alibaba.nacos.shaded.io.grpc.internal.JsonUtil;
 import com.gpad.common.core.domain.R;
 import com.gpad.common.core.exception.ServiceException;
+import com.gpad.common.core.utils.StringUtils;
 import com.gpad.common.core.web.domain.AjaxResult;
 import com.gpad.common.redis.service.RedisService;
 import com.gpad.gpadtool.constant.RedisKey;
@@ -220,6 +221,7 @@ public class ScrmService {
     }
 
     public R<ScrmPdiFileListOutputDto> getPdiFileList(ScrmPdiFileListInputDto scrmPdiFileListInputDto){
+        Integer result = 0;
         String url = appUrl + getPdiFileList;
         // 加密字符串
         JSONObject jsonObject = new JSONObject();
@@ -246,6 +248,43 @@ public class ScrmService {
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         log.info(response.getBody());
         ScrmPdiFileListOutputDto scrmPdiFileListOutputDto = JSONObject.parseObject(response.getBody(),ScrmPdiFileListOutputDto.class);
+        log.info(JSONObject.toJSONString(scrmPdiFileListOutputDto));
+        if (ObjectUtil.isNotEmpty(scrmPdiFileListOutputDto)){
+            if(StringUtils.isNotEmpty(scrmPdiFileListOutputDto.getStatus())){
+                result = "1003".equals(scrmPdiFileListOutputDto.getStatus())? 1:0;
+            }
+        }
+        return R.ok(scrmPdiFileListOutputDto);
+    }
+
+    public R<ScrmPdiFileListOutputDto> getPdiSchema(ScrmPdiFileListInputDto scrmPdiFileListInputDto){
+        String url = "https://malltest.gacmotor.com/thirdparty-app/api/wxapi/urlSchema";
+        // 加密字符串
+        JSONObject jsonObject = new JSONObject();
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.put("vin", scrmPdiFileListInputDto.getVin());
+        String encryptData = "";
+        try {
+            encryptData = CryptoUtils.publicKeyEncrypt(JSON.toJSONString(dataMap), basicDataPublicKey);
+        } catch (Exception e) {
+            log.info("加密数据报错");
+        }
+        jsonObject.put("data", encryptData);
+        String json =  jsonObject.toJSONString();
+
+        restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("reqId", UuidUtils.generateUuid());
+        headers.add("reqFrom", "PAD");
+        headers.add("reqTime", DateUtil.getNowDateStr());
+        headers.add("Authorization", "Basic c2NybXVzZXI6R2Fjc2NybUAxMjM=");
+        //封装成一个请求对象
+        HttpEntity request = new HttpEntity(json, headers);
+        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        log.info(response.getBody());
+        ScrmPdiFileListOutputDto scrmPdiFileListOutputDto = JSONObject.parseObject(response.getBody(),ScrmPdiFileListOutputDto.class);
+        log.info(JSONObject.toJSONString(scrmPdiFileListOutputDto));
         return R.ok(scrmPdiFileListOutputDto);
     }
 

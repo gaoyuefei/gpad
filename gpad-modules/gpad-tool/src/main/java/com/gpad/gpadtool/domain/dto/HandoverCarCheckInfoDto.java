@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import java.util.Date;
 
 @Data
@@ -13,8 +14,9 @@ public class HandoverCarCheckInfoDto {
 
     @ApiModelProperty(value = "id")
     private Long id;
+    @NotBlank
     @ApiModelProperty(value = "订单号")
-    private String businessNo;
+    private String bussinessNo;
     @ApiModelProperty(value = "订单类型（普通订单，集合订单）")
     private Integer orderType;
     @ApiModelProperty(value =  "交车确认客户名称")
@@ -89,6 +91,18 @@ public class HandoverCarCheckInfoDto {
     private Integer signType;
     @ApiModelProperty(value = "签字状态（0=未签署；1=已签署）")
     private Integer signStatus;
+    @ApiModelProperty(value = "产品专家记忆签名")
+    private String  memorySignPath;
+    @NotBlank
+    @ApiModelProperty(value = "当前登录账号")
+    private String  productUsername;
+    @NotBlank
+    @ApiModelProperty(value = "文件类型")
+    private String  fileType;
+    @NotBlank
+    @ApiModelProperty(value = "文件类型")
+    private String  linkType;
+
     private String createBy;
     private Date createTime;
     private String updateBy;

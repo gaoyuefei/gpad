@@ -19,8 +19,19 @@ public class OrderNoListResultDto {
 
     @ApiModelProperty(value = "成功：200；异常：500")
     private String status;
+
     @ApiModelProperty(value = "返回信息")
     private String message;
+
+    @ApiModelProperty(value = "总数")
+    private String total;
+
+    @ApiModelProperty(value = "pageSize")
+    private String pageSize;
+
+    @ApiModelProperty(value = "pageNum")
+    private String pageNum;
+
     @ApiModelProperty(value = "数据")
     private List<OrderNoResultDto> data;
 }

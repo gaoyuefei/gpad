@@ -1,24 +1,19 @@
 package com.gpad.gpadtool.controller;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.gpad.common.core.domain.R;
-import com.gpad.gpadtool.domain.dto.HandoverCarCheckInfoDto;
-import com.gpad.gpadtool.domain.dto.HandoverCarDto;
-import com.gpad.gpadtool.domain.dto.HandoverCarJudgeDto;
-import com.gpad.gpadtool.domain.dto.HandoverCarPrepareDto;
-import com.gpad.gpadtool.service.HandoverCarCheckInfoService;
-import com.gpad.gpadtool.service.HandoverCarJudgeService;
-import com.gpad.gpadtool.service.HandoverCarPrepareService;
-import com.gpad.gpadtool.service.HandoverCarService;
+import com.gpad.gpadtool.domain.dto.*;
+import com.gpad.gpadtool.service.*;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author Donald.Lee
@@ -44,6 +39,25 @@ public class HandoverCarController {
     @Autowired
     private HandoverCarService handoverCarService;
 
+    @Autowired
+    private GRTService grtService;
+
+
+    /**
+     * 查询流程节点信息
+     */
+    @Operation(summary = "查询流程节点信息")
+    @GetMapping("/getProcessNodeByNo")
+    public R<FlowInfoDto> queryProcessNode(@RequestParam("bussinessNo") String bussinessNo){
+        log.info("查询交车评价信息 --->>> {}", bussinessNo);
+        if (Strings.isEmpty(bussinessNo)){
+            return R.fail("bussinessNo必传，请检查参数! ");
+        }
+        //TODO 嵌套切面跳转，加密解密
+        FlowInfoDto flowInfoDto = handoverCarService.queryProcessNode(bussinessNo);
+        log.info("查询流程节点信息 --->>> {}", JSON.toJSONString(flowInfoDto));
+        return R.ok(flowInfoDto);
+    }
 
     /**
      * 查询交车评价信息
@@ -52,11 +66,11 @@ public class HandoverCarController {
     @PostMapping("/getHandoverCarJudge")
     public R<HandoverCarJudgeDto> getHandoverCarJudge(@RequestBody HandoverCarJudgeDto handoverCarCheckInfoDto){
         log.info("查询交车评价信息 --->>> {}", JSONObject.toJSONString(handoverCarCheckInfoDto));
-        if (Strings.isEmpty(handoverCarCheckInfoDto.getBusinessNo())){
-            return R.fail("businessNo必传，请检查参数! ");
+        if (Strings.isEmpty(handoverCarCheckInfoDto.getBussinessNo())){
+            return R.fail("bussinessNo必传，请检查参数! ");
         }
-        HandoverCarJudgeDto byBusinessNo = handoverCarJudgeService.getByBusinessNo(handoverCarCheckInfoDto.getBusinessNo());
-        return R.ok(byBusinessNo);
+        HandoverCarJudgeDto bussinessNo = handoverCarJudgeService.getBybussinessNo(handoverCarCheckInfoDto.getBussinessNo());
+        return R.ok(bussinessNo);
     }
 
 
@@ -65,13 +79,21 @@ public class HandoverCarController {
      */
     @Operation(summary = "查询交车确认信息")
     @PostMapping("/getHandoverCarCheckInfo")
-    public R<HandoverCarCheckInfoDto> getHandoverCarCheckInfo(@RequestBody HandoverCarCheckInfoDto handoverCarCheckInfoDto){
+    public R<HandoverCarCheckInfoOutBO> getHandoverCarCheckInfo(@RequestBody HandoverCarCheckInfoDto handoverCarCheckInfoDto){
         log.info("查询交车确认信息 --->>> {}", JSONObject.toJSONString(handoverCarCheckInfoDto));
-        if (Strings.isEmpty(handoverCarCheckInfoDto.getBusinessNo())){
-            return R.fail("businessNo必传，请检查参数! ");
+        if (Strings.isEmpty(handoverCarCheckInfoDto.getBussinessNo())){
+            return R.fail("bussinessNo必传，请检查参数! ");
         }
-        HandoverCarCheckInfoDto byBusinessNo = handoverCarCheckInfoService.getByBusinessNo(handoverCarCheckInfoDto.getBusinessNo());
-        return R.ok(byBusinessNo);
+        HandoverCarCheckInfoDto handoverCarCheckInfoOut = handoverCarCheckInfoService.getBybussinessNo(handoverCarCheckInfoDto.getBussinessNo());
+        //客户信息
+        R<List<OrderDetailResultDto>> grtOrderDetail = grtService.getGrtOrderDetail(handoverCarCheckInfoDto.getBussinessNo());
+        //合同信息
+        HandoverCarCheckInfoOutBO handoverCarCheckInfoOutBO = handoverCarCheckInfoService.queryDeliverCarConfirmInfo(handoverCarCheckInfoDto);
+        List<OrderDetailResultDto> data = grtOrderDetail.getData();
+        if (!CollectionUtil.isEmpty(data)){
+            handoverCarCheckInfoOutBO.setOrderDetailResultDto(grtOrderDetail.getData().get(0));
+        }
+        return R.ok(handoverCarCheckInfoOutBO);
     }
 
 
@@ -80,24 +102,30 @@ public class HandoverCarController {
      */
     @Operation(summary = "查询交车准备信息")
     @PostMapping("/getHandoverCarPrepareInfo")
-    public R<HandoverCarPrepareDto> getHandoverCarPrepareInfo(@RequestBody HandoverCarPrepareDto handoverCarPrepareDto){
+    public R<HandoverCarPrepareOutBO> getHandoverCarPrepareInfo(@RequestBody HandoverCarPrepareDto handoverCarPrepareDto){
         log.info("查询交车准备信息 --->>> {}", JSONObject.toJSONString(handoverCarPrepareDto));
-        if (Strings.isEmpty(handoverCarPrepareDto.getBusinessNo())){
-            return R.fail("businessNo必传，请检查参数! ");
+        if (Strings.isEmpty(handoverCarPrepareDto.getBussinessNo())){
+            return R.fail("bussinessNo必传，请检查参数! ");
         }
-        HandoverCarPrepareDto byBusinessNo = handoverCarPrepareService.getByBusinessNo(handoverCarPrepareDto.getBusinessNo());
-        return R.ok(byBusinessNo);
+        R<List<OrderDetailResultDto>> grtOrderDetail = grtService.getGrtOrderDetail(handoverCarPrepareDto.getBussinessNo());
+        HandoverCarPrepareOutBO handoverCarPrepareOutBO = handoverCarPrepareService.queryReadyDeliverCarOrderNo(handoverCarPrepareDto);
+        List<OrderDetailResultDto> data = grtOrderDetail.getData();
+        if (CollectionUtil.isNotEmpty(data)){
+            OrderDetailResultDto invoiceStatus = data.get(0);
+            handoverCarPrepareOutBO.setUnifiedSalesInvoice(Boolean.parseBoolean(invoiceStatus.getInvoiceStatus())?0:1);
+            handoverCarPrepareOutBO.setLoanStatus(Boolean.parseBoolean(invoiceStatus.getPayOffStatus())?0:1);
+        }
+        return R.ok(handoverCarPrepareOutBO);
     }
 
     /**
-     * 新增/变更交车准备信息
+     * 保存交车准备信息
      */
-    @Operation(summary = "新增/变更交车准备信息")
+    @Operation(summary = "保存交车准备信息")
     @PostMapping("/saveOrUpdateHandoverCarPrepare")
-    public R<HandoverCarPrepareDto> saveOrUpdateHandoverCarPrepare(@RequestBody HandoverCarPrepareDto handoverCarPrepareDto){
-        log.info("新增/变更交车准备信息 --->>> {}", JSONObject.toJSONString(handoverCarPrepareDto));
-        handoverCarPrepareService.saveOrUpdateHandoverCarPrepareDto(handoverCarPrepareDto);
-        return R.ok(handoverCarPrepareDto);
+    public R<Boolean> saveOrUpdateHandoverCarPrepare(@RequestBody HandoverCarPrepareDto handoverCarPrepareDto){
+        log.info("保存交车准备信息 --->>> {}", JSONObject.toJSONString(handoverCarPrepareDto));
+        return handoverCarPrepareService.saveOrUpdateHandoverCarPrepareDto(handoverCarPrepareDto);
     }
 
     /**
@@ -112,15 +140,32 @@ public class HandoverCarController {
     }
 
     /**
-     * 交车流程下一步接口
+     * 交车流程下一步接口(暂时不用)
      */
     @Operation(summary = "交车流程下一步接口")
     @PostMapping("/handOverCar")
     public R<Void> HandOverCar(@RequestBody HandoverCarDto handoverCarDto){
         log.info("交车流程下一步接口 --->>> {}", JSONObject.toJSONString(handoverCarDto));
-
         return handoverCarService.HandOverCar(handoverCarDto);
     }
 
+    /**
+     * 交车管理-车辆到店
+     */
+    @Operation(summary = "车辆到店")
+    @PostMapping("/handOverCar/DeliveryOverCarNext")
+    public R<Boolean> handOverCarNext(@RequestBody HandoverCarOutBO handoverCarOutBO){
+        log.info("交车流程下一步接口 --->>> {}", JSONObject.toJSONString(handoverCarOutBO));
+        return handoverCarService.HandOverCarNext(handoverCarOutBO);
+    }
 
+    /**
+     * 03交车确认-合同信息保存
+     */
+    @Operation(summary = "保存交车确认信息")
+    @PostMapping("/handOverCar/saveDeliverCarConfirmInfo")
+    public R<Boolean> saveDeliverCarConfirmInfo(@RequestBody HandoverCarCheckInfoDto handoverCarCheckInfoDto){
+        log.info("03交车确认-合同信息保存 --->>> {}", JSONObject.toJSONString(handoverCarCheckInfoDto));
+        return handoverCarService.saveDeliverCarConfirmInfo(handoverCarCheckInfoDto);
+    }
 }

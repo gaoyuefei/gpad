@@ -1,5 +1,6 @@
 package com.gpad.gpadtool.repository;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -7,7 +8,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gpad.gpadtool.domain.dto.FlowInfoDto;
 import com.gpad.gpadtool.domain.entity.FlowInfo;
 import com.gpad.gpadtool.mapper.FlowInfoMapper;
-import com.gpad.gpadtool.utils.UuidUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ import java.util.List;
 public class FlowInfoRepository extends ServiceImpl<FlowInfoMapper, FlowInfo> {
     
     public FlowInfoDto saveFlowInfoDto(FlowInfoDto flowInfoDto) {
-        flowInfoDto.setId(UuidUtil.generateUuid());
+//        flowInfoDto.setId(UuidUtil.generateUuid());
 //        flowInfoDto.setCreateBy();
         flowInfoDto.setCreateTime(new Date());
         this.save(JSONObject.parseObject(JSONObject.toJSONString(flowInfoDto),FlowInfo.class));
@@ -33,9 +33,9 @@ public class FlowInfoRepository extends ServiceImpl<FlowInfoMapper, FlowInfo> {
     }
 
     
-    public FlowInfoDto getByBusinessNo(String businessNo) {
+    public FlowInfoDto getBybussinessNo(String bussinessNo) {
         LambdaQueryWrapper<FlowInfo> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(FlowInfo::getBusinessNo,businessNo);
+        wrapper.eq(FlowInfo::getBussinessNo,bussinessNo);
         FlowInfo flowInfo = this.getOne(wrapper);
         return JSONObject.parseObject(JSONObject.toJSONString(flowInfo),FlowInfoDto.class);
     }
@@ -54,7 +54,7 @@ public class FlowInfoRepository extends ServiceImpl<FlowInfoMapper, FlowInfo> {
 
     
     public void saveOrUpdateFlowInfoDto(FlowInfoDto flowInfoDto) {
-        /*if (byBusinessNo==null){
+        /*if (bybussinessNo==null){
             saveFlowInfoDto(flowInfoDto);
         }else {
             updateById(flowInfoDto);
@@ -67,4 +67,21 @@ public class FlowInfoRepository extends ServiceImpl<FlowInfoMapper, FlowInfo> {
         this.updateById(JSONObject.parseObject(JSONObject.toJSONString(flowInfoDto),FlowInfo.class));
         return flowInfoDto;
     }
+
+    public Boolean updateDeliverCarReadyToConfirm(FlowInfoDto flow) {
+        //TODO  前端带上流程节点主键ID 给我
+        return this.lambdaUpdate()
+                .setSql(" version = version + 1 ")
+                .set(FlowInfo::getNodeNum,flow.getNodeNum())
+                .eq(FlowInfo::getBussinessNo,flow.getBussinessNo())
+                .eq(ObjectUtil.isNotEmpty(flow.getId()),FlowInfo::getId,flow.getId())
+                .update();
+    }
+
+    public Boolean saveFlowInfoFirstNode(FlowInfoDto flowInfoDto) {
+        flowInfoDto.setCreateTime(new Date());
+        return this.save(JSONObject.parseObject(JSONObject.toJSONString(flowInfoDto),FlowInfo.class));
+    }
+
+
 }

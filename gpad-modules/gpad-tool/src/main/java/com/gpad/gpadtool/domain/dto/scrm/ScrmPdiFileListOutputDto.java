@@ -17,6 +17,12 @@ public class ScrmPdiFileListOutputDto {
     @ApiModelProperty(value = "文件路径")
     private List<ScrmPdiFileListDto> fileList;
 
+    @ApiModelProperty(value = "PDI交车图片")
+    private String pdiCheckImg;
+
+    @ApiModelProperty(value = "成功标识(1:成功  0:失败)")
+    private String resultFlag;
+
     @ApiModelProperty(value = "状态(1001：待分配 1002：待完成 1003：已完成)")
     private String status;
 

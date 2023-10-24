@@ -1,9 +1,18 @@
 package com.gpad.gpadtool.repository;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.gpad.gpadtool.domain.dto.OrderDetailResultDto;
+import com.gpad.gpadtool.domain.entity.FlowInfo;
 import com.gpad.gpadtool.domain.entity.OrderDetail;
 import com.gpad.gpadtool.mapper.OrderDetailMapper;
+import com.gpad.gpadtool.utils.UuidUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import java.sql.SQLOutput;
+import java.util.List;
 
 /**
  * @author Donald.Lee
@@ -14,4 +23,55 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class OrderDetailRepository extends ServiceImpl<OrderDetailMapper, OrderDetail>  {
+
+    public OrderDetail getPadOrderDetail(String bussinessNo) {
+        List<OrderDetail> list = this.lambdaQuery().eq(OrderDetail::getBussinessNo, bussinessNo).orderByDesc(OrderDetail::getCreateTime).list();
+        return CollectionUtils.isEmpty(list)? (null):(list.get(0));
+    }
+
+    public Boolean saveOrderDetailEntity(OrderDetailResultDto orderDetailResultDto,String bussinessNo) {
+
+        OrderDetail orderDetail = OrderDetail.builder()
+                .bussinessNo(bussinessNo)
+                .invoiceDate(orderDetailResultDto.getInvoiceDate())
+                .invoiceStatus(orderDetailResultDto.getInvoiceStatus())
+                .billingNo(orderDetailResultDto.getBillingNo())
+                //TODO 支付状态 是否已结清
+                .payOffStatus(orderDetailResultDto.getPayOffStatus())
+                .payOffDate(orderDetailResultDto.getPayOffDate())
+                .deliveringDate(orderDetailResultDto.getDeliveringDate())
+                .vin(orderDetailResultDto.getVin())
+                .orderType(orderDetailResultDto.getOrderType())
+                .bigSeriesName(orderDetailResultDto.getBigSeriesName())
+                .orderStatus(orderDetailResultDto.getOrderStatus())
+                .mobilePhone(orderDetailResultDto.getMobilePhone())
+                .seriesName(orderDetailResultDto.getSeriesName())
+                .productName(orderDetailResultDto.getProductName())
+                .trimColor(orderDetailResultDto.getTrimColor())
+                .color(orderDetailResultDto.getColor())
+                .consultant(orderDetailResultDto.getConsultant())
+                .sheetCreateDate(orderDetailResultDto.getSheetCreateDate())
+                .remark(orderDetailResultDto.getRemark())
+                .build();
+        return this.save(orderDetail);
+    }
+
+    public OrderDetail queryOrderDetail(String bussinessNo) {
+        OrderDetail orderDetail = OrderDetail.builder().build();
+        List<OrderDetail> list = this.lambdaQuery().eq(OrderDetail::getBussinessNo, bussinessNo).list();
+        if (CollectionUtil.isEmpty(list) && list.size() > 0 ){
+            orderDetail = list.get(0);
+        }
+        return orderDetail;
+    }
+
+    public Boolean saveOrUpdateNextRemark(String bussinessNo, String handoverCarRemark) {
+        return this.lambdaUpdate()
+                .setSql(" version = version + 1 ")
+                .set(OrderDetail::getRemark,handoverCarRemark)
+                .eq(OrderDetail::getBussinessNo,bussinessNo)
+//                .eq(OrderDetail::getId,flow.getId())
+                .update();
+
+    }
 }

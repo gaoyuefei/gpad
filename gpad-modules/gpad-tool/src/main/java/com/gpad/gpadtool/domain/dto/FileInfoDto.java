@@ -19,7 +19,7 @@ public class FileInfoDto {
     @ApiModelProperty(value =  "id")
     private String id;
     @ApiModelProperty(value =  "订单号")
-    private String businessNo;
+    private String bussinessNo;
     @ApiModelProperty(value =  "关联类型：1=新车PDI；2=到店检查；3=交车确认；4=签名PDF；5=用车指南；6=标准检查流程演示；7=封面图片")
     private Integer linkType;
     @ApiModelProperty(value =  "封面图片ID")
@@ -44,9 +44,9 @@ public class FileInfoDto {
     public FileInfoDto() {
     }
 
-    public FileInfoDto(String id, String businessNo, Integer linkType, String coverImgId, String title, String filePath, String fileName, Integer fileType, String suitCarType, Integer status, Integer orderNum, Date createTime, Date updateTime) {
+    public FileInfoDto(String id, String bussinessNo, Integer linkType, String coverImgId, String title, String filePath, String fileName, Integer fileType, String suitCarType, Integer status, Integer orderNum, Date createTime, Date updateTime) {
         this.id = id;
-        this.businessNo = businessNo;
+        this.bussinessNo = bussinessNo;
         this.linkType = linkType;
         this.coverImgId = coverImgId;
         this.title = title;
@@ -60,8 +60,8 @@ public class FileInfoDto {
         this.updateTime = updateTime;
     }
 
-    public FileInfoDto(String businessNo, Integer linkType, String filePath, String fileName, Integer fileType) {
-        this.businessNo = businessNo;
+    public FileInfoDto(String bussinessNo, Integer linkType, String filePath, String fileName, Integer fileType) {
+        this.bussinessNo = bussinessNo;
         this.linkType = linkType;
         this.filePath = filePath;
         this.fileName = fileName;

@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,6 +43,7 @@ public class OrderController {
     @PostMapping("/listOrderByPage")
     public R<PageResult<OrderNoDto>> listOrderByPage(@RequestBody OrderListByPageVo orderListByPageVo){
         log.info("分页条件查询订单列表 --->>> {}", JSONObject.toJSONString(orderListByPageVo));
+        List<OrderNoDto> olist = new ArrayList<>();
         PageResult<OrderNoDto> orderNoDtoPageResult = orderNoService.orderListByPage(orderListByPageVo);
         return R.ok(orderNoDtoPageResult);
     }
@@ -62,10 +64,10 @@ public class OrderController {
      * 查询订单详情
      */
     @Operation(summary = "查询订单详情")
-    @GetMapping("/getOrderDetailByBusinessNo")
-    public R<OrderDetailDto> getOrderDetailByBusinessNo(@RequestParam("businessNo") String businessNo){
-        log.info("查询订单详情 --->>> {}", JSONObject.toJSONString(businessNo));
-        OrderDetailDto orderDetailDto = orderDetailService.getOrderDetailByBusinessNo(businessNo);
+    @GetMapping("/getOrderDetailBybussinessNo")
+    public R<OrderDetailDto> getOrderDetailBybussinessNo(@RequestParam("bussinessNo") String bussinessNo){
+        log.info("查询订单详情 --->>> {}", JSONObject.toJSONString(bussinessNo));
+        OrderDetailDto orderDetailDto = orderDetailService.getOrderDetailBybussinessNo(bussinessNo);
         return R.ok(orderDetailDto);
     }
 
@@ -109,10 +111,10 @@ public class OrderController {
      */
     @Operation(summary = "查询交车预约信息")
     @GetMapping("/getOrderReserveInfo")
-    public R<OrderReserveDto> getOrderReserveInfo(@RequestParam("businessNo") String businessNo){
-        log.info("查询交车预约信息 --->>> {}", JSONObject.toJSONString(businessNo));
-        OrderReserveDto byBusinessNo = orderReserveService.getByBusinessNo(businessNo);
-        return R.ok(byBusinessNo);
+    public R<OrderReserveDto> getOrderReserveInfo(@RequestParam("bussinessNo") String bussinessNo){
+        log.info("查询交车预约信息 --->>> {}", JSONObject.toJSONString(bussinessNo));
+        OrderReserveDto bybussinessNo = orderReserveService.getBybussinessNo(bussinessNo);
+        return R.ok(bybussinessNo);
     }
 
 

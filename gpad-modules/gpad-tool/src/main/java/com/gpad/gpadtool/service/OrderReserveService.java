@@ -26,9 +26,9 @@ public class OrderReserveService {
     @Autowired
     private OrderReserveRepository orderReserveRepository;
 
-    public OrderReserveDto getByBusinessNo(String businessNo){
+    public OrderReserveDto getBybussinessNo(String bussinessNo){
         LambdaQueryWrapper<OrderReserve> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(OrderReserve::getBusinessNo,businessNo);
+        wrapper.eq(OrderReserve::getBussinessNo,bussinessNo);
         OrderReserve orderReserve = orderReserveRepository.getOne(wrapper);
         return JSONObject.parseObject(JSONObject.toJSONString(orderReserve),OrderReserveDto.class);
     }
@@ -50,7 +50,7 @@ public class OrderReserveService {
     }
 
     public void saveOrUpdateOrderReserveDto(OrderReserveDto orderReserveDto) {
-        if (Strings.isBlank(orderReserveDto.getId()) || this.getByBusinessNo(orderReserveDto.getBusinessNo()) == null){
+        if (Strings.isBlank(orderReserveDto.getId()) || this.getBybussinessNo(orderReserveDto.getBussinessNo()) == null){
             saveOrderReserveDto(orderReserveDto);
         }
         updateById(orderReserveDto);

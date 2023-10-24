@@ -19,7 +19,7 @@ public class OrderReserveDto {
     @ApiModelProperty(value =  "id")
     private String id;
     @ApiModelProperty(value =  "订单号")
-    private String businessNo;
+    private String bussinessNo;
     @ApiModelProperty(value =  "订单类型（普通订单，集合订单）")
     private String orderType;
     @ApiModelProperty(value =  "预约交车人")

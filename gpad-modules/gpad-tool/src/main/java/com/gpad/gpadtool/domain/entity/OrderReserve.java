@@ -19,7 +19,7 @@ public class OrderReserve {
 
     @TableId
     private String id;
-    private String businessNo;
+    private String bussinessNo;
     private String orderType;
     private String reservationUser;
     private String reservationPhone;

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.gpad.gpadtool.domain.dto.OrderListByPageVo;
 import com.gpad.gpadtool.domain.entity.OrderNo;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -17,7 +18,8 @@ import java.util.List;
  */
 @Mapper
 public interface OrderNoMapper extends BaseMapper<OrderNo> {
-    IPage<OrderNo> pageOrderList(IPage<OrderNo> page, OrderListByPageVo orderListByPageVo);
 
-    List<OrderNo> getOrderListByParam(OrderListByPageVo orderListByPageVo);
+    IPage<OrderNo> pageOrderList(@Param("page") IPage<OrderNo> page, @Param("orderListByPageVo") OrderListByPageVo orderListByPageVo);
+
+    List<OrderNo> getOrderListByParam(@Param("orderListByPageVo") OrderListByPageVo orderListByPageVo);
 }

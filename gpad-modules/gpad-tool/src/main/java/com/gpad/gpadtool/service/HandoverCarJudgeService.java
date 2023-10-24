@@ -34,9 +34,9 @@ public class HandoverCarJudgeService {
     }
 
     
-    public HandoverCarJudgeDto getByBusinessNo(String businessNo) {
+    public HandoverCarJudgeDto getBybussinessNo(String bussinessNo) {
         LambdaQueryWrapper<HandoverCarJudge> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(HandoverCarJudge::getBusinessNo,businessNo);
+        wrapper.eq(HandoverCarJudge::getBussinessNo,bussinessNo);
         HandoverCarJudge handoverCarJudge = handoverCarJudgeRepository.getOne(wrapper);
         return JSONObject.parseObject(JSONObject.toJSONString(handoverCarJudge),HandoverCarJudgeDto.class);
     }
@@ -59,8 +59,8 @@ public class HandoverCarJudgeService {
 
     
     public void saveOrUpdateHandoverCarJudgeDto(HandoverCarJudgeDto handoverCarJudgeDto) {
-        HandoverCarJudgeDto byBusinessNo = this.getByBusinessNo(handoverCarJudgeDto.getBusinessNo());
-        if (byBusinessNo==null){
+        HandoverCarJudgeDto bybussinessNo = this.getBybussinessNo(handoverCarJudgeDto.getBussinessNo());
+        if (bybussinessNo==null){
             saveHandoverCarJudgeDto(handoverCarJudgeDto);
         }else {
             updateById(handoverCarJudgeDto);

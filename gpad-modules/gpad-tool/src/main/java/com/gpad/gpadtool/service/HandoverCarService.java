@@ -1,13 +1,16 @@
 package com.gpad.gpadtool.service;
 
+import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.gpad.common.core.domain.R;
+import com.gpad.common.core.exception.ServiceException;
 import com.gpad.gpadtool.constant.FlowNodeNum;
-import com.gpad.gpadtool.domain.dto.FlowInfoDto;
-import com.gpad.gpadtool.domain.dto.HandoverCarCheckInfoDto;
-import com.gpad.gpadtool.domain.dto.HandoverCarDto;
-import com.gpad.gpadtool.domain.dto.HandoverCarPrepareDto;
+import com.gpad.gpadtool.domain.dto.*;
 import com.gpad.gpadtool.repository.FileInfoRepository;
 import com.gpad.gpadtool.repository.FlowInfoRepository;
+import com.gpad.gpadtool.repository.OrderDetailRepository;
+import com.gpad.gpadtool.utils.RedisLockUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +25,7 @@ import java.util.Objects;
  * @createTime 2023年09月22日 18:00:00
  */
 @Service
+@Slf4j
 public class HandoverCarService {
     @Autowired
     private FlowInfoRepository flowInfoRepository;
@@ -31,6 +35,9 @@ public class HandoverCarService {
     private HandoverCarPrepareService handoverCarPrepareService;
     @Autowired
     private HandoverCarCheckInfoService handoverCarCheckInfoService;
+    @Autowired
+    private OrderDetailRepository orderDetailRepository;
+
 
 
     public R<Void> HandOverCar(HandoverCarDto handoverCarDto) {
@@ -38,7 +45,7 @@ public class HandoverCarService {
         HandoverCarCheckInfoDto handoverCarCheckInfoDto = handoverCarDto.getHandoverCarCheckInfoDto();
         FlowInfoDto flowInfoDto = handoverCarDto.getFlowInfoDto();
 
-        FlowInfoDto localFlowInfo = flowInfoRepository.getByBusinessNo(handoverCarDto.getBusinessNo());
+        FlowInfoDto localFlowInfo = flowInfoRepository.getBybussinessNo(handoverCarDto.getBussinessNo());
         if (localFlowInfo != null){
             Integer nodeNum = localFlowInfo.getNodeNum();
             Integer nowNode = flowInfoDto.getNodeNum();
@@ -66,7 +73,7 @@ public class HandoverCarService {
 
             //新建交车流程信息并入库 -- 步骤为第一步
             FlowInfoDto flow = new FlowInfoDto();
-            flow.setBusinessNo(handoverCarDto.getBusinessNo());
+            flow.setBussinessNo(handoverCarDto.getBussinessNo());
             flow.setOrderType(handoverCarDto.getOrderType());
             flow.setNodeNum(FlowNodeNum.ARRIVE_STORE.getCode());
             flowInfoRepository.saveFlowInfoDto(flow);
@@ -88,5 +95,68 @@ public class HandoverCarService {
             flowInfoRepository.updateById(flowInfoDto);
         }
         return R.ok();
+    }
+
+    public R<Boolean> HandOverCarNext(HandoverCarOutBO handoverCarOutBO) {
+        Boolean result = false;
+        String bussinessNo = handoverCarOutBO.getBussinessNo();
+        try {
+            //幂等处理
+            RedisLockUtils.lock(bussinessNo);
+            //变更订单 remak 订单实施状态
+            orderDetailRepository.saveOrUpdateNextRemark(handoverCarOutBO.getBussinessNo(),handoverCarOutBO.getHandoverCarRemark());
+            //变更交车流程信息  handover_car_flow_info 修改流程状态
+            FlowInfoDto bybussinessNo = flowInfoRepository.getBybussinessNo(handoverCarOutBO.getBussinessNo());
+            Integer nodeNum = bybussinessNo.getNodeNum();
+
+            if ( nodeNum < 2){
+                FlowInfoDto flow = new FlowInfoDto();
+                flow.setBussinessNo(handoverCarOutBO.getBussinessNo());
+                flow.setNodeNum(FlowNodeNum.HAND_OVER_CAR_PREPARE.getCode());
+                result = flowInfoRepository.updateDeliverCarReadyToConfirm(flow);
+                if (!result){
+                    throw new ServiceException("流程节点变化有误",500);
+                }
+            }
+        } finally {
+            RedisLockUtils.unlock(bussinessNo);
+        }
+
+        return R.ok(true);
+    }
+
+    public R<Boolean> saveDeliverCarConfirmInfo(HandoverCarCheckInfoDto handoverCarCheckInfoDto) {
+        Boolean result = false;
+        String bussinessNo = handoverCarCheckInfoDto.getBussinessNo();
+        try {
+            //幂等处理
+            RedisLockUtils.lock(bussinessNo);
+            //交车确认信息入库
+            result = handoverCarCheckInfoService.saveDeliverCarConfirmInfo(handoverCarCheckInfoDto);
+            if (!result){
+                throw new ServiceException("合同信息入库失败",500);
+            }
+            log.info("method:saveDeliverCarConfirmInfo().合同信息入库失败: {}", JSONObject.toJSONString(handoverCarCheckInfoDto));
+           //TODO  保存记忆签图片
+
+            //
+            //新建交车流程信息并入库 -- 步骤为第一步 //
+//            FlowInfoDto flowInfoDto = new FlowInfoDto();
+//            flowInfoDto.setBussinessNo(bussinessNo);
+//            flowInfoDto.setNodeNum(FlowNodeNum.ARRIVE_STORE.getCode());
+//            flowInfoDto.setVersion(0);
+//            result = flowInfoRepository.saveFlowInfoFirstNode(flowInfoDto);
+//            if (!result){
+//                throw new ServiceException("流程接口入库失败",500);
+//            }
+        } finally {
+            RedisLockUtils.unlock(bussinessNo);
+        }
+        return null;
+    }
+
+    public FlowInfoDto queryProcessNode(String bussinessNo) {
+        FlowInfoDto flowInfoDto = flowInfoRepository.getBybussinessNo(bussinessNo);
+        return ObjectUtil.isEmpty(flowInfoDto)?(new FlowInfoDto()):(flowInfoDto);
     }
 }

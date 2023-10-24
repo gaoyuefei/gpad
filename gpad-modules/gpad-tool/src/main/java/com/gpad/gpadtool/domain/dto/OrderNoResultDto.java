@@ -24,7 +24,7 @@ public class OrderNoResultDto {
     private String mergeOrderId;
     @ApiModelProperty(value = "订单状态")
     private String orderStatus;
-    @ApiModelProperty(value = "订单类型")
+    @ApiModelProperty(value = "订单类型(创新营销订单（E9等）、线下订单、其他)")
     private String orderType;
     @ApiModelProperty(value = "店代码")
     private String dealerCode;
@@ -54,6 +54,15 @@ public class OrderNoResultDto {
     private String dispatchedDate;
     @ApiModelProperty(value = "车辆到店时间")
     private String stockinTime;
+    @ApiModelProperty(value = "VIN")
+    private String vin;
+    @ApiModelProperty(value = "绑定状态")
+    private String bindStatus;
     private Date createTime;
     private Date updateTime;
+
+    //2023/09/28
+    @ApiModelProperty(value = "车主手机号码")
+    private String customerPhone;
+
 }

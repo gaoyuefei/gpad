@@ -288,6 +288,12 @@ public class ScrmController {
         return scrmService.getPdiFileList(scrmPdiFileListInputDto);
     }
 
+    @Operation(summary = "获取schema")
+    @PostMapping("/getPdiSchema")
+    public R<ScrmPdiFileListOutputDto> getPdiSchema(@RequestBody ScrmPdiFileListInputDto scrmPdiFileListInputDto) {
+        return scrmService.getPdiSchema(scrmPdiFileListInputDto);
+    }
+
     @Operation(summary = "数据获取请求")
     @PostMapping("/getBasicData")
     public R<ScrmBasicDataOutputDto> getBasicData(@RequestBody ScrmBasicDataInputDto scrmBasicDataInputDto) {

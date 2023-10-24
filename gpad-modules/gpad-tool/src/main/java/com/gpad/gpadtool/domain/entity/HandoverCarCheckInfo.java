@@ -14,7 +14,7 @@ public class HandoverCarCheckInfo implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @TableId(type = IdType.AUTO)
+    @TableId(type = IdType.ASSIGN_ID)
     /**
      * id
      */
@@ -23,7 +23,7 @@ public class HandoverCarCheckInfo implements Serializable {
     /**
      * 订单号
      */
-    private String businessNo;
+    private String bussinessNo;
 
     /**
      * 订单类型（普通订单，集合订单）
@@ -34,6 +34,12 @@ public class HandoverCarCheckInfo implements Serializable {
      * 交车确认客户名称
      */
     private String confirmUserName;
+
+
+    /**
+     * 交车确认客户名称
+     */
+    private String contractAplNo;
 
     /**
      * 交车确认客户手机号码
@@ -209,6 +215,15 @@ public class HandoverCarCheckInfo implements Serializable {
      * 签字状态（0=未签署；1=已签署）
      */
     private Integer signStatus;
+
+    /**
+     * 签字状态（0=未签署；1=已签署）
+     */
+    private Integer delFlag;
+    /**
+     * 签字状态（0=未签署；1=已签署）
+     */
+    private Integer version;
 
     /**
      * create_by

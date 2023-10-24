@@ -44,10 +44,10 @@ public class FileInfoController {
      * 根据订单号和关联类型查文件列表
      */
     @Operation(summary = "根据订单号和关联类型查文件列表")
-    @GetMapping("/getByBusinessNoAndLinkType")
-    public R<List<FileInfoDto>> getByBusinessNoAndLinkType(@RequestParam("businessNo") String businessNo, @RequestParam("linkType") Integer linkType){
-        log.info("根据订单号和关联类型查文件列表 --->>> businessNo = {}; linkType = {}", JSONObject.toJSONString(businessNo),linkType);
-        List<FileInfoDto> result = fileInfoRepository.getByBusinessNoAndLinkType(businessNo,linkType);
+    @GetMapping("/getBybussinessNoAndLinkType")
+    public R<List<FileInfoDto>> getBybussinessNoAndLinkType(@RequestParam("bussinessNo") String bussinessNo, @RequestParam("linkType") Integer linkType){
+        log.info("根据订单号和关联类型查文件列表 --->>> bussinessNo = {}; linkType = {}", JSONObject.toJSONString(bussinessNo),linkType);
+        List<FileInfoDto> result = fileInfoRepository.getBybussinessNoAndLinkType(bussinessNo,linkType);
         return R.ok(result);
     }
 

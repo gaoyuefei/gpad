@@ -1,5 +1,6 @@
 package com.gpad.gpadtool.repository;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -23,9 +24,9 @@ import java.util.List;
 @Service
 public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
 
-    public List<FileInfoDto> getByBusinessNoAndLinkType(String businessNo, Integer linkType) {
+    public List<FileInfoDto> getBybussinessNoAndLinkType(String bussinessNo, Integer linkType) {
         LambdaQueryWrapper<FileInfo> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(FileInfo::getBusinessNo,businessNo);
+        wrapper.eq(FileInfo::getBussinessNo,bussinessNo);
         wrapper.eq(FileInfo::getLinkType,linkType);
         List<FileInfo> list = this.list(wrapper);
         List<FileInfoDto> result = new ArrayList<>();
@@ -39,10 +40,14 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
         return fileInfoDto;
     }
 
-    public void saveFileInfoDtoList(List<FileInfoDto> list) {
+    public Boolean saveFileInfoDtoList(List<FileInfoDto> list) {
         List<FileInfo> fileInfos = new ArrayList<>();
+        if (CollectionUtil.isEmpty(list) || list.size() == 0){
+            return true;
+        }
         list.forEach(l->fileInfos.add(JSONObject.parseObject(JSONObject.toJSONString(l),FileInfo.class)));
-        this.saveBatch(fileInfos);
+        boolean b = this.saveBatch(fileInfos);
+        return b;
     }
 
     public void batchSaveOrUpdateFileInfoDtoList(List<FileInfoDto> list) {
@@ -50,7 +55,7 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
     }
 
     public void saveOrUpdateFileInfoDto(FileInfoDto fileInfoDto) {
-        /*if (byBusinessNo==null){
+        /*if (bybussinessNo==null){
             saveFileInfoDto(fileInfoDto);
         }else {
             updateById(fileInfoDto);
@@ -60,5 +65,15 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
     public FileInfoDto updateById(FileInfoDto fileInfoDto){
         this.updateById(JSONObject.parseObject(JSONObject.toJSONString(fileInfoDto),FileInfo.class));
         return fileInfoDto;
+    }
+
+    public Boolean saveReadyDeliverCarFile(List<FileInfoDto> linkType) {
+        return saveFileInfoDtoList(linkType);
+    }
+
+    public FileInfo checkSignPath(String bussinessNo, String linkType, String fileType) {
+        return this.lambdaQuery().eq(FileInfo::getBussinessNo, bussinessNo)
+                .eq(FileInfo::getLinkType, 32)
+                .eq(FileInfo::getFileType, 1).one();
     }
 }

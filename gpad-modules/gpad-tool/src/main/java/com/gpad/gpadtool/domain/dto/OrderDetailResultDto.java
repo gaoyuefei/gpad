@@ -58,6 +58,8 @@ public class OrderDetailResultDto {
     private String seriesName;
     @ApiModelProperty(value = "动力配置名称")
     private String modelName;
+    @ApiModelProperty(value = "动力配置名称")
+    private String modelCode;
     @ApiModelProperty(value = "产品名称")
     private String productName;
     @ApiModelProperty(value = "内饰色")
@@ -76,6 +78,8 @@ public class OrderDetailResultDto {
     private String pdiOrderStatus;
     @ApiModelProperty(value = "PDI完成时间")
     private String pdiOrderFinishDate;
+    @ApiModelProperty(value = "客户备注信息")
+    private String remark;
     //grt开发回复--这个可以不用管   SO_NO_ID
     private Date createTime;
     private Date updateTime;

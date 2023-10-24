@@ -2,7 +2,7 @@ package com.gpad.gpadtool.repository;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.gpad.gpadtool.constant.StatusCode;
+import com.gpad.common.core.constant.StatusCode;
 import com.gpad.common.core.exception.ServiceException;
 import com.gpad.gpadtool.constant.SnowIdGenerator;
 import com.gpad.gpadtool.domain.dto.DeptInfoDto;

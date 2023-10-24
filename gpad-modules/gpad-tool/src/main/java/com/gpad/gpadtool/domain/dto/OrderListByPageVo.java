@@ -19,10 +19,10 @@ public class OrderListByPageVo extends PageCondition {
 
     @ApiModelProperty(value =  "预计交车日开始日期")
     private String reservationHandoverDateStart;
-    @ApiModelProperty(value =  "预计交车日结束日期")
-    private String reservationHandoverDateEnd;
     @ApiModelProperty(value =  "预计完成日开始日期")
     private String finishHandoverDateStart;
+    @ApiModelProperty(value =  "预计交车日结束日期")
+    private String reservationHandoverDateEnd;
     @ApiModelProperty(value =  "预计完成日结束日期")
     private String finishHandoverDateEnd;
     @ApiModelProperty(value =  "订单状态")

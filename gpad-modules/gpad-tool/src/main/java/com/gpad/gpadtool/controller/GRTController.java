@@ -51,6 +51,67 @@ public class GRTController {
 
 
     /**
+     * 获取GRT订单列表接口
+     */
+    @Operation(summary = "GRT-获取GRT订单列表接口")
+    @PostMapping("/grt/getOrderNoList")
+    public R getOrderNoList(@RequestBody OrderNoListParamVo orderNoListParamVo){
+        // TODO 登录账号
+        log.info("GRT-获取GRT订单列表接口 --->>> {}", JSONObject.toJSONString(orderNoListParamVo));
+        return grtService.grtGetOrderNoList(orderNoListParamVo);
+    }
+
+    /**
+     * GRT-待交车订单详情接口
+     */
+    @Operation(summary = "GRT-待交车订单详情接口")
+    @PostMapping("/grt/getSyncOrderDetail")
+    public R getGrtOrderDetail(@RequestParam("bussinessNo") String bussinessNo){
+        log.info("GRT-待交车订单详情接口 --->>> {}", bussinessNo);
+        return grtService.getPadOrderDetail(bussinessNo);
+    }
+
+    /**
+     * GRT-修改计划交车日期
+     */
+    @Operation(summary = "GRT-修改计划交车日期")
+    @PostMapping("/grt/updateGrtOrderDeliverDate")
+    public R updateGrtOrderDeliverDate(@RequestBody OrderDeliverDateParamVo orderDeliverDateParamVo){
+        log.info("GRT-修改计划交车日期 --->>> {}", orderDeliverDateParamVo);
+        return grtService.updateGrtOrderDeliverDate(orderDeliverDateParamVo);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
      * 同步待交车订单列表接口
      */
     @Operation(summary = "同步待交车订单列表接口")
@@ -63,32 +124,31 @@ public class GRTController {
             List<OrderNoResultDto> responseBody = grtOrders.getData();
             responseBody.forEach(d->{
                 OrderNoDto orderNoDto = JSONObject.parseObject(JSONObject.toJSONString(d), OrderNoDto.class);
-                orderNoDto.setBusinessNo(d.getBussinessNo());
+                orderNoDto.setBussinessNo(d.getBussinessNo());
                 orderNoDtos.add(orderNoDto);
             });
             orderNoService.batchSaveOrUpdateOrderNoList(orderNoDtos);
         }
     }
 
-
     /**
      * 同步待交车订单详情接口
      */
     @Operation(summary = "同步待交车订单详情接口")
     @PostMapping("/grt/syncOrderDetail")
-    public void syncOrderDetail(@RequestParam("businessNo") String businessNo){
-        log.info("GRT同步待交车订单详情接口 --->>> {}", businessNo);
-        R<List<OrderDetailResultDto>> orderDetailByNo = grtService.getOrderDetailByNo(businessNo);
+    public void syncOrderDetail(@RequestParam("bussinessNo") String bussinessNo){
+        log.info("GRT同步待交车订单详情接口 --->>> {}", bussinessNo);
+        R<List<OrderDetailResultDto>> orderDetailByNo = grtService.getOrderDetailByNo(bussinessNo);
         if (orderDetailByNo.getCode() == R.SUCCESS) {
             List<OrderDetailResultDto> orderDetailResultDtos = orderDetailByNo.getData();
             List<OrderDetailDto> orderDetailDtos = new ArrayList<>();
             orderDetailResultDtos.forEach(d->orderDetailDtos.add(JSONObject.parseObject(JSONObject.toJSONString(d),OrderDetailDto.class)));
-            orderDetailDtos.forEach(o->o.setBusinessNo(businessNo));
+            orderDetailDtos.forEach(o->o.setBussinessNo(bussinessNo));
             orderDetailService.batchSaveOrUpdateOrderDetailList(orderDetailDtos);
 
             List<FileInfoDto> fileInfoDtos = new ArrayList<>();
             orderDetailDtos.forEach(o->{
-                o.getBillFiles().forEach(b->fileInfoDtos.add(new FileInfoDto(businessNo, FileLinkType.INVOICE.getCode(), b, "", FileType.INVOICE.getCode())));
+                o.getBillFiles().forEach(b->fileInfoDtos.add(new FileInfoDto(bussinessNo, FileLinkType.INVOICE.getCode(), b, "", FileType.INVOICE.getCode())));
             });
 
             //保存文件
@@ -112,10 +172,10 @@ public class GRTController {
      * 查询待交车订单详情接口
      */
     @Operation(summary = "查询待交车订单详情接口")
-    @PostMapping("/grt/getOrderDetailByBusinessNo")
-    public R<List<OrderDetailResultDto>> getOrderDetailByBusinessNo(@RequestParam("businessNo") String businessNo){
-        log.info("GRT查询待交车订单详情接口 --->>> {}", businessNo);
-        return grtService.getOrderDetailByNo(businessNo);
+    @PostMapping("/grt/getOrderDetailBybussinessNo")
+    public R<List<OrderDetailResultDto>> getOrderDetailBybussinessNo(@RequestParam("bussinessNo") String bussinessNo){
+        log.info("GRT查询待交车订单详情接口 --->>> {}", bussinessNo);
+        return grtService.getOrderDetailByNo(bussinessNo);
     }
 
     /**
@@ -141,7 +201,7 @@ public class GRTController {
     /**
      * 对接GRT推送订单状态变更
      */
-    @Operation(summary = "对接GRT推送订单状态变更")
+    @Operation(summary = "对接GRT交车状态变更接口")
     @PostMapping("/out/grt/changeOrderStatus2Grt")
     public R<Void> changeOrderStatus2Grt(@RequestBody OrderStatusVo orderStatusVo){
         log.info("对接GRT推送订单状态变更 --->>> {}", JSONObject.toJSONString(orderStatusVo));
