@@ -20,7 +20,7 @@ import java.util.List;
  * @createTime 2023年09月25日 10:54:00
  */
 @Slf4j
-@Api(value = "用户接口", tags = "用户接口")
+@Api(value = "用户接口", tags = "用户接口。")
 @RestController
 @RequestMapping("/api")
 public class UserController {
