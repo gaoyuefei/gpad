@@ -141,7 +141,6 @@ public class GRTService {
         HttpEntity<String> requestEntity = new HttpEntity<>(httpHeaders);
 
         String url = orderListUrl;
-        log.info("GRT获取订单列表url：" + orderListUrl);
         if (Strings.isNotEmpty(orderNoListParamVo.getUserCode())){
             url = url.contains("?") ?
                     url.concat("&userCode=").concat(orderNoListParamVo.getUserCode())
@@ -231,7 +230,7 @@ public class GRTService {
         url = url.contains("?") ?
                 url.concat("&pageSize=").concat(orderNoListParamVo.getPageSize()+"")
                 : url.concat("?pageSize=").concat(orderNoListParamVo.getPageSize()+"");
-
+        log.info("GRT获取订单列表url：" + url);
         ResponseEntity<OrderNoListResultDto> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, OrderNoListResultDto.class);
         log.info("GRT获取订单列表返回结果：" + response);
         OrderNoListResultDto orderNoListResultDto = response.getBody();
