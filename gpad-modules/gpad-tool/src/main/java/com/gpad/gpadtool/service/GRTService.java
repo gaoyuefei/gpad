@@ -278,9 +278,10 @@ public class GRTService {
         HttpEntity<String> requestEntity = new HttpEntity<>( httpHeaders);
 
         String url = String.format(orderDetailUrl,bussinessNo);
+        log.info("查询交车确认信息 --->>> {}", JSONObject.toJSONString(url));
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
         OrderDetailListResultDto orderDetailListResultDto = JSONObject.parseObject(response.getBody(), OrderDetailListResultDto.class);
-
+        log.info("查询交车确认信息 --->>> {}", JSONObject.toJSONString(response));
         if (orderDetailListResultDto == null || orderDetailListResultDto.getStatus() == null){
             return R.fail("对接GRT获取待交车订单详情出错!接口返回null  ");
         }else if (!"200".equals(orderDetailListResultDto.getStatus())){
