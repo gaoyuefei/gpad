@@ -21,7 +21,7 @@ public class TestController extends BaseController {
     public TestUser test()
     {
         TestUser user= new TestUser();
-        user.setUserName("张三");
+        user.setUserName("张三.");
         user.setGender("男");
         user.setPhoneNumber("13666666666");
         return user;
