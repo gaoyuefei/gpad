@@ -76,4 +76,8 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
                 .eq(FileInfo::getLinkType, 32)
                 .eq(FileInfo::getFileType, 1).one();
     }
+
+    public List<FileInfo> queryFileBybussinessNo(String bussinessNo) {
+        return this.lambdaQuery().eq(FileInfo::getBussinessNo,bussinessNo).list();
+    }
 }

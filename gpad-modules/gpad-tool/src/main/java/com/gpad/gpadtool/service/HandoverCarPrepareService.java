@@ -12,6 +12,7 @@ import com.gpad.gpadtool.constant.FlowNodeNum;
 import com.gpad.gpadtool.domain.dto.FileInfoDto;
 import com.gpad.gpadtool.domain.dto.FlowInfoDto;
 import com.gpad.gpadtool.domain.dto.HandoverCarPrepareOutBO;
+import com.gpad.gpadtool.domain.entity.FileInfo;
 import com.gpad.gpadtool.domain.entity.HandoverCarPrepare;
 import com.gpad.gpadtool.domain.dto.HandoverCarPrepareDto;
 import com.gpad.gpadtool.domain.entity.OrderDetail;
@@ -23,6 +24,7 @@ import com.gpad.gpadtool.utils.RedisLockUtils;
 import com.gpad.gpadtool.utils.UuidUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
+import org.apache.poi.util.StringUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author Donald.Lee
@@ -115,7 +118,7 @@ public class HandoverCarPrepareService {
                 FlowInfoDto bybussinessNo = flowInfoRepository.getBybussinessNo(handoverCarPrepareDto.getBussinessNo());
                 Integer nodeNum = bybussinessNo.getNodeNum();
 
-                if (nodeNum == 3){
+                if (nodeNum == 2 && "1".equals(handoverCarPrepareDto.getButton())){
                     //扭转流程订单流程状态
                     // TODO 这里还要写 流程节点-扭转流程分离 解耦 目前前是强绑
                     FlowInfoDto flow = new FlowInfoDto();
@@ -166,7 +169,7 @@ public class HandoverCarPrepareService {
         BeanUtil.copyProperties(handoverCarPrepare,readyDeliverCarOutBO);
 
         String supplies = readyDeliverCarOutBO.getSupplies();
-        if(!StringUtils.isBlank(supplies)){
+        if(!org.apache.commons.lang3.StringUtils.isBlank(supplies)){
             String substring = supplies.substring(1, supplies.length() - 1);
             List<Integer> list = new ArrayList<>();
             String[] split = substring.split(",");
@@ -175,8 +178,16 @@ public class HandoverCarPrepareService {
             }
             readyDeliverCarOutBO.setSuppliesAtt(list);
         }
-
         readyDeliverCarOutBO.setId(handoverCarPrepare.getId());
+
+        List<FileInfo> fileInfos = fileInfoRepository.queryFileBybussinessNo(bussinessNo);
+        List<FileInfoDto> list = new ArrayList<>();
+        FileInfoDto fileInfoDto = new FileInfoDto();
+        fileInfos.forEach(fileInfo -> {
+            BeanUtils.copyProperties(fileInfo,fileInfoDto);
+            list.add(fileInfoDto);
+        });
+        readyDeliverCarOutBO.setLinkType(list);
         return readyDeliverCarOutBO;
     }
 }

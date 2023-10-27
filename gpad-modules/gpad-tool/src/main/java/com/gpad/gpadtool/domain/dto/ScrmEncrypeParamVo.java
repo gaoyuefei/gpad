@@ -2,6 +2,8 @@ package com.gpad.gpadtool.domain.dto;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
+
 /**
  * @author Donald.Lee
  * @version 1.0.0
@@ -11,5 +13,6 @@ import lombok.Data;
  */
 @Data
 public class ScrmEncrypeParamVo {
+    @NotBlank
     String data;
 }

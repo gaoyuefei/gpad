@@ -56,6 +56,9 @@ public class HandoverCarPrepareDto {
     @ApiModelProperty(value = "车况检查及交车仪式")
     private List<FileInfoDto> linkType;
 
+    @ApiModelProperty(value = "0:保存，1：开始交车")
+    private String button;
+
     private Date createTime;
 
     private Date updateTime;

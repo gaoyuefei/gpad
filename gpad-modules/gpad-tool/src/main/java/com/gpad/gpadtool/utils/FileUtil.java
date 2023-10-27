@@ -1,7 +1,7 @@
 package com.gpad.gpadtool.utils;
 
 import cn.hutool.core.io.FileTypeUtil;
-import com.gpad.common.core.constant.StatusCode;
+import com.gpad.gpadtool.constant.StatusCode;
 import com.gpad.common.core.exception.ServiceException;
 import com.gpad.gpadtool.constant.FileTypeConstant;
 import lombok.extern.slf4j.Slf4j;
@@ -73,7 +73,7 @@ public class FileUtil {
     public static void uploadFile(MultipartFile multipartFile, String path, String fileName) {
         log.info("写出文件  {}", System.currentTimeMillis());
         log.info("写出文件--->>> path={}", path);
-        if (Strings.isEmpty(path)) {
+        /*if (Strings.isEmpty(path)) {
             throw new ServiceException("文件路径不能为空!", StatusCode.PARAMETER_ILLEGAL.getValue());
         }
         if (multipartFile == null) {
@@ -84,7 +84,7 @@ public class FileUtil {
         }
         if (Strings.isEmpty(fileName)) {
             throw new ServiceException("文件名不能为空!", StatusCode.PARAMETER_ILLEGAL.getValue());
-        }
+        }*/
         File savedFile = null;
         try (InputStream ins = multipartFile.getInputStream()) {
             File pathDir = new File(path);
@@ -101,7 +101,7 @@ public class FileUtil {
             throw new ServiceException("上传文件出错! ".concat(e.getMessage()), StatusCode.SYS_ERR.getValue());
         }
         finally {
-            savedFile.delete();
+//            savedFile.delete();
         }
     }
 

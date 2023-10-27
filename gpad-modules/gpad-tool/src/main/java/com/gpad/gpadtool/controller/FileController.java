@@ -65,7 +65,7 @@ public class FileController {
 
         UploadFileOutputDto uploadFileOutputDto = new UploadFileOutputDto();
         uploadFileOutputDto.setFileName(newFilename);
-        uploadFileOutputDto.setPath(result);
+        uploadFileOutputDto.setFilePath(result);
         return R.ok(uploadFileOutputDto);
     }
 

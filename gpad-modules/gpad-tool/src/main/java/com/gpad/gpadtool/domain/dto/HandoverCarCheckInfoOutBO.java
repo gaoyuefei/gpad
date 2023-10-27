@@ -87,7 +87,7 @@ public class HandoverCarCheckInfoOutBO {
     private Integer serviceFirstMaintenance;
     @ApiModelProperty(value = "签字类型（0=线上签署；1=线下签署）")
     private Integer signType;
-    @ApiModelProperty(value = "签字状态（0=未签署；1=已签署）")
+    @ApiModelProperty(value = "签字状态（0=未签署；，1=已签署）")
     private Integer signStatus;
     @ApiModelProperty(value = "产品专家记忆签名")
     private String  memorySignPath;

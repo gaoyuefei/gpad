@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.gpad.common.core.constant.StatusCode;
+import com.gpad.gpadtool.constant.StatusCode;
 import com.gpad.common.core.exception.ServiceException;
 import com.gpad.gpadtool.constant.IsBigCustomer;
 import com.gpad.gpadtool.constant.OrderType;

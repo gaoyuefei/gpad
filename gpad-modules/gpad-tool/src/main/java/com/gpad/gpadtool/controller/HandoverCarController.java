@@ -92,7 +92,9 @@ public class HandoverCarController {
         List<OrderDetailResultDto> data = grtOrderDetail.getData();
         if (!CollectionUtil.isEmpty(data)){
             handoverCarCheckInfoOutBO.setOrderDetailResultDto(grtOrderDetail.getData().get(0));
+            handoverCarCheckInfoOutBO.setRealName(1);
         }
+
         return R.ok(handoverCarCheckInfoOutBO);
     }
 

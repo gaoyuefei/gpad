@@ -17,5 +17,5 @@ public class UploadFileOutputDto {
     private String fileName;
 
     @ApiModelProperty(value =  "id")
-    private String path;
+    private String filePath;
 }

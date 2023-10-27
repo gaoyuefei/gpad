@@ -98,6 +98,9 @@ public class HandoverCarCheckInfoService {
             handoverCarCheckInfoOutBO.setMemorySignPath(fileInfo.getFilePath());
         }
         // FIXME  新增账号关联表 记忆图片直接返回
+        if (ObjectUtil.isNotEmpty(handoverCarCheckInfo)){
+            handoverCarCheckInfoOutBO.setId(handoverCarCheckInfo.getId());
+        }
         return handoverCarCheckInfoOutBO;
     }
 

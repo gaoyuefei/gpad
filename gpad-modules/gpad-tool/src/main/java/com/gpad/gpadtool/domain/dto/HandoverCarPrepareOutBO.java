@@ -45,6 +45,9 @@ public class HandoverCarPrepareOutBO {
     @ApiModelProperty(value = "交车准备项备注")
     private String remark;
 
+    @ApiModelProperty(value = "交车准备项备注")
+    private Integer purchaseTax;
+
     @ApiModelProperty(value = "用品及随车附件")
     private String supplies;
 

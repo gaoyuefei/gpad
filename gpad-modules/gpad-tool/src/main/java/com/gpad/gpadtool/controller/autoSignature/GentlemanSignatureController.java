@@ -7,6 +7,7 @@ import com.gpad.common.core.bo.input.ContinueStartSignatureInputBO;
 import com.gpad.common.core.domain.R;
 import com.gpad.gpadtool.service.AutoSignatureService;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 

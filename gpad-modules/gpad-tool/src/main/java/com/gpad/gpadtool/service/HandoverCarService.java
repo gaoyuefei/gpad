@@ -152,7 +152,7 @@ public class HandoverCarService {
         } finally {
             RedisLockUtils.unlock(bussinessNo);
         }
-        return null;
+        return R.ok(true);
     }
 
     public FlowInfoDto queryProcessNode(String bussinessNo) {

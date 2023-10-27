@@ -2,6 +2,8 @@ package com.gpad.gpadtool.repository;
 
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gpad.common.core.bo.input.AutoSignatureInputBO;
 import com.gpad.common.core.utils.StringUtils;
@@ -9,6 +11,8 @@ import com.gpad.gpadtool.domain.dto.HandoverCarCheckInfoDto;
 import com.gpad.gpadtool.domain.entity.HandoverCarCheckInfo;
 import com.gpad.gpadtool.mapper.HandoverCarCheckInfoMapper;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 
 /**
@@ -23,17 +27,24 @@ public class HandoverCarCheckInfoRepository extends ServiceImpl<HandoverCarCheck
 
 
     public HandoverCarCheckInfo queryDeliverCarConfirmInfo(String bussinessNo) {
-        HandoverCarCheckInfo handoverCarCheckInfo = this.lambdaQuery().eq(HandoverCarCheckInfo::getBussinessNo, bussinessNo)
-                .eq(HandoverCarCheckInfo::getDelFlag, 0)
-                .one();
-        return handoverCarCheckInfo;
+        List<HandoverCarCheckInfo> list = this.lambdaQuery().eq(HandoverCarCheckInfo::getBussinessNo, bussinessNo)
+                .eq(HandoverCarCheckInfo::getDelFlag, 0).list();
+        if(!CollectionUtil.isEmpty(list)){
+         return list.size() > 0 ? (list.get(0)):(new HandoverCarCheckInfo());
+        }
+        return new HandoverCarCheckInfo();
     }
 
     public Boolean saveDeliverCarConfirmInfo(HandoverCarCheckInfoDto handoverCarCheckInfoDto) {
         // XXX
         HandoverCarCheckInfo handoverCarCheckInfo = new HandoverCarCheckInfo();
         BeanUtil.copyProperties(handoverCarCheckInfoDto,handoverCarCheckInfo);
-        return this.save(handoverCarCheckInfo);
+        if (ObjectUtil.isNotEmpty(handoverCarCheckInfoDto)){
+            if (null == handoverCarCheckInfoDto.getId() && handoverCarCheckInfoDto.getId() > 0){
+                handoverCarCheckInfo.setId(handoverCarCheckInfoDto.getId().toString().length()<=9?null:handoverCarCheckInfoDto.getId());
+            }
+        }
+        return this.saveOrUpdate(handoverCarCheckInfo);
     }
 
     public void getAplNoByBussinessNo(String bussinessNo) {

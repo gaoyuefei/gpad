@@ -128,10 +128,11 @@ public class GRTService {
         String sign = GRTSignUtil.sign(GRTSignUtil.APP_KEY_GRT, timestamp, GRTSignUtil.SECRET_KEY_GRT);
         try {
             boolean b = GRTSignUtil.checkSign(GRTSignUtil.APP_KEY_GRT, sign, timestamp);
-            System.out.println(b);
+            log.info("GRT签名时间 --->>> {}", b);
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         httpHeaders.add("reqId", reqId);
         httpHeaders.add("reqFrom",reqFrom);
         httpHeaders.add("reqTime", reqTime);
@@ -230,17 +231,17 @@ public class GRTService {
         url = url.contains("?") ?
                 url.concat("&pageSize=").concat(orderNoListParamVo.getPageSize()+"")
                 : url.concat("?pageSize=").concat(orderNoListParamVo.getPageSize()+"");
-        log.info("GRT获取订单列表url：" + url);
+        log.info("GRT请求路径URL --->>> {}",url);
         ResponseEntity<OrderNoListResultDto> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, OrderNoListResultDto.class);
-        log.info("GRT获取订单列表返回结果：" + response);
+        log.info("GRT返回参数 --->>> {}", JSONObject.toJSONString(response));
         OrderNoListResultDto orderNoListResultDto = response.getBody();
+        log.info("GRT返回参数 --->>> {}", JSONObject.toJSONString(orderNoListResultDto));
         List<OrderNoResultDto> data = orderNoListResultDto.getData();
         data.forEach(s-> {
             s.setOrderStatus(GrtToPadEnums.getValueByVin(s.getOrderStatus(), s.getVin(), s.getBindStatus()));
             String valueByVin = GrtToPadEnums.getValueByVin(s.getOrderStatus(), s.getVin(), s.getBindStatus());
             System.out.println(valueByVin);
         });
-
         if (null == orderNoListResultDto || orderNoListResultDto.getStatus() == null){
             return R.fail("对接GRT获取待交车订单列表出错!  接口返回null! " );
         }else if (!orderNoListResultDto.getStatus().equals("200")){
@@ -251,8 +252,10 @@ public class GRTService {
         orderNoListResultOutBo.setPageNum(orderNoListResultDto.getPageNum());
         orderNoListResultOutBo.setPageSize(orderNoListResultDto.getPageSize());
         orderNoListResultOutBo.setTotal(orderNoListResultDto.getTotal());
+
         return R.ok(orderNoListResultOutBo);
     }
+
 
     public R<List<OrderDetailResultDto>> getGrtOrderDetail(String bussinessNo) {
         long timestamp = System.currentTimeMillis();

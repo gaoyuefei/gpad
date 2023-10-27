@@ -20,7 +20,7 @@ public class FileInfoDto {
     private String id;
     @ApiModelProperty(value =  "订单号")
     private String bussinessNo;
-    @ApiModelProperty(value =  "关联类型：1=新车PDI；2=到店检查；3=交车确认；4=签名PDF；5=用车指南；6=标准检查流程演示；7=封面图片")
+    @ApiModelProperty(value =  "关联类型：1=新车PDI；21=交车准备-车况检查；22=交车准备-交车仪式；31=产品签名图片")
     private Integer linkType;
     @ApiModelProperty(value =  "封面图片ID")
     private String coverImgId;

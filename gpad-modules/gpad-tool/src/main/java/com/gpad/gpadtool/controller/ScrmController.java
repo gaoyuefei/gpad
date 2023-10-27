@@ -318,7 +318,7 @@ public class ScrmController {
         log.info("H5页面获取token --->>> {}", JSONObject.toJSONString(paramVo));
         String employeeNo;
         try {
-            employeeNo = CryptoUtils.privateKeyDecrypt(paramVo.getData(), privateKey);
+              employeeNo = CryptoUtils.publicKeyEncrypt(paramVo.getData(), publicKey);
         } catch (Exception e) {
             log.info("解密数据报错:  {}", e.getMessage());
             return R.fail("解密数据报错 ");
