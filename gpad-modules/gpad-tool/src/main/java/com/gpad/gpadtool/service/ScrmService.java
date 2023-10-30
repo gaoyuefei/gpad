@@ -132,7 +132,7 @@ public class ScrmService {
 
 
     public AjaxResult getQrCode(String sign) throws Exception {
-        String url = URLEncoder.encode("https://pad-test.gacmotor.com/", "UTF-8");
+        String url = URLEncoder.encode("https://pad-test.gacmotor.com", "UTF-8");
         String state = URLEncoder.encode(sign, "UTF-8");
         String getQrCodeUrl = qrCodeUrl.concat(appId).concat("&agentid=").concat(agentId).concat("&redirect_uri=").concat(url).concat("&state=").concat(state);
         log.info("生成企业微信登录二维码链接:  {}", getQrCodeUrl);
