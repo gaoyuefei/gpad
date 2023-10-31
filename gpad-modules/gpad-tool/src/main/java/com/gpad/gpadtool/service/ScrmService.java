@@ -217,9 +217,11 @@ public class ScrmService {
         headers.add("Authorization", "Basic c2NybXVzZXI6R2Fjc2NybUAxMjM=");
         //封装成一个请求对象
         HttpEntity request = new HttpEntity(json, headers);
+        log.info("appUrl + accountOnLineStatus路径为{}，请求头为headers{}", url,headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         log.info(response.getBody());
         AccountOnLineStatusOutPutDto accountOnLineStatusOutPutDto = JSONObject.parseObject(response.getBody(), AccountOnLineStatusOutPutDto.class);
+        log.info("请求外部接口结束返回出参{}", JSONObject.toJSONString(accountOnLineStatusOutPutDto));
         return R.ok(accountOnLineStatusOutPutDto);
     }
 
@@ -349,11 +351,12 @@ public class ScrmService {
 
     public R<ScrmWxCropUserInfoOutputDto> getWxCropUserInfo(ScrmWxCropUserInfoInputDto scrmWxCropUserInfoInputDto){
         String url = scrmUrl + getWxCropUserInfo;
+        log.info("外部接口调用地址--->>> {}", url);
         // 加密字符串
         JSONObject jsonObject = new JSONObject();
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("userId", scrmWxCropUserInfoInputDto.getUserId());
-
+        log.info("外部接口调用地址--->>> {}", JSONObject.toJSONString(dataMap));
         String encryptData = "";
         try {
             encryptData = CryptoUtils.publicKeyEncrypt(JSON.toJSONString(dataMap), publicInterfaceKey);
@@ -368,8 +371,9 @@ public class ScrmService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         //封装成一个请求对象
         HttpEntity request = new HttpEntity(json, headers);
+        log.info("外部接口调用地址--->>> request{}", JSONObject.toJSONString(request));
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
-        log.info(response.getBody());
+        log.info("外部接口调用返回body--->>> request{}",response.getBody());
         ScrmWxCropUserInfoOutputDto scrmWxCropUserInfoOutputDto = JSONObject.parseObject(response.getBody(), ScrmWxCropUserInfoOutputDto.class);
         return R.ok(scrmWxCropUserInfoOutputDto);
     }

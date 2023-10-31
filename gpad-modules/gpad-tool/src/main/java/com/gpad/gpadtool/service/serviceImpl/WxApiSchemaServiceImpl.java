@@ -43,6 +43,7 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         LoginResVo tokenUerName = UrlSchemaUntils.getTokenUerName();
         WxTokenVO wxTokenVO = getAppToken(tokenUerName);
         String skipSchemaUrl = getSkipSchemaUrl(wxTokenVO.getToken(),wxApiSchemaUrl);
+        log.info("skipSchemaUrl加密后的数据:  {}", skipSchemaUrl);
         return R.ok(skipSchemaUrl,"获取成功");
     }
 
@@ -64,6 +65,7 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         //封装成一个请求对象
         HttpEntity request = new HttpEntity(json, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        log.info("请求对象加密后的数据:  {}", JSONObject.toJSONString(response.getBody()));
         return response.getBody();
     }
 

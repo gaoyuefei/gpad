@@ -34,6 +34,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import javax.validation.constraints.NotBlank;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -117,6 +119,7 @@ public class ScrmController {
         ScrmWxCropUserInfoInputDto scrmWxCropUserInfoInputDto = new ScrmWxCropUserInfoInputDto();
         scrmWxCropUserInfoInputDto.setUserId(userCode);
         R<ScrmWxCropUserInfoOutputDto> scrmWxCropUserInfoOutputDtoR = scrmService.getWxCropUserInfo(scrmWxCropUserInfoInputDto);
+        log.info("外部接口调用结束--->>> {}", JSONObject.toJSONString(scrmWxCropUserInfoOutputDtoR));
         if (!scrmWxCropUserInfoOutputDtoR.getData().getCode().equals("200")) {
             //TODO redis里存 key = sign; value = 跟前端约定得唯一标记+错误信息
             throw new ServiceException("SCRM扫码获取登录令牌",500);
@@ -131,7 +134,10 @@ public class ScrmController {
         Object access_token = tokenMap.get("access_token");
         log.info("token为{}",tokenMap);
         log.info("打印key为{}",sign);
-        redisService.setCacheObject(sign, access_token.toString(), RedisKey.ACCESS_TOKEN_EXPIRE_TIME, TimeUnit.MINUTES);
+        String decodeSign = URLDecoder.decode(sign, "UTF-8");
+        log.info("解密后key为{}",decodeSign);
+        redisService.setCacheObject(decodeSign, access_token.toString(), RedisKey.ACCESS_TOKEN_EXPIRE_TIME, TimeUnit.MINUTES);
+        log.info("回调结束");
     }
 
     /**
@@ -323,7 +329,7 @@ public class ScrmController {
     @Operation(summary = "H5页面获取token")
     @PostMapping("/getAccessTokenByH5")
     public R getAccessTokenByH5(@RequestBody ScrmEncrypeParamVo paramVo) {
-        log.info("H5页面获取token --->>> {}", JSONObject.toJSONString(paramVo));
+        log.info("H5页面获取token 开始--->>> {}", JSONObject.toJSONString(paramVo));
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("account", paramVo.getData());
         String employeeNo;
@@ -343,6 +349,7 @@ public class ScrmController {
             ScrmWxCropUserInfoInputDto scrmWxCropUserInfoInputDto = new ScrmWxCropUserInfoInputDto();
             scrmWxCropUserInfoInputDto.setUserId(employeeNo);
             R<ScrmWxCropUserInfoOutputDto> scrmWxCropUserInfoOutputDtoR = scrmService.getWxCropUserInfo(scrmWxCropUserInfoInputDto);
+            log.info("外部接口返回结果 --->>> {}", JSONObject.toJSONString(scrmWxCropUserInfoOutputDtoR));
             if (!scrmWxCropUserInfoOutputDtoR.getData().getCode().equals("200")) {
                 return R.fail("企业微信扫码登录获取企微成员信失败");
             }
@@ -359,6 +366,7 @@ public class ScrmController {
                 sysUser.setUserName(employeeNo);
                 loginUser.setSysUser(sysUser);
                 Map<String, Object> tokenMap = tokenService.createToken(loginUser);
+            log.info("H5页面获取token-结束 --->>> {}", JSONObject.toJSONString(tokenMap));
                 return R.ok(tokenMap);
 //
 //            //查不到不作处理

@@ -52,6 +52,7 @@ public class WxApiSchemaController {
     @Operation(summary = "获取urlSchema")
     @GetMapping("/thirdparty-app/urlSchema")
     public R urlSchema(@RequestParam("wxApiSchemaUrl") String wxApiSchemaUrl){
+        log.info("获取urlSchema --->>> wxApiSchemaUrl = {}", wxApiSchemaUrl);
         return wxApiSchemaService.getgetSkipSchemaUrl(wxApiSchemaUrl);
     }
 
