@@ -184,7 +184,7 @@ public class FileController {
         String newFileName = IdUtil.fastSimpleUUID() + suffix ;
         //3、将MultipartFile转化为File
 //             file = FileUtils.multipartFileToFile(multipartFile);
-        boolean flag = FTPUntil.uploadFile(newFileName,inputStream);
+//        boolean flag = FTPUntil.uploadFile(newFileName,inputStream);
         UploadFileOutputDto uploadFileOutputDto = new UploadFileOutputDto();
         return R.ok(uploadFileOutputDto);
     }
