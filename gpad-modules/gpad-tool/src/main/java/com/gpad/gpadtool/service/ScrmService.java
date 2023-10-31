@@ -59,6 +59,8 @@ public class ScrmService {
     private String qrCodeUrl;
     @Value("${wx.url.userInfoByCode}")
     private String userInfoByCode;
+    @Value("${wx.redirect-url}")
+    private String redirectUrl;
 
     @Value("${scrm.publicKey}")
     private String publicKey;
@@ -73,6 +75,7 @@ public class ScrmService {
 
     @Value("${scrm.appUrl}")
     private String appUrl;
+
     @Value("${scrm.url}")
     private String scrmUrl;
     @Value("${scrm.accountOnLineStatus}")
@@ -132,7 +135,7 @@ public class ScrmService {
 
 
     public AjaxResult getQrCode(String sign) throws Exception {
-        String url = URLEncoder.encode("http://gzbymc.cn/", "UTF-8");
+        String url = URLEncoder.encode(redirectUrl, "UTF-8");
         String state = URLEncoder.encode(sign, "UTF-8");
         String getQrCodeUrl = qrCodeUrl.concat(appId).concat("&agentid=").concat(agentId).concat("&redirect_uri=").concat(url).concat("&state=").concat(state);
         log.info("生成企业微信登录二维码链接:  {}", getQrCodeUrl);
@@ -221,7 +224,6 @@ public class ScrmService {
     }
 
     public R<ScrmPdiFileListOutputDto> getPdiFileList(ScrmPdiFileListInputDto scrmPdiFileListInputDto){
-        Integer result = 0;
         String url = appUrl + getPdiFileList;
         // 加密字符串
         JSONObject jsonObject = new JSONObject();
@@ -251,7 +253,8 @@ public class ScrmService {
         log.info(JSONObject.toJSONString(scrmPdiFileListOutputDto));
         if (ObjectUtil.isNotEmpty(scrmPdiFileListOutputDto)){
             if(StringUtils.isNotEmpty(scrmPdiFileListOutputDto.getStatus())){
-                result = "1003".equals(scrmPdiFileListOutputDto.getStatus())? 1:0;
+                String result = "1003".equals(scrmPdiFileListOutputDto.getStatus())? "1":"0";
+                scrmPdiFileListOutputDto.setStatus(result);
             }
         }
         return R.ok(scrmPdiFileListOutputDto);

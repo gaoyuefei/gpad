@@ -91,6 +91,7 @@ public class HandoverCarCheckInfoService {
         HandoverCarCheckInfo handoverCarCheckInfo = handoverCarCheckInfoRepository.queryDeliverCarConfirmInfo(bussinessNo);
         // FIXME  修复每个编号的枚举值
         BeanUtil.copyProperties(handoverCarCheckInfo,handoverCarCheckInfoOutBO);
+
         log.info("method:queryDeliverCarConfirmInfo().交车准备内容: {}", JSONObject.toJSONString(handoverCarCheckInfo));
         //查询当前账号可以用签名
         FileInfo fileInfo = fileInfoRepository.checkSignPath(bussinessNo, handoverCarCheckInfoDto.getLinkType(), handoverCarCheckInfoDto.getFileType());
@@ -101,6 +102,8 @@ public class HandoverCarCheckInfoService {
         if (ObjectUtil.isNotEmpty(handoverCarCheckInfo)){
             handoverCarCheckInfoOutBO.setId(handoverCarCheckInfo.getId());
         }
+
+        handoverCarCheckInfoOutBO.setId(handoverCarCheckInfo.getId());
         return handoverCarCheckInfoOutBO;
     }
 

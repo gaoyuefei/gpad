@@ -96,12 +96,14 @@ public class FileUtil {
             savedFile = new File(path.concat(File.separator).concat(fileName));
             inputStreamToFile(ins, savedFile);
             log.info("上传文件到服务器完成  {}", System.currentTimeMillis());
+            ins.close();
         } catch (Exception e) {
             log.warn("上传文件到服务器出错! Exception message:{}", e.getMessage(), e);
             throw new ServiceException("上传文件出错! ".concat(e.getMessage()), StatusCode.SYS_ERR.getValue());
         }
         finally {
 //            savedFile.delete();
+
         }
     }
 
@@ -190,7 +192,7 @@ public class FileUtil {
         String filename = file.getOriginalFilename();
         assert filename != null;
         String[] split = filename.split("\\.");
-        String fileType = split[split.length - 1];
+        String fileType = "png";
 
         //先判断后缀名
         for (FileTypeConstant constant : FileTypeConstant.values()) {

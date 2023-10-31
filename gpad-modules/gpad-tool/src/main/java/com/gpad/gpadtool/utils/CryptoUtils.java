@@ -107,7 +107,7 @@ public class CryptoUtils {
     public static String privateKeyDecrypt(String str, String privateKey) throws Exception {
         log.info("{}|RSA私钥解密前的数据|str:{}|privateKey:{}", str);
         //64位解码加密后的字符串
-        byte[] inputByte = Base64.getDecoder().decode(str.getBytes("UTF-8"));
+//        byte[] inputByte = Base64.getDecoder().decode(str.getBytes("UTF-8"));
         //base64编码的私钥
         byte[] decoded = Base64.getDecoder().decode(privateKey);
         RSAPrivateKey priKey = (RSAPrivateKey) KeyFactory.getInstance("RSA")

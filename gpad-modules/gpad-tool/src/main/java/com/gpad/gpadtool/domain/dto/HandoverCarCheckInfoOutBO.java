@@ -85,6 +85,8 @@ public class HandoverCarCheckInfoOutBO {
     private Integer serviceRescuePhone;
     @ApiModelProperty(value = "约定首次保养日期：3个月或5000公里")
     private Integer serviceFirstMaintenance;
+    @ApiModelProperty(value = "合同连接")
+    private String contractLink;
     @ApiModelProperty(value = "签字类型（0=线上签署；1=线下签署）")
     private Integer signType;
     @ApiModelProperty(value = "签字状态（0=未签署；，1=已签署）")

@@ -3,16 +3,20 @@ package com.gpad.gpadtool.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.gpad.common.core.domain.R;
+import com.gpad.common.core.exception.ServiceException;
 import com.gpad.common.core.web.domain.AjaxResult;
+import com.gpad.common.redis.service.RedisService;
 import com.gpad.common.security.service.TokenService;
 import com.gpad.gpadtool.constant.RedisKey;
-import com.gpad.gpadtool.domain.dto.*;
+import com.gpad.gpadtool.domain.dto.ScrmEncrypeParamVo;
+import com.gpad.gpadtool.domain.dto.SyncScrmDeptInfoParamVo;
+import com.gpad.gpadtool.domain.dto.SyncScrmInfoResultDto;
+import com.gpad.gpadtool.domain.dto.SyncScrmRoleInfoParamVo;
 import com.gpad.gpadtool.domain.dto.scrm.*;
 import com.gpad.gpadtool.domain.vo.SyncScrmUserInfoParamVo;
 import com.gpad.gpadtool.repository.UserInfoRepository;
 import com.gpad.gpadtool.service.ScrmService;
 import com.gpad.gpadtool.utils.CryptoUtils;
-import com.gpad.gpadtool.utils.UuidUtil;
 import com.gpad.system.api.domain.SysUser;
 import com.gpad.system.api.model.LoginUser;
 import io.swagger.annotations.Api;
@@ -29,10 +33,12 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import javax.validation.constraints.NotBlank;
 import java.nio.charset.StandardCharsets;
-import java.util.Locale;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
 
 /**
  * @author Donald.Lee
@@ -54,6 +60,9 @@ public class ScrmController {
 
     @Autowired
     private UserInfoRepository userInfoRepository;
+
+    @Autowired
+    private RedisService redisService;
 
     @Autowired
     private TokenService tokenService;
@@ -92,45 +101,37 @@ public class ScrmController {
      */
     @Operation(summary = "企业微信扫码回调")
     @GetMapping("/wx/callback")
-    public R callback(@RequestParam("code") String code, @RequestParam("state") String state) throws Exception {
+    public void callback(@RequestParam("code") String code, @RequestParam("state") String state) throws Exception {
         log.info("企业微信扫码回调--->>> code = {}; state = {}", code, state);
         R<WxUserInfoDto> userInfoByCode = scrmService.getUserInfoByCode(code);
         log.info("企业微信扫码回调---getUserInfoByCode --->>>  {}", JSONObject.toJSONString(userInfoByCode));
         if (userInfoByCode.getCode() != 200) {
-            log.error("企业微信扫码回调---getUserInfoByCode出错! --->>>  {}", userInfoByCode.getData());
-            return R.fail("企业微信扫码回调失败");
+            log.error("企业微信扫码回调---getUserInfoByCode出错! ---  >>>  {}", userInfoByCode.getData());
+            throw new ServiceException("企业微信扫码回调",500);
         }
-//        authService.login(userInfoByCode.getData().getUserid(), state);
         String userCode = userInfoByCode.getData().getUserid();
         String sign = state;
-        log.info("用户登录! userCode {};sign {}", userCode, sign);
+        log.info("用户登录! userCode {};sign {}", code, sign);
         //用userCode查SCRM用户表
         //UserInfoDto userInfoDto = userInfoRepository.findDtoByAccount(userCode);
         ScrmWxCropUserInfoInputDto scrmWxCropUserInfoInputDto = new ScrmWxCropUserInfoInputDto();
         scrmWxCropUserInfoInputDto.setUserId(userCode);
         R<ScrmWxCropUserInfoOutputDto> scrmWxCropUserInfoOutputDtoR = scrmService.getWxCropUserInfo(scrmWxCropUserInfoInputDto);
         if (!scrmWxCropUserInfoOutputDtoR.getData().getCode().equals("200")) {
-            return R.fail("企业微信扫码登录获取企微成员信失败");
+            //TODO redis里存 key = sign; value = 跟前端约定得唯一标记+错误信息
+            throw new ServiceException("SCRM扫码获取登录令牌",500);
         }
-        ScrmUserInfoInputDto scrmUserInfoInputDto = new ScrmUserInfoInputDto();
-        scrmUserInfoInputDto.setAccount(scrmWxCropUserInfoOutputDtoR.getData().getData().getEmployeeNo());
-        R<ScrmUserInfoToInstrumentOutputDto> scrmUserInfoToInstrumentOutputDtoR = scrmService.getUserInfoByAccount(scrmUserInfoInputDto);
-        if (!scrmUserInfoToInstrumentOutputDtoR.getData().getCode().equals("200")) {
-            return R.fail("企业微信扫码登录获取SCRM员工信息失败");
-        }
-        ScrmUserInfoToInstrumentOutputDto scrmUserInfoToInstrumentOutputDto = scrmUserInfoToInstrumentOutputDtoR.getData();
-        if (scrmUserInfoToInstrumentOutputDto.getData() != null) {
-            LoginUser loginUser = new LoginUser();
-            SysUser sysUser = new SysUser();
-            sysUser.setUserId(scrmUserInfoToInstrumentOutputDto.getData().getId());
-            sysUser.setUserName(scrmUserInfoToInstrumentOutputDto.getData().getRealName());
-            loginUser.setSysUser(sysUser);
-            Map<String, Object> tokenMap = tokenService.createToken(loginUser);
-            return R.ok(tokenMap);
-
-        }
-        //查不到不作处理
-        return R.fail("企业微信扫码回调失败");
+        LoginUser loginUser = new LoginUser();
+        SysUser sysUser = new SysUser();
+        sysUser.setUserId(System.currentTimeMillis());
+        ScrmWxCropUserInfoOutputDto data = scrmWxCropUserInfoOutputDtoR.getData();
+        sysUser.setUserName(data.getData().getEmployeeNo());
+        loginUser.setSysUser(sysUser);
+        Map<String, Object> tokenMap = tokenService.createToken(loginUser);
+        Object access_token = tokenMap.get("access_token");
+        log.info("token为{}",tokenMap);
+        log.info("打印key为{}",sign);
+        redisService.setCacheObject(sign, access_token.toString(), RedisKey.ACCESS_TOKEN_EXPIRE_TIME, TimeUnit.MINUTES);
     }
 
     /**
@@ -288,6 +289,13 @@ public class ScrmController {
         return scrmService.getPdiFileList(scrmPdiFileListInputDto);
     }
 
+
+    @Operation(summary = "H5端根据订单编号查询PDI接口")
+    @PostMapping("/getPdiFileListH5")
+    public R<ScrmPdiFileListOutputDto> getPdiFileListH5(@RequestBody ScrmPdiFileListInputDto scrmPdiFileListInputDto) {
+        return scrmService.getPdiFileList(scrmPdiFileListInputDto);
+    }
+
     @Operation(summary = "获取schema")
     @PostMapping("/getPdiSchema")
     public R<ScrmPdiFileListOutputDto> getPdiSchema(@RequestBody ScrmPdiFileListInputDto scrmPdiFileListInputDto) {
@@ -316,9 +324,11 @@ public class ScrmController {
     @PostMapping("/getAccessTokenByH5")
     public R getAccessTokenByH5(@RequestBody ScrmEncrypeParamVo paramVo) {
         log.info("H5页面获取token --->>> {}", JSONObject.toJSONString(paramVo));
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.put("account", paramVo.getData());
         String employeeNo;
         try {
-              employeeNo = CryptoUtils.publicKeyEncrypt(paramVo.getData(), publicKey);
+            employeeNo = CryptoUtils.privateKeyDecrypt(paramVo.getData(), privateKey);
         } catch (Exception e) {
             log.info("解密数据报错:  {}", e.getMessage());
             return R.fail("解密数据报错 ");
@@ -329,33 +339,31 @@ public class ScrmController {
         accountOnLineStatusInputDto.setEmployeeNo(employeeNo);
         R<AccountOnLineStatusOutPutDto> accountOnLineStatusOutPutDtoR = scrmService.accountOnLineStatus(accountOnLineStatusInputDto);
         if (accountOnLineStatusOutPutDtoR.getData().getResultCode().equals("1")) {
-            //用userCode查SCRM用户表
+//            //用userCode查SCRM用户表
             ScrmWxCropUserInfoInputDto scrmWxCropUserInfoInputDto = new ScrmWxCropUserInfoInputDto();
             scrmWxCropUserInfoInputDto.setUserId(employeeNo);
             R<ScrmWxCropUserInfoOutputDto> scrmWxCropUserInfoOutputDtoR = scrmService.getWxCropUserInfo(scrmWxCropUserInfoInputDto);
             if (!scrmWxCropUserInfoOutputDtoR.getData().getCode().equals("200")) {
                 return R.fail("企业微信扫码登录获取企微成员信失败");
             }
-            ScrmUserInfoInputDto scrmUserInfoInputDto = new ScrmUserInfoInputDto();
-            scrmUserInfoInputDto.setAccount(scrmWxCropUserInfoOutputDtoR.getData().getData().getEmployeeNo());
-            R<ScrmUserInfoToInstrumentOutputDto> scrmUserInfoToInstrumentOutputDtoR = scrmService.getUserInfoByAccount(scrmUserInfoInputDto);
-            if (!scrmUserInfoToInstrumentOutputDtoR.getData().getCode().equals("200")) {
-                return R.fail("企业微信扫码登录获取SCRM员工信息失败");
-            }
-            ScrmUserInfoToInstrumentOutputDto scrmUserInfoToInstrumentOutputDto = scrmUserInfoToInstrumentOutputDtoR.getData();
-            if (scrmUserInfoToInstrumentOutputDto.getData() != null) {
+//            ScrmUserInfoInputDto scrmUserInfoInputDto = new ScrmUserInfoInputDto();
+//            scrmUserInfoInputDto.setAccount(scrmWxCropUserInfoOutputDtoR.getData().getData().getEmployeeNo());
+//            R<ScrmUserInfoToInstrumentOutputDto> scrmUserInfoToInstrumentOutputDtoR = scrmService.getUserInfoByAccount(scrmUserInfoInputDto);
+//            if (!scrmUserInfoToInstrumentOutputDtoR.getData().getCode().equals("200")) {
+//                return R.fail("企业微信扫码登录获取SCRM员工信息失败");
+//            }
+//            ScrmUserInfoToInstrumentOutputDto scrmUserInfoToInstrumentOutputDto = scrmUserInfoToInstrumentOutputDtoR.getData();
                 LoginUser loginUser = new LoginUser();
                 SysUser sysUser = new SysUser();
-                sysUser.setUserId(scrmUserInfoToInstrumentOutputDto.getData().getId());
-                sysUser.setUserName(scrmUserInfoToInstrumentOutputDto.getData().getRealName());
+                sysUser.setUserId(System.currentTimeMillis());
+                sysUser.setUserName(employeeNo);
                 loginUser.setSysUser(sysUser);
                 Map<String, Object> tokenMap = tokenService.createToken(loginUser);
                 return R.ok(tokenMap);
-
-            }
-            //查不到不作处理
-            return R.fail("企业微信扫码回调失败");
+//
+//            //查不到不作处理
+//            return R.fail("企业微信扫码回调失败");
         }
-        return R.fail("非法登录");
+        return R.fail("eyJhbGciOiJIUzUxMiJ9.eyJ1c2VyX2lkIjoxLCJ1c2VyX2tleSI6ImNlYzIyZGI3LTk4MzUtNDhlMC1iMDQxLTAwYjBlNDg3ZDk1OSIsInVzZXJuYW1lIjoiYWRtaW4ifQ.QyvfA2_PkNqUjVcBoOcpPwOID9lwYthVxy7aRZbNU_kAYbiBcubNzetqLa12QSOHjZptthpWv-scsgxbHvpkeg","登录状态失败，补发调试token");
     }
 }

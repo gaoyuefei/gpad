@@ -1,5 +1,6 @@
 package com.gpad.gpadtool.service;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.gpad.common.core.domain.R;
 import com.gpad.common.core.exception.ServiceException;
@@ -126,13 +127,12 @@ public class GRTService {
         String reqTime =  DateUtil.getNowDateStr();
         long timestamp = System.currentTimeMillis();
         String sign = GRTSignUtil.sign(GRTSignUtil.APP_KEY_GRT, timestamp, GRTSignUtil.SECRET_KEY_GRT);
+        log.info("GRT请求路径URL --->>> {},时间戳为:{}",sign,timestamp);
         try {
-            boolean b = GRTSignUtil.checkSign(GRTSignUtil.APP_KEY_GRT, sign, timestamp);
-            log.info("GRT签名时间 --->>> {}", b);
-        } catch (Exception e) {
+            Thread.sleep(800);
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
         httpHeaders.add("reqId", reqId);
         httpHeaders.add("reqFrom",reqFrom);
         httpHeaders.add("reqTime", reqTime);
@@ -140,8 +140,41 @@ public class GRTService {
         httpHeaders.add("appKey", GRTSignUtil.APP_KEY_GRT);
         httpHeaders.add("timestamp", String.valueOf(timestamp));
         HttpEntity<String> requestEntity = new HttpEntity<>(httpHeaders);
+        log.info("请求头为 --->>> {}", JSONObject.toJSONString(requestEntity));
 
-        String url = orderListUrl;
+        String url = grtConcatURL(orderNoListParamVo);
+        log.info("GRT拼接后URL为 --->>> {}",url);
+
+        ResponseEntity<OrderNoListResultDto> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, OrderNoListResultDto.class);
+        log.info("GRT返回参数 --->>> {}", JSONObject.toJSONString(response));
+
+        OrderNoListResultDto orderNoListResultDto = response.getBody();
+
+        if (null == orderNoListResultDto || orderNoListResultDto.getStatus() == null){
+            return R.fail("对接GRT获取待交车订单列表出错!  接口返回null! " );
+        }else if (!orderNoListResultDto.getStatus().equals("200")){
+            return R.fail("对接GRT获取待交车订单列表出错!  ".concat(orderNoListResultDto.getMessage() == null ? "接口返回null! " : orderNoListResultDto.getMessage()));
+        }
+
+        List<OrderNoResultDto> data = orderNoListResultDto.getData();
+        data.forEach(s-> {
+            s.setOrderStatus(GrtToPadEnums.getValueByVin(s.getOrderStatus(), s.getVin(), s.getBindStatus()));
+            String valueByVin = GrtToPadEnums.getValueByVin(s.getOrderStatus(), s.getVin(), s.getBindStatus());
+            System.out.println(valueByVin);
+        });
+
+        OrderNoListResultOutBo orderNoListResultOutBo = new OrderNoListResultOutBo();
+        orderNoListResultOutBo.setData(data);
+        orderNoListResultOutBo.setPageNum(orderNoListResultDto.getPageNum());
+        orderNoListResultOutBo.setPageSize(orderNoListResultDto.getPageSize());
+        orderNoListResultOutBo.setTotal(orderNoListResultDto.getTotal());
+
+        return R.ok(orderNoListResultOutBo);
+    }
+
+    public String grtConcatURL(OrderNoListParamVo orderNoListParamVo) {
+
+       String url = orderListUrl;
         if (Strings.isNotEmpty(orderNoListParamVo.getUserCode())){
             url = url.contains("?") ?
                     url.concat("&userCode=").concat(orderNoListParamVo.getUserCode())
@@ -231,40 +264,16 @@ public class GRTService {
         url = url.contains("?") ?
                 url.concat("&pageSize=").concat(orderNoListParamVo.getPageSize()+"")
                 : url.concat("?pageSize=").concat(orderNoListParamVo.getPageSize()+"");
-        log.info("GRT请求路径URL --->>> {}",url);
-        ResponseEntity<OrderNoListResultDto> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, OrderNoListResultDto.class);
-        log.info("GRT返回参数 --->>> {}", JSONObject.toJSONString(response));
-        OrderNoListResultDto orderNoListResultDto = response.getBody();
-        log.info("GRT返回参数 --->>> {}", JSONObject.toJSONString(orderNoListResultDto));
-        List<OrderNoResultDto> data = orderNoListResultDto.getData();
-        data.forEach(s-> {
-            s.setOrderStatus(GrtToPadEnums.getValueByVin(s.getOrderStatus(), s.getVin(), s.getBindStatus()));
-            String valueByVin = GrtToPadEnums.getValueByVin(s.getOrderStatus(), s.getVin(), s.getBindStatus());
-            System.out.println(valueByVin);
-        });
-        if (null == orderNoListResultDto || orderNoListResultDto.getStatus() == null){
-            return R.fail("对接GRT获取待交车订单列表出错!  接口返回null! " );
-        }else if (!orderNoListResultDto.getStatus().equals("200")){
-            return R.fail("对接GRT获取待交车订单列表出错!  ".concat(orderNoListResultDto.getMessage() == null ? "接口返回null! " : orderNoListResultDto.getMessage()));
-        }
-        OrderNoListResultOutBo orderNoListResultOutBo = new OrderNoListResultOutBo();
-        orderNoListResultOutBo.setData(data);
-        orderNoListResultOutBo.setPageNum(orderNoListResultDto.getPageNum());
-        orderNoListResultOutBo.setPageSize(orderNoListResultDto.getPageSize());
-        orderNoListResultOutBo.setTotal(orderNoListResultDto.getTotal());
-
-        return R.ok(orderNoListResultOutBo);
+        return url;
     }
 
 
     public R<List<OrderDetailResultDto>> getGrtOrderDetail(String bussinessNo) {
         long timestamp = System.currentTimeMillis();
-        System.out.println(timestamp);
         String sign = GRTSignUtil.sign(GRTSignUtil.APP_KEY_GRT, timestamp, GRTSignUtil.SECRET_KEY_GRT);
         try {
-            boolean b = GRTSignUtil.checkSign(sign, GRTSignUtil.APP_KEY_GRT, timestamp);
-            System.out.println(b);
-        } catch (Exception e) {
+            Thread.sleep(800);
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -276,14 +285,17 @@ public class GRTService {
         httpHeaders.add("timestamp", String.valueOf(timestamp));
 
         HttpEntity<String> requestEntity = new HttpEntity<>( httpHeaders);
+        log.info("请求头为 --->>> {}", JSONObject.toJSONString(requestEntity));
 
         String url = String.format(orderDetailUrl,bussinessNo);
         String url1 = orderDetailUrl.concat("?bussinessNo=").concat(bussinessNo);
-        log.info("url1 --->>> {}", JSONObject.toJSONString(url));
+        log.info("url1 --->>> {}", JSONObject.toJSONString(url1));
         log.info("url --->>> {}", JSONObject.toJSONString(url));
-        ResponseEntity<String> response = restTemplate.exchange(url1, HttpMethod.GET, requestEntity, String.class);
+
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
         OrderDetailListResultDto orderDetailListResultDto = JSONObject.parseObject(response.getBody(), OrderDetailListResultDto.class);
         log.info("查询交车确认信息 --->>> {}", JSONObject.toJSONString(response));
+
         if (orderDetailListResultDto == null || orderDetailListResultDto.getStatus() == null){
             return R.fail("对接GRT获取待交车订单详情出错!接口返回null  ");
         }else if (!"200".equals(orderDetailListResultDto.getStatus())){
@@ -334,8 +346,22 @@ public class GRTService {
         return R.ok(null,response.getBody().getMessage());
     }
 
-    public R updateGrtOrderDeliverDate(OrderDeliverDateParamVo orderDeliverDateParamVo) {
-        ResponseEntity<BaseGrtResultDto> response = restTemplate.exchange(pushUpdateRecordToGrt, HttpMethod.POST, new HttpEntity<>(orderDeliverDateParamVo), BaseGrtResultDto.class);
+    public R updateGrtOrderDeliverDate(OrderDeliverDateParamVo orderDeliverDateParamVo) throws InterruptedException {
+
+        long timestamp = System.currentTimeMillis();
+        String sign = GRTSignUtil.sign(GRTSignUtil.APP_KEY_GRT, timestamp, GRTSignUtil.SECRET_KEY_GRT);
+        Thread.sleep(800);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("reqId", UuidUtil.generateUuid());
+        httpHeaders.add("reqFrom","PAD");
+        httpHeaders.add("reqTime", DateUtil.getNowDateStr());
+        httpHeaders.add("sign", sign);
+        httpHeaders.add("appKey", GRTSignUtil.APP_KEY_GRT);
+        httpHeaders.add("timestamp", String.valueOf(timestamp));
+        HttpEntity<OrderDeliverDateParamVo> requestEntity = new HttpEntity<>(orderDeliverDateParamVo,httpHeaders);
+        log.info("查询交车确认信息 --->>> {}", JSONObject.toJSONString(requestEntity.getHeaders()));
+
+        ResponseEntity<BaseGrtResultDto> response = restTemplate.exchange(pushUpdateRecordToGrt, HttpMethod.POST, requestEntity, BaseGrtResultDto.class);
         if (response.getStatusCode() != HttpStatus.OK){
             return R.fail(response.getBody() == null?"null" : response.getBody().getMessage());
         }

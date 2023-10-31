@@ -1,13 +1,13 @@
 package com.gpad.gpadtool.controller.autoSignature;
 
 import com.alibaba.fastjson.JSON;
+import com.gpad.common.core.bo.input.AuthUserSignatureInputBO;
 import com.gpad.common.core.bo.input.AutoSignatureGetLinkInputBO;
 import com.gpad.common.core.bo.input.AutoSignatureInputBO;
 import com.gpad.common.core.bo.input.ContinueStartSignatureInputBO;
 import com.gpad.common.core.domain.R;
 import com.gpad.gpadtool.service.AutoSignatureService;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,24 +42,6 @@ public class GentlemanSignatureController {
         AutoSignatureInputBO autoSignatureInputBO = JSON.parseObject(autoSignatureInputBOForm, AutoSignatureInputBO.class);
         return autoSignatureService.startGentlemanSignature(autoSignatureInputBO,file,fileCustomerPng,fileProductPng);
     }
-
-//    public static void main(String[] args) {
-//        JSONArray req = new JSONArray();
-//        AutoSignatureInputBO autoSignatureInputBO = new AutoSignatureInputBO();
-//        autoSignatureInputBO.setFullName("1");
-//        autoSignatureInputBO.setIdentityType(1);
-//        System.out.println(JSONObject.toJSONString(autoSignatureInputBO));
-//        String str = JSONObject.toJSONString(autoSignatureInputBO);
-//        req.add(str);
-//        AutoSignatureInputBO autoSignatureInputBO1 = new AutoSignatureInputBO();
-//        autoSignatureInputBO1.setFullName("2");
-//        autoSignatureInputBO1.setIdentityType(3);
-//        autoSignatureInputBO1.setIdentityCard("21615616156");
-//        String str1 = JSONObject.toJSONString(autoSignatureInputBO1);
-//        req.add(str1);
-//        String ooo = JSONArray.toJSONString(req);
-//        System.out.println(ooo);
-//    }
 
     /**
      * 获取裙子合同
@@ -113,8 +95,8 @@ public class GentlemanSignatureController {
      */
     @Operation(summary = "二要数认证接口")
     @PostMapping("/v2/auth/userValid")
-    public R authUserValid(@RequestBody AutoSignatureInputBO autoSignatureInputBO){
-        return autoSignatureService.authUserValid(autoSignatureInputBO);
+    public R authUserSignatureValid(@RequestBody AuthUserSignatureInputBO authUserSignatureInputBO){
+        return autoSignatureService.authUserSignatureValid(authUserSignatureInputBO);
     }
 
 //    /**

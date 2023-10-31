@@ -217,6 +217,11 @@ public class HandoverCarCheckInfo implements Serializable {
     private Integer signStatus;
 
     /**
+     * 合同连接
+     */
+    private String contractLink;
+
+    /**
      * 签字状态（0=未签署；1=已签署）
      */
     private Integer delFlag;

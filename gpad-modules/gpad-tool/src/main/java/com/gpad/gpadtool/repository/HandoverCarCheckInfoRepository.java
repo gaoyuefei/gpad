@@ -40,7 +40,9 @@ public class HandoverCarCheckInfoRepository extends ServiceImpl<HandoverCarCheck
         HandoverCarCheckInfo handoverCarCheckInfo = new HandoverCarCheckInfo();
         BeanUtil.copyProperties(handoverCarCheckInfoDto,handoverCarCheckInfo);
         if (ObjectUtil.isNotEmpty(handoverCarCheckInfoDto)){
-            if (null == handoverCarCheckInfoDto.getId() && handoverCarCheckInfoDto.getId() > 0){
+            if (null == handoverCarCheckInfoDto.getId() &&
+                    StringUtils.isEmpty(handoverCarCheckInfoDto.getId()+"")
+                    && handoverCarCheckInfoDto.getId() == 0){
                 handoverCarCheckInfo.setId(handoverCarCheckInfoDto.getId().toString().length()<=9?null:handoverCarCheckInfoDto.getId());
             }
         }
@@ -51,9 +53,12 @@ public class HandoverCarCheckInfoRepository extends ServiceImpl<HandoverCarCheck
 //        this.lambdaQuery().eq()
     }
 
-    public Boolean updatecontractInfoById(String apl, AutoSignatureInputBO autoSignatureInputBO) {
+    public Boolean updatecontractInfoById(String apl, String data ,AutoSignatureInputBO autoSignatureInputBO) {
         boolean update = this.lambdaUpdate().setSql(" version = version + 1 ")
-                .set(HandoverCarCheckInfo::getContractAplNo, apl)
+                .set(StringUtils.isNotEmpty(apl) && apl.length() < 50 ,HandoverCarCheckInfo::getContractAplNo, apl)
+                .set(HandoverCarCheckInfo::getSignType, 0)
+                .set(HandoverCarCheckInfo::getSignStatus, 1)
+                .set(StringUtils.isNotEmpty(data),HandoverCarCheckInfo::getContractLink,data)
                 .eq(HandoverCarCheckInfo::getDelFlag, "0")
                 .eq(HandoverCarCheckInfo::getBussinessNo, autoSignatureInputBO.getBussinessNo())
                 .eq(StringUtils.isNotEmpty(autoSignatureInputBO.getId()), HandoverCarCheckInfo::getId, autoSignatureInputBO.getId())

@@ -1,12 +1,6 @@
 package com.gpad.gpadtool.utils;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.Calendar;
 
@@ -19,6 +13,15 @@ import java.util.Calendar;
  * @Version: 1.0
  */
 public class  GRTSignUtil {
+
+//    @Value("${grt.param.app_key_grt}")
+//    public static String APP_KEY_GRT;
+//
+//    @Value("${grt.param.secret_key_grt}")
+//    public static String SECRET_KEY_GRT;
+//
+//    @Value("${grt.param.sign_timeout}")
+//    public static int SIGN_TIMEOUT;
 
     // ak 客户端请求参数需要传
     public static String APP_KEY_GRT = "YONYOU_GRTXyt4onS9pNFfgOqAAjeYNL";

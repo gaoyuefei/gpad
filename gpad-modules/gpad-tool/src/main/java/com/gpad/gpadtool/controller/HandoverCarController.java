@@ -1,6 +1,7 @@
 package com.gpad.gpadtool.controller;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.gpad.common.core.domain.R;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author Donald.Lee
@@ -84,7 +86,7 @@ public class HandoverCarController {
         if (Strings.isEmpty(handoverCarCheckInfoDto.getBussinessNo())){
             return R.fail("bussinessNo必传，请检查参数! ");
         }
-        HandoverCarCheckInfoDto handoverCarCheckInfoOut = handoverCarCheckInfoService.getBybussinessNo(handoverCarCheckInfoDto.getBussinessNo());
+//        HandoverCarCheckInfoDto handoverCarCheckInfoOut = handoverCarCheckInfoService.getBybussinessNo(handoverCarCheckInfoDto.getBussinessNo());
         //客户信息
         R<List<OrderDetailResultDto>> grtOrderDetail = grtService.getGrtOrderDetail(handoverCarCheckInfoDto.getBussinessNo());
         //合同信息
@@ -169,5 +171,33 @@ public class HandoverCarController {
     public R<Boolean> saveDeliverCarConfirmInfo(@RequestBody HandoverCarCheckInfoDto handoverCarCheckInfoDto){
         log.info("03交车确认-合同信息保存 --->>> {}", JSONObject.toJSONString(handoverCarCheckInfoDto));
         return handoverCarService.saveDeliverCarConfirmInfo(handoverCarCheckInfoDto);
+    }
+
+    /**
+     * 02交车确认-交车仪式
+     */
+    @Operation(summary = "交车仪式")
+    @PostMapping("/handOverCar/getDeliveryCeremonyPath")
+    public R<FileInfoOutBo> getDeliveryCeremonyPath(@RequestBody DeliveryCeremonyInputBO deliveryCeremonyInputBO){
+        log.info("02交车确认-交车仪式嵌套页面 --->>> {}", JSONObject.toJSONString(deliveryCeremonyInputBO));
+        return handoverCarService.getDeliveryCeremonyPath(deliveryCeremonyInputBO);
+    }
+
+    /**
+     * 上传图片查询-上传图片查询
+     */
+    @Operation(summary = "上传图片查询")
+    @PostMapping("/handOverCar/H5/file")
+    public R<FileInfoOutBo> getHandOverCarH5File(@RequestBody FileInfoInputBO fileInfoInputBO){
+        return handoverCarService.getHandOverCarH5File(fileInfoInputBO);
+    }
+
+    /**
+     * 交车完成接口
+     */
+    @Operation(summary = "交车完成接口")
+    @PostMapping("/handOverCar/deliveryCompleted")
+    public R<Boolean> deliveryCompletedNext(@RequestBody DeliveryCompletedInputBO deliveryCompletedInputBO){
+        return handoverCarService.deliveryCompletedNext(deliveryCompletedInputBO);
     }
 }

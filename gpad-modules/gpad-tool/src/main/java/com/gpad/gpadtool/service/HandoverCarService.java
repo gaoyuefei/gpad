@@ -1,11 +1,13 @@
 package com.gpad.gpadtool.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.gpad.common.core.domain.R;
 import com.gpad.common.core.exception.ServiceException;
 import com.gpad.gpadtool.constant.FlowNodeNum;
 import com.gpad.gpadtool.domain.dto.*;
+import com.gpad.gpadtool.domain.entity.FileInfo;
 import com.gpad.gpadtool.repository.FileInfoRepository;
 import com.gpad.gpadtool.repository.FlowInfoRepository;
 import com.gpad.gpadtool.repository.OrderDetailRepository;
@@ -15,7 +17,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.NotBlank;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * @author Donald.Lee
@@ -35,6 +41,8 @@ public class HandoverCarService {
     private HandoverCarPrepareService handoverCarPrepareService;
     @Autowired
     private HandoverCarCheckInfoService handoverCarCheckInfoService;
+    @Autowired
+    private GRTService grtService;
     @Autowired
     private OrderDetailRepository orderDetailRepository;
 
@@ -158,5 +166,79 @@ public class HandoverCarService {
     public FlowInfoDto queryProcessNode(String bussinessNo) {
         FlowInfoDto flowInfoDto = flowInfoRepository.getBybussinessNo(bussinessNo);
         return ObjectUtil.isEmpty(flowInfoDto)?(new FlowInfoDto()):(flowInfoDto);
+    }
+
+    public R<FileInfoOutBo> getDeliveryCeremonyPath(DeliveryCeremonyInputBO deliveryCeremonyInputBO) {
+        FileInfoOutBo fileInfoOutBo = new FileInfoOutBo();
+        List<FileInfoDto> list = new ArrayList<>();
+        FileInfoDto fileInfoDto = new FileInfoDto();
+        R<List<OrderDetailResultDto>> grtOrderDetail = grtService.getGrtOrderDetail(deliveryCeremonyInputBO.getBussinessNo());
+        log.info("method:getGrtOrderDetail().详情数据为: {}", JSONObject.toJSONString(grtOrderDetail));
+        List<OrderDetailResultDto> data = grtOrderDetail.getData();
+        if (data.size()>0){
+            OrderDetailResultDto orderDetailResultDto = data.get(0);
+            fileInfoOutBo.setCustomerName(orderDetailResultDto.getCustomerName());
+            fileInfoOutBo.setSuitCarType(orderDetailResultDto.getSeriesName());
+        }
+        List<FileInfo> fileInfos = fileInfoRepository.getDeliveryCeremonyPath(deliveryCeremonyInputBO.getBussinessNo(), "22",deliveryCeremonyInputBO.getLinkType());
+        log.info("method:getDeliveryCeremonyPath().文件数据为: {}", JSONObject.toJSONString(grtOrderDetail));
+        fileInfos.forEach(fileInfo -> {
+            BeanUtil.copyProperties(fileInfo,fileInfoDto);
+            list.add(fileInfoDto);
+        });
+        fileInfoOutBo.setFileInfoDto(list);
+        log.info("method:getDeliveryCeremonyPath().交车仪式数据为: {}", JSONObject.toJSONString(fileInfoOutBo));
+        return R.ok(fileInfoOutBo);
+    }
+
+    public R<FileInfoOutBo> getHandOverCarH5File(FileInfoInputBO fileInfoInputBO) {
+        FileInfoOutBo fileInfoOutBo = new FileInfoOutBo();
+        List<FileInfoDto> list = new ArrayList<>();
+        FileInfoDto fileInfoDto = new FileInfoDto();
+        R<List<OrderDetailResultDto>> grtOrderDetail = grtService.getGrtOrderDetail(fileInfoInputBO.getBussinessNo());
+        log.info("method:getGrtOrderDetail().详情数据为: {}", JSONObject.toJSONString(grtOrderDetail));
+        List<OrderDetailResultDto> data = grtOrderDetail.getData();
+        if (data.size()>0){
+            OrderDetailResultDto orderDetailResultDto = data.get(0);
+            fileInfoOutBo.setCustomerName(orderDetailResultDto.getCustomerName());
+            fileInfoOutBo.setSuitCarType(orderDetailResultDto.getSeriesName());
+        }
+        List<FileInfo> fileInfos = fileInfoRepository.getDeliveryCeremonyPath(fileInfoInputBO.getBussinessNo(), fileInfoInputBO.getFileType(),fileInfoInputBO.getLinkType());
+        log.info("method:getDeliveryCeremonyPath().文件数据为: {}", JSONObject.toJSONString(grtOrderDetail));
+        fileInfos.forEach(fileInfo -> {
+            BeanUtil.copyProperties(fileInfo,fileInfoDto);
+            list.add(fileInfoDto);
+        });
+        fileInfoOutBo.setFileInfoDto(list);
+        log.info("method:getDeliveryCeremonyPath().交车仪式数据为: {}", JSONObject.toJSONString(fileInfoOutBo));
+        return R.ok(fileInfoOutBo);
+    }
+
+    public R<Boolean> deliveryCompletedNext(DeliveryCompletedInputBO deliveryCompletedInputBO) {
+        Boolean result = false;
+        String bussinessNo = deliveryCompletedInputBO.getBussinessNo();
+        try {
+            //幂等处理
+            RedisLockUtils.lock(bussinessNo);
+
+            FlowInfoDto bybussinessNo = flowInfoRepository.getBybussinessNo(bussinessNo);
+            if (ObjectUtil.isNotEmpty(bybussinessNo)) {
+                Integer nodeNum = bybussinessNo.getNodeNum();
+                if("3".equals(nodeNum)){
+                    FlowInfoDto flowInfoDto = new FlowInfoDto();
+                    flowInfoDto.setBussinessNo(bussinessNo);
+                    flowInfoDto.setNodeNum(FlowNodeNum.HAND_OVER_CAR_GUIDE.getCode());
+                    result = flowInfoRepository.updateDeliverCarReadyToConfirm(flowInfoDto);
+                    if (!result){
+                        throw new ServiceException("当前流程状态不符合",500);
+                    }
+                }
+                return R.ok(result);
+            }
+            return R.fail("当前流程状态不符合");
+
+        } finally {
+            RedisLockUtils.unlock(bussinessNo);
+        }
     }
 }

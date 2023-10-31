@@ -3,6 +3,7 @@ package com.gpad.gpadtool.repository;
 import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gpad.gpadtool.domain.dto.FileInfoDto;
@@ -79,5 +80,13 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
 
     public List<FileInfo> queryFileBybussinessNo(String bussinessNo) {
         return this.lambdaQuery().eq(FileInfo::getBussinessNo,bussinessNo).list();
+    }
+
+    public List<FileInfo> getDeliveryCeremonyPath(String bussinessNo, String fileType,String linkType) {
+        return this.lambdaQuery()
+                .eq(FileInfo::getBussinessNo,bussinessNo)
+                .eq(!StringUtils.isBlank(fileType),FileInfo::getFileType,fileType)
+                .eq(!StringUtils.isBlank(linkType),FileInfo::getLinkType,linkType)
+                .list();
     }
 }

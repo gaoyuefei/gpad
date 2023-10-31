@@ -21,6 +21,7 @@ public enum FileTypeConstant {
     IMG_TYPE_JPG(FileType.PICTURE,"jpg"),
     IMG_TYPE_JPEG(FileType.PICTURE,"jpeg"),
     IMG_TYPE_PNG(FileType.PICTURE,"png"),
+    IMAGE_PNG_TYPE_PNG(FileType.PICTURE,"image/png"),
     IMG_TYPE_GIF(FileType.PICTURE,"gif"),
     FILE_TYPE_PDF(FileType.PDF,"pdf"),
     XLSX(FileType.INVOICE,"xlsx"),

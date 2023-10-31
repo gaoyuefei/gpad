@@ -1,10 +1,12 @@
 package com.gpad.gpadtool.service.serviceImpl;
 
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.gpad.common.core.bo.input.AuthUserSignatureInputBO;
 import com.gpad.common.core.bo.input.AutoSignatureGetLinkInputBO;
 import com.gpad.common.core.bo.input.AutoSignatureInputBO;
 import com.gpad.common.core.bo.input.ContinueStartSignatureInputBO;
@@ -16,6 +18,7 @@ import com.gpad.gpadtool.constant.FlowNodeNum;
 import com.gpad.gpadtool.domain.dto.FlowInfoDto;
 import com.gpad.gpadtool.domain.entity.GpadIdentityAuthInfo;
 import com.gpad.gpadtool.domain.entity.HandoverCarCheckInfo;
+import com.gpad.gpadtool.repository.FileInfoRepository;
 import com.gpad.gpadtool.repository.FlowInfoRepository;
 import com.gpad.gpadtool.repository.GpadIdentityAuthInfoRepository;
 import com.gpad.gpadtool.repository.HandoverCarCheckInfoRepository;
@@ -45,7 +48,7 @@ import java.util.Map;
 /**
  * @author Donald.Lee
  * @version 1.0.0
- * @ClassName ScrmServiceImpl.java
+ * @ClassName AutoSignatureServiceImpl.java
  * @Description TODO
  * @createTime 2023年09月21日 11:52:00
  */
@@ -60,6 +63,8 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     @Autowired
     private FlowInfoRepository flowInfoRepository;
     @Autowired
+    private FileInfoRepository fileInfoRepository;
+    @Autowired
     private GpadIdentityAuthInfoRepository gpadIdentityAuthInfoRepository;
     @Autowired
     private HandoverCarCheckInfoRepository handoverCarCheckInfoRepository;
@@ -71,14 +76,27 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     @Transactional(rollbackFor = Exception.class)
     public R<String> startGentlemanSignature(AutoSignatureInputBO autoSignatureInputBO, MultipartFile file,MultipartFile fileCustomerPng,MultipartFile fileProductPng) {
         String bussinessNo = autoSignatureInputBO.getBussinessNo();
-        //必填校验  TODO 判断文件是否为空
-        if (null == file){
-            return R.fail(null,"合同未生成,请先生成合同");
-        }
 
         //安全认证->接口加盐处理
         GentlemanSaltingVo gentlemanSaltingVo = getAuthSafety();
 
+        //TODO 查询数据
+        GpadIdentityAuthInfo gpadIdentityAuthInfo = gpadIdentityAuthInfoRepository.checkMemorySign(autoSignatureInputBO);
+        if(!ObjectUtil.isNotEmpty(gpadIdentityAuthInfo)){
+            return R.fail(null,"产品专家认证失败，请检查身份证号");
+        }
+        autoSignatureInputBO.setProductName(gpadIdentityAuthInfo.getProductName());
+        autoSignatureInputBO.setIdentityType1(1);
+        autoSignatureInputBO.setIdentityCard1(gpadIdentityAuthInfo.getIdentityCard());
+        autoSignatureInputBO.setProductMobile(gpadIdentityAuthInfo.getProductMobile());
+        GpadIdentityAuthInfo byId = gpadIdentityAuthInfoRepository.getById(2);
+        autoSignatureInputBO.setMemorySignPath(byId.getFilePath());
+        AuthUserSignatureInputBO authUserSignatureInputBO = new AuthUserSignatureInputBO();
+        BeanUtil.copyProperties(authUserSignatureInputBO,authUserSignatureInputBO);
+        Boolean result1 = gpadIdentityAuthInfoRepository.updateAuthUserSignature(authUserSignatureInputBO);
+        if(!result1){
+            return R.fail(null,"产品专家认证失败，请检查身份证号");
+        }
         //校验当前个人是否实名认证 TODO 1.询问前端是否需要跳转不同页面    3.代码优化 参数封装方法
         if (autoSignatureInputBO.getIdentityType() == 1){
             if(!personValid(gentlemanSaltingVo,autoSignatureInputBO.getProductName(),autoSignatureInputBO.getIdentityCard1())){
@@ -87,7 +105,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         }
 
         if(null == fileCustomerPng){
-            GpadIdentityAuthInfo gpadIdentityAuthInfo = gpadIdentityAuthInfoRepository.checkMemorySign(autoSignatureInputBO);
+//            GpadIdentityAuthInfo gpadIdentityAuthInfo = gpadIdentityAuthInfoRepository.checkMemorySign(autoSignatureInputBO);
             //双条件判断 是否实名
 //            if (!StringUtils.isNotEmpty(gpadIdentityAuthInfo.getFilePath()) &&
 //                    gpadIdentityAuthInfo.getFilePath().equals(autoSignatureInputBO.getMemorySignPath())){
@@ -108,23 +126,31 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 }
             }
         }
+        //必填校验  TODO 判断文件是否为空
+        if (null == file && null == fileCustomerPng){
+            //TODO 上传到文件服务器 存储到数据库
+
+            return R.ok(null,"产品个人签署成功");
+        }
+
         R result = turnOnLineSignature(autoSignatureInputBO,gentlemanSaltingVo,file,fileCustomerPng,fileProductPng);
         if (!StringUtils.isNotEmpty(result.getData().toString())){
             return R.fail(null,"发起线上签失败");
         }
 
-        //调用短信接口 //不存客户信息
-        if (StringUtils.isNotEmpty(autoSignatureInputBO.getMobile())){
-            System.out.println("结束");
-        }
         RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
-//构建请求参数
+       //构建请求参数
         Map<String,Object> params=new HashMap<>();
-        params.put("applyNo",result.getData().toString()); //TODO *
+        String apl = result.getData().toString();
+        params.put("applyNo", apl); //TODO *
         ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkAnonyDetail",params);
         String data = "";
         if (ObjectUtil.isNotEmpty(ri)){
             data = ri.getData();
+        }
+        Boolean res = handoverCarCheckInfoRepository.updatecontractInfoById(apl, data, autoSignatureInputBO);
+        if (!res){
+            System.out.println(1);
         }
         return R.ok(data);
     }
@@ -212,7 +238,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                     System.out.println(apl);
                 }
                 // 数据入库 TODO 是否归档 在数据落库
-                Boolean rel = handoverCarCheckInfoRepository.updatecontractInfoById(apl,autoSignatureInputBO);
+                Boolean rel = handoverCarCheckInfoRepository.updatecontractInfoById(apl,null,autoSignatureInputBO);
                 if (!rel){
                     throw new ServiceException("合同存储失败",500);
                 }
@@ -472,9 +498,10 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         //安全认证->接口加盐处理
         GentlemanSaltingVo gentlemanSaltingVo = getAuthSafety();
         boolean result = personValid(gentlemanSaltingVo, autoSignatureInputBO.getFullName(), autoSignatureInputBO.getIdentityCard());
-        if (result){
-            System.out.println("存实名信息");
+        if (!result){
+            throw new ServiceException("实名认证失败",500);
         }
+        //查询当前账号是不是第一次签名，如果是就添加   不是就修改
         // TODO 上线时打开
         return R.ok(true);
     }
@@ -501,6 +528,24 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         if (!result){
             throw new ServiceException("流程接口扭转失败",500);
         }
+        return R.ok(result);
+    }
+
+    @Override
+    public R authUserSignatureValid(AuthUserSignatureInputBO authUserSignatureInputBO) {
+        Boolean result = false;
+        //安全认证->接口加盐处理
+        GentlemanSaltingVo gentlemanSaltingVo = getAuthSafety();
+        result = personValid(gentlemanSaltingVo, authUserSignatureInputBO.getFullName(), authUserSignatureInputBO.getIdentityCard());
+        if (!result){
+            throw new ServiceException("实名认证失败",500);
+        }
+        //查询当前账号是不是第一次签名，如果是就添加   不是就修改
+        result = gpadIdentityAuthInfoRepository.saveAuthUserSignatureValid(authUserSignatureInputBO);
+        if (!result){
+            throw new ServiceException("账号实名失败",500);
+        }
+        // TODO 上线时打开
         return R.ok(result);
     }
 

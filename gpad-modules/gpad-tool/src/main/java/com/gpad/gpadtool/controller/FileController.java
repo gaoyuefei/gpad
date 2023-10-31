@@ -1,8 +1,10 @@
 package com.gpad.gpadtool.controller;
 
+import cn.hutool.core.util.IdUtil;
 import com.gpad.common.core.domain.R;
 import com.gpad.gpadtool.domain.dto.UploadFileOutputDto;
 import com.gpad.gpadtool.utils.DateUtil;
+import com.gpad.gpadtool.utils.FTPUntil;
 import com.gpad.gpadtool.utils.FileUtil;
 import com.gpad.gpadtool.utils.UuidUtil;
 import io.swagger.annotations.Api;
@@ -17,10 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 /**
  * @author Donald.Lee
@@ -34,6 +33,7 @@ import java.io.OutputStream;
 @RestController
 @RequestMapping("/api/file")
 public class FileController {
+
     @Value("${config.file.path}")
     private String FILE_PATH;
 
@@ -169,5 +169,28 @@ public class FileController {
             }
         }
     }
+
+
+    /**
+     * 文件上传
+     */
+    @Operation(summary = "FTP文件服务器上传")
+    @PostMapping("/uploadFtpFile")
+    public R<UploadFileOutputDto> uploadFtpFile(@RequestParam("file") MultipartFile file) throws IOException {
+        //获取文件上传流
+        InputStream inputStream = file.getInputStream();
+        //1、获取原文件后缀名
+        String originalFileName = file.getOriginalFilename();
+        //截取后缀
+        String suffix = originalFileName.substring(originalFileName.lastIndexOf('.'));
+        //2、使用UUID生成新文件名
+        String newFileName = IdUtil.fastSimpleUUID() + suffix ;
+        //3、将MultipartFile转化为File
+//             file = FileUtils.multipartFileToFile(multipartFile);
+        boolean flag = FTPUntil.uploadFile(newFileName,inputStream);
+        UploadFileOutputDto uploadFileOutputDto = new UploadFileOutputDto();
+        return R.ok(uploadFileOutputDto);
+    }
+
 
 }

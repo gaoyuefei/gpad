@@ -72,11 +72,21 @@ public class GRTController {
     }
 
     /**
+     * GRT-待交车订单详情接口
+     */
+    @Operation(summary = "H5端GRT-待交车订单详情接口")
+    @PostMapping("/grt/H5/getSyncOrderDetailH5")
+    public R getSyncOrderDetailH5(@RequestParam("bussinessNo") String bussinessNo){
+        log.info("GRT-待交车订单详情接口 --->>> {}", bussinessNo);
+        return grtService.getPadOrderDetail(bussinessNo);
+    }
+
+    /**
      * GRT-修改计划交车日期
      */
     @Operation(summary = "GRT-修改计划交车日期")
     @PostMapping("/grt/updateGrtOrderDeliverDate")
-    public R updateGrtOrderDeliverDate(@RequestBody OrderDeliverDateParamVo orderDeliverDateParamVo){
+    public R updateGrtOrderDeliverDate(@RequestBody OrderDeliverDateParamVo orderDeliverDateParamVo) throws InterruptedException {
         log.info("GRT-修改计划交车日期 --->>> {}", orderDeliverDateParamVo);
         return grtService.updateGrtOrderDeliverDate(orderDeliverDateParamVo);
     }
