@@ -59,7 +59,7 @@ public class ScrmService {
     private String qrCodeUrl;
     @Value("${wx.url.userInfoByCode}")
     private String userInfoByCode;
-    @Value("${wx.redirect-url}")
+    @Value("${wx.url.redirect-url}")
     private String redirectUrl;
 
     @Value("${scrm.publicKey}")
