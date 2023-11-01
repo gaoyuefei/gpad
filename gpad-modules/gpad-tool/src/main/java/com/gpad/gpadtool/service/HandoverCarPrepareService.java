@@ -91,10 +91,12 @@ public class HandoverCarPrepareService {
     @Transactional(rollbackFor = Exception.class)
     public R<Boolean> saveOrUpdateHandoverCarPrepareDto(HandoverCarPrepareDto handoverCarPrepareDto) {
         Boolean result = false;
+        Integer nodeNum = 0;
         String bussinessNo = handoverCarPrepareDto.getBussinessNo();
 
             try {
                 RedisLockUtils.lock(bussinessNo);
+                //TODO 前端有ID 一定要传ID
                 if (Strings.isBlank(handoverCarPrepareDto.getId()) && !checkedbussinessNo(bussinessNo)) {
                     //幂等处理
                     System.out.println("锁");
@@ -103,6 +105,7 @@ public class HandoverCarPrepareService {
                     if (!result) {
                         throw new ServiceException("交车准备信息入库", R.FAIL);
                     }
+
                     result = fileInfoRepository.saveReadyDeliverCarFile(handoverCarPrepareDto.getLinkType());
                     if (!result) {
                         throw new ServiceException("bussinessNo -> 绑定的文件服务器", R.FAIL);
@@ -110,15 +113,20 @@ public class HandoverCarPrepareService {
 
                     log.info("method:saveReadyDeliverCarInfoOrderNo().交车准备内容: {}", "result");
                 }else {
-                    //TODO
                     updateById(handoverCarPrepareDto);
-                    result = true;
+                    result = fileInfoRepository.updateReadyDeliverCarFile(handoverCarPrepareDto.getLinkType());
+                    //TODO 文件服务器异常
+                    if (!result) {
+                        throw new ServiceException("bussinessNo -> 更新文件服务异常", R.FAIL);
+                    }
 //                    handoverCarPrepareRepository.updateReadyDeliverCarInfoOrderNo(handoverCarPrepareDto);
                 }
                 FlowInfoDto bybussinessNo = flowInfoRepository.getBybussinessNo(handoverCarPrepareDto.getBussinessNo());
-                Integer nodeNum = bybussinessNo.getNodeNum();
 
-                if (nodeNum == 2 && "1".equals(handoverCarPrepareDto.getButton())){
+                if (ObjectUtil.isNotEmpty(bybussinessNo)){
+                    nodeNum = bybussinessNo.getNodeNum();
+                }
+                if (2 == nodeNum  && "1".equals(handoverCarPrepareDto.getButton())){
                     //扭转流程订单流程状态
                     // TODO 这里还要写 流程节点-扭转流程分离 解耦 目前前是强绑
                     FlowInfoDto flow = new FlowInfoDto();
@@ -130,7 +138,6 @@ public class HandoverCarPrepareService {
                     }
                 }
             } finally {
-                System.out.println("释放锁");
                 RedisLockUtils.unlock(bussinessNo);
             }
         return R.ok(result);
@@ -179,7 +186,6 @@ public class HandoverCarPrepareService {
             readyDeliverCarOutBO.setSuppliesAtt(list);
         }
         readyDeliverCarOutBO.setId(handoverCarPrepare.getId());
-
         List<FileInfo> fileInfos = fileInfoRepository.queryFileBybussinessNo(bussinessNo);
         List<FileInfoDto> list = new ArrayList<>();
         FileInfoDto fileInfoDto = new FileInfoDto();

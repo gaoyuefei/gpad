@@ -1,6 +1,7 @@
 package com.gpad.gpadtool.repository;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author Donald.Lee
@@ -55,12 +57,8 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
         list.forEach(this::saveOrUpdateFileInfoDto);
     }
 
-    public void saveOrUpdateFileInfoDto(FileInfoDto fileInfoDto) {
-        /*if (bybussinessNo==null){
-            saveFileInfoDto(fileInfoDto);
-        }else {
-            updateById(fileInfoDto);
-        }*/
+    public Boolean saveOrUpdateFileInfoDto(FileInfoDto fileInfoDto) {
+        return this.saveOrUpdate(JSONObject.parseObject(JSONObject.toJSONString(fileInfoDto),FileInfo.class));
     }
 
     public FileInfoDto updateById(FileInfoDto fileInfoDto){
@@ -88,5 +86,27 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
                 .eq(!StringUtils.isBlank(fileType),FileInfo::getFileType,fileType)
                 .eq(!StringUtils.isBlank(linkType),FileInfo::getLinkType,linkType)
                 .list();
+    }
+
+    public Boolean updateReadyDeliverCarFile(List<FileInfoDto> linkType) {
+        Boolean result = false;
+        if (CollectionUtil.isEmpty(linkType) || linkType.size() == 0){
+            return true;
+        }
+        for (FileInfoDto fileInfoDto : linkType) {
+            if (ObjectUtil.isNotEmpty(fileInfoDto)){
+                if (!StringUtils.isBlank(fileInfoDto.getId())){
+                    result = this.updateFileInfo(fileInfoDto);
+                }else {
+                    result = this.saveReadyDeliverCarFile(linkType);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private Boolean updateFileInfo(FileInfoDto fileInfoDto) {
+        return this.updateById(JSONObject.parseObject(JSONObject.toJSONString(fileInfoDto),FileInfo.class));
     }
 }

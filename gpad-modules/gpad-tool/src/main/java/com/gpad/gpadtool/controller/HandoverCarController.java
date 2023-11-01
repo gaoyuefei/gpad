@@ -25,7 +25,7 @@ import java.util.function.Consumer;
  * @createTime 2023年09月22日 17:09:00
  */
 @Slf4j
-@Api(value = "对接GRT接口", tags = "对接GRT接口")
+@Api(value = "对接GRT接口-交车页面接口相关", tags = "对接GRT接口-交车页面接口相关")
 @RestController
 @RequestMapping("/api")
 public class HandoverCarController {

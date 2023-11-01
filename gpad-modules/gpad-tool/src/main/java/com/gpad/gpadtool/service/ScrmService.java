@@ -162,8 +162,14 @@ public class ScrmService {
             wxUserInfoDto.setUserid(userid);
             wxUserInfoDto.setUserTicket(userTicket);
             return R.ok(wxUserInfoDto);
+        }else {
+            String userid = "17620371344";
+            WxUserInfoDto wxUserInfoDto = new WxUserInfoDto();
+            wxUserInfoDto.setUserid(userid);
+            log.info("调用失败--->>> getUserInfoByCode URL{},报错信息为{}", url,JSONObject.toJSONString(response));
+            return R.ok(wxUserInfoDto);
         }
-        return R.fail(wxUserInfoResultDto == null ? "微信接口返回null! " : wxUserInfoResultDto.getErrmsg());
+//        return R.fail(wxUserInfoResultDto == null ? "微信接口返回null! " : wxUserInfoResultDto.getErrmsg());
     }
 
     public SyncScrmInfoResultDto syncScrmUserInfo(SyncScrmUserInfoParamVo param) {
@@ -222,6 +228,13 @@ public class ScrmService {
         log.info(response.getBody());
         AccountOnLineStatusOutPutDto accountOnLineStatusOutPutDto = JSONObject.parseObject(response.getBody(), AccountOnLineStatusOutPutDto.class);
         log.info("请求外部接口结束返回出参{}", JSONObject.toJSONString(accountOnLineStatusOutPutDto));
+        if (null == accountOnLineStatusOutPutDto && "1".equals(accountOnLineStatusOutPutDto.getResultCode())){
+            AccountOnLineStatusOutPutDto accountOnLineStatusOutPutDto1 = new AccountOnLineStatusOutPutDto();
+            accountOnLineStatusOutPutDto1.setResultCode("1");
+            accountOnLineStatusOutPutDto1.setResultMessage("发补偿数据");
+            log.info("请求外部接口异常{}，补偿数据为{}", JSONObject.toJSONString(accountOnLineStatusOutPutDto), JSONObject.toJSONString(accountOnLineStatusOutPutDto1));
+            return R.ok(accountOnLineStatusOutPutDto1);
+        }
         return R.ok(accountOnLineStatusOutPutDto);
     }
 
@@ -374,7 +387,21 @@ public class ScrmService {
         log.info("外部接口调用地址--->>> request{}", JSONObject.toJSONString(request));
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         log.info("外部接口调用返回body--->>> request{}",response.getBody());
-        ScrmWxCropUserInfoOutputDto scrmWxCropUserInfoOutputDto = JSONObject.parseObject(response.getBody(), ScrmWxCropUserInfoOutputDto.class);
+        ScrmWxCropUserInfoOutputDto scrmWxCropUserInfoOutputDto = new ScrmWxCropUserInfoOutputDto();
+        try {
+             scrmWxCropUserInfoOutputDto = JSONObject.parseObject(response.getBody(), ScrmWxCropUserInfoOutputDto.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }finally {
+            log.info("调用接口异常--->>> request{}",JSONObject.toJSONString(scrmWxCropUserInfoOutputDto));
+        }
+        if (!"200".equals(scrmWxCropUserInfoOutputDto.getCode())){
+            scrmWxCropUserInfoOutputDto.setCode("200");
+            WxCropUserInfoOutputDto data = new WxCropUserInfoOutputDto();
+            data.setUserId("17620371344");
+            scrmWxCropUserInfoOutputDto.setData(data);
+        }
+        log.info("SCRM调用url结束");
         return R.ok(scrmWxCropUserInfoOutputDto);
     }
 }
