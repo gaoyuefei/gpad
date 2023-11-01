@@ -349,16 +349,16 @@ public class ScrmController {
         }
 
         log.info("用户登录! employeeNo {}", employeeNo);
-        AccountOnLineStatusInputDto accountOnLineStatusInputDto = new AccountOnLineStatusInputDto();
-        accountOnLineStatusInputDto.setEmployeeNo(employeeNo);
-        R<AccountOnLineStatusOutPutDto> accountOnLineStatusOutPutDtoR = scrmService.accountOnLineStatus(accountOnLineStatusInputDto);
-        if (accountOnLineStatusOutPutDtoR.getData().getResultCode().equals("1")) {
+//        AccountOnLineStatusInputDto accountOnLineStatusInputDto = new AccountOnLineStatusInputDto();
+//        accountOnLineStatusInputDto.setEmployeeNo(employeeNo);
+//        R<AccountOnLineStatusOutPutDto> accountOnLineStatusOutPutDtoR = scrmService.accountOnLineStatus(accountOnLineStatusInputDto);
+//        if (accountOnLineStatusOutPutDtoR.getData().getResultCode().equals("1")) {
 //            //用userCode查SCRM用户表
-            ScrmWxCropUserInfoInputDto scrmWxCropUserInfoInputDto = new ScrmWxCropUserInfoInputDto();
-            scrmWxCropUserInfoInputDto.setUserId(employeeNo);
-            R<ScrmWxCropUserInfoOutputDto> scrmWxCropUserInfoOutputDtoR =  null;
+//            ScrmWxCropUserInfoInputDto scrmWxCropUserInfoInputDto = new ScrmWxCropUserInfoInputDto();
+//            scrmWxCropUserInfoInputDto.setUserId(employeeNo);
+//            R<ScrmWxCropUserInfoOutputDto> scrmWxCropUserInfoOutputDtoR =  null;
 //                    scrmService.getWxCropUserInfo(scrmWxCropUserInfoInputDto);
-            log.info("外部接口返回结果 --->>> {}", JSONObject.toJSONString(scrmWxCropUserInfoOutputDtoR));
+//            log.info("外部接口返回结果 --->>> {}", JSONObject.toJSONString(scrmWxCropUserInfoOutputDtoR));
 //
 //            if (!scrmWxCropUserInfoOutputDtoR.getData().getCode().equals("200")) {
 //                return R.fail("企业微信扫码登录获取企微成员信失败");
@@ -381,7 +381,6 @@ public class ScrmController {
 //
 //            //查不到不作处理
 //            return R.fail("企业微信扫码回调失败");
-        }
-        return R.fail("eyJhbGciOiJIUzUxMiJ9.eyJ1c2VyX2lkIjoxLCJ1c2VyX2tleSI6IjlhNzYzY2Y3LThmYmItNDgwZS05NmI0LTk0MTE3ZTJlMGIyOSIsInVzZXJuYW1lIjoiYWRtaW4ifQ.tMFD3UDBuTFjSR9MHSl7n4Ey3_AF6emFvD8GdWqhetr8ufKRsh-9wR5m6yRqsXRF6tdWEarmAbsiqzrHBGXtHw","登录状态失败，补发调试token");
+//        }
     }
 }
