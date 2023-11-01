@@ -352,15 +352,17 @@ public class ScrmController {
         AccountOnLineStatusInputDto accountOnLineStatusInputDto = new AccountOnLineStatusInputDto();
         accountOnLineStatusInputDto.setEmployeeNo(employeeNo);
         R<AccountOnLineStatusOutPutDto> accountOnLineStatusOutPutDtoR = scrmService.accountOnLineStatus(accountOnLineStatusInputDto);
-        if (!accountOnLineStatusOutPutDtoR.getData().getResultCode().equals("1")) {
+        if (accountOnLineStatusOutPutDtoR.getData().getResultCode().equals("1")) {
 //            //用userCode查SCRM用户表
             ScrmWxCropUserInfoInputDto scrmWxCropUserInfoInputDto = new ScrmWxCropUserInfoInputDto();
             scrmWxCropUserInfoInputDto.setUserId(employeeNo);
-            R<ScrmWxCropUserInfoOutputDto> scrmWxCropUserInfoOutputDtoR = scrmService.getWxCropUserInfo(scrmWxCropUserInfoInputDto);
+            R<ScrmWxCropUserInfoOutputDto> scrmWxCropUserInfoOutputDtoR =  null;
+//                    scrmService.getWxCropUserInfo(scrmWxCropUserInfoInputDto);
             log.info("外部接口返回结果 --->>> {}", JSONObject.toJSONString(scrmWxCropUserInfoOutputDtoR));
-            if (!scrmWxCropUserInfoOutputDtoR.getData().getCode().equals("200")) {
-                return R.fail("企业微信扫码登录获取企微成员信失败");
-            }
+//
+//            if (!scrmWxCropUserInfoOutputDtoR.getData().getCode().equals("200")) {
+//                return R.fail("企业微信扫码登录获取企微成员信失败");
+//            }
 //            ScrmUserInfoInputDto scrmUserInfoInputDto = new ScrmUserInfoInputDto();
 //            scrmUserInfoInputDto.setAccount(scrmWxCropUserInfoOutputDtoR.getData().getData().getEmployeeNo());
 //            R<ScrmUserInfoToInstrumentOutputDto> scrmUserInfoToInstrumentOutputDtoR = scrmService.getUserInfoByAccount(scrmUserInfoInputDto);
@@ -374,12 +376,12 @@ public class ScrmController {
                 sysUser.setUserName(employeeNo);
                 loginUser.setSysUser(sysUser);
                 Map<String, Object> tokenMap = tokenService.createToken(loginUser);
-            log.info("H5页面获取token-结束 --->>> {}", JSONObject.toJSONString(tokenMap));
+                log.info("H5页面获取token-结束 --->>> {}", JSONObject.toJSONString(tokenMap));
                 return R.ok(tokenMap);
 //
 //            //查不到不作处理
 //            return R.fail("企业微信扫码回调失败");
         }
-        return R.fail("eyJhbGciOiJIUzUxMiJ9.eyJ1c2VyX2lkIjoxLCJ1c2VyX2tleSI6ImNlYzIyZGI3LTk4MzUtNDhlMC1iMDQxLTAwYjBlNDg3ZDk1OSIsInVzZXJuYW1lIjoiYWRtaW4ifQ.QyvfA2_PkNqUjVcBoOcpPwOID9lwYthVxy7aRZbNU_kAYbiBcubNzetqLa12QSOHjZptthpWv-scsgxbHvpkeg","登录状态失败，补发调试token");
+        return R.fail("eyJhbGciOiJIUzUxMiJ9.eyJ1c2VyX2lkIjoxLCJ1c2VyX2tleSI6IjlhNzYzY2Y3LThmYmItNDgwZS05NmI0LTk0MTE3ZTJlMGIyOSIsInVzZXJuYW1lIjoiYWRtaW4ifQ.tMFD3UDBuTFjSR9MHSl7n4Ey3_AF6emFvD8GdWqhetr8ufKRsh-9wR5m6yRqsXRF6tdWEarmAbsiqzrHBGXtHw","登录状态失败，补发调试token");
     }
 }
