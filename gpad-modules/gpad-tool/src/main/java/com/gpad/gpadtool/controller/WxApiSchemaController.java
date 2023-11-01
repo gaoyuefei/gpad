@@ -58,6 +58,18 @@ public class WxApiSchemaController {
 
 
 
+    /**
+     * 获取urlSchema
+     */
+    @Operation(summary = "获取urlSchema")
+    @GetMapping("/sit/thirdparty-app/urlSchema")
+    public R sitUrlSchema(@RequestParam("wxApiSchemaUrl") String wxApiSchemaUrl){
+        log.info("获取urlSchema --->>> wxApiSchemaUrl = {}", wxApiSchemaUrl);
+        return wxApiSchemaService.sitUrlSchema(wxApiSchemaUrl);
+    }
+
+
+
 
 //    public static void main(String[] args) {
 //        //加密方法

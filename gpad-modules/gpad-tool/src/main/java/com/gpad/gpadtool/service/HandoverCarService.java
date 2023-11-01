@@ -175,19 +175,25 @@ public class HandoverCarService {
         R<List<OrderDetailResultDto>> grtOrderDetail = grtService.getGrtOrderDetail(deliveryCeremonyInputBO.getBussinessNo());
         log.info("method:getGrtOrderDetail().详情数据为: {}", JSONObject.toJSONString(grtOrderDetail));
         List<OrderDetailResultDto> data = grtOrderDetail.getData();
-        if (data.size()>0){
-            OrderDetailResultDto orderDetailResultDto = data.get(0);
-            fileInfoOutBo.setCustomerName(orderDetailResultDto.getCustomerName());
-            fileInfoOutBo.setSuitCarType(orderDetailResultDto.getSeriesName());
+        if (CollectionUtils.isNotEmpty(data)){
+            if (data.size()>0){
+                OrderDetailResultDto orderDetailResultDto = data.get(0);
+                fileInfoOutBo.setCustomerName(orderDetailResultDto.getCustomerName());
+                fileInfoOutBo.setSuitCarType(orderDetailResultDto.getSeriesName());
+            }
         }
         List<FileInfo> fileInfos = fileInfoRepository.getDeliveryCeremonyPath(deliveryCeremonyInputBO.getBussinessNo(), "22",deliveryCeremonyInputBO.getLinkType());
-        log.info("method:getDeliveryCeremonyPath().文件数据为: {}", JSONObject.toJSONString(grtOrderDetail));
-        fileInfos.forEach(fileInfo -> {
-            BeanUtil.copyProperties(fileInfo,fileInfoDto);
-            list.add(fileInfoDto);
-        });
-        fileInfoOutBo.setFileInfoDto(list);
-        log.info("method:getDeliveryCeremonyPath().交车仪式数据为: {}", JSONObject.toJSONString(fileInfoOutBo));
+        if(CollectionUtils.isNotEmpty(fileInfos)){
+            if (fileInfos.size() > 0){
+                log.info("method:getDeliveryCeremonyPath().文件数据为: {}", JSONObject.toJSONString(grtOrderDetail));
+                fileInfos.forEach(fileInfo -> {
+                    BeanUtil.copyProperties(fileInfo,fileInfoDto);
+                    list.add(fileInfoDto);
+                });
+                fileInfoOutBo.setFileInfoDto(list);
+                log.info("method:getDeliveryCeremonyPath().交车仪式数据为: {}", JSONObject.toJSONString(fileInfoOutBo));
+            }
+        }
         return R.ok(fileInfoOutBo);
     }
 

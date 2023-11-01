@@ -199,7 +199,7 @@ public class ScrmService {
     }
 
     public R<AccountOnLineStatusOutPutDto> accountOnLineStatus(AccountOnLineStatusInputDto accountOnLineStatusInputDto) {
-
+        log.info("进入method:accountOnLineStatus 入参为---->{}",JSON.toJSONString(accountOnLineStatusInputDto));
         String url = appUrl + accountOnLineStatus;
         // 加密字符串
         JSONObject jsonObject = new JSONObject();
@@ -228,13 +228,14 @@ public class ScrmService {
         log.info(response.getBody());
         AccountOnLineStatusOutPutDto accountOnLineStatusOutPutDto = JSONObject.parseObject(response.getBody(), AccountOnLineStatusOutPutDto.class);
         log.info("请求外部接口结束返回出参{}", JSONObject.toJSONString(accountOnLineStatusOutPutDto));
-        if (null == accountOnLineStatusOutPutDto && "1".equals(accountOnLineStatusOutPutDto.getResultCode())){
+        if (null == accountOnLineStatusOutPutDto || "0".equals(accountOnLineStatusOutPutDto.getResultCode())){
             AccountOnLineStatusOutPutDto accountOnLineStatusOutPutDto1 = new AccountOnLineStatusOutPutDto();
             accountOnLineStatusOutPutDto1.setResultCode("1");
             accountOnLineStatusOutPutDto1.setResultMessage("发补偿数据");
             log.info("请求外部接口异常{}，补偿数据为{}", JSONObject.toJSONString(accountOnLineStatusOutPutDto), JSONObject.toJSONString(accountOnLineStatusOutPutDto1));
             return R.ok(accountOnLineStatusOutPutDto1);
         }
+        log.info("进入method:accountOnLineStatus 执行结束返参为---->{}",JSON.toJSONString(accountOnLineStatusOutPutDto));
         return R.ok(accountOnLineStatusOutPutDto);
     }
 
@@ -363,6 +364,7 @@ public class ScrmService {
     }
 
     public R<ScrmWxCropUserInfoOutputDto> getWxCropUserInfo(ScrmWxCropUserInfoInputDto scrmWxCropUserInfoInputDto){
+        log.info("进入method:getWxCropUserInfo--->>> {}", JSON.toJSONString(scrmWxCropUserInfoInputDto));
         String url = scrmUrl + getWxCropUserInfo;
         log.info("外部接口调用地址--->>> {}", url);
         // 加密字符串
@@ -400,8 +402,9 @@ public class ScrmService {
             WxCropUserInfoOutputDto data = new WxCropUserInfoOutputDto();
             data.setUserId("17620371344");
             scrmWxCropUserInfoOutputDto.setData(data);
+            log.info("进入了补偿方法{}",JSON.toJSONString(scrmWxCropUserInfoOutputDto));
         }
-        log.info("SCRM调用url结束");
+        log.info("method:getWxCropUserInfo() 执行结束");
         return R.ok(scrmWxCropUserInfoOutputDto);
     }
 }

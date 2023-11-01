@@ -73,18 +73,7 @@ public class FileUtil {
     public static void uploadFile(MultipartFile multipartFile, String path, String fileName) {
         log.info("写出文件  {}", System.currentTimeMillis());
         log.info("写出文件--->>> path={}", path);
-        /*if (Strings.isEmpty(path)) {
-            throw new ServiceException("文件路径不能为空!", StatusCode.PARAMETER_ILLEGAL.getValue());
-        }
-        if (multipartFile == null) {
-            throw new ServiceException("请选择需要上传的文件", StatusCode.PARAMETER_ILLEGAL.getValue());
-        }
-        if (!checkFileType(multipartFile)) {
-            throw new ServiceException("上传附件失败,请输入正确的文件类型", StatusCode.PARAMETER_ILLEGAL.getValue());
-        }
-        if (Strings.isEmpty(fileName)) {
-            throw new ServiceException("文件名不能为空!", StatusCode.PARAMETER_ILLEGAL.getValue());
-        }*/
+
         File savedFile = null;
         try (InputStream ins = multipartFile.getInputStream()) {
             File pathDir = new File(path);
@@ -190,6 +179,7 @@ public class FileUtil {
      */
     public static String getFileType(MultipartFile file) {
         String filename = file.getOriginalFilename();
+        log.info("文件名为{}",filename);
         assert filename != null;
         String[] split = filename.split("\\.");
         String fileType = "png";
@@ -208,6 +198,22 @@ public class FileUtil {
             }
         }
         return null;
+    }
+
+
+    /**
+     * 获取文件类型
+     */
+    public static Boolean getFileType(String suffix) {
+        log.info("文件名为{}",suffix);
+        //先判断后缀名
+        for (FileTypeConstant constant : FileTypeConstant.values()) {
+            if (constant.getValue().equalsIgnoreCase(suffix)) {
+                log.info("校验成功{}",suffix);
+                return true;
+            }
+        }
+        return false;
     }
 
 

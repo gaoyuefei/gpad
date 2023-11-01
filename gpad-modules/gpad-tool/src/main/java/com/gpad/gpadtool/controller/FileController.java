@@ -1,6 +1,7 @@
 package com.gpad.gpadtool.controller;
 
 import cn.hutool.core.util.IdUtil;
+import com.alibaba.fastjson.JSON;
 import com.gpad.common.core.domain.R;
 import com.gpad.gpadtool.domain.dto.UploadFileOutputDto;
 import com.gpad.gpadtool.utils.DateUtil;
@@ -39,23 +40,16 @@ public class FileController {
      */
     @Operation(summary = "文件上传")
     @PostMapping("/uploadFile")
-    public R<UploadFileOutputDto> uploadFile(@RequestBody MultipartFile file) {
-        log.info("文件上传!配置的存储路径=== {}", FILE_PATH);
-        if (!FileUtil.checkFileType(file)) {
-            return R.fail("上传附件失败,请输入正确的文件类型");
-        }
-        String filename = file.getOriginalFilename();
-        if (Strings.isEmpty(filename)) {
-            return R.fail("文件名不能为空!");
-        }
-        String fileType = FileUtil.getFileType(file);
-        if (fileType == null) {
+    public R<UploadFileOutputDto> uploadFile(@RequestParam("file") MultipartFile file,@RequestParam("suffix") String suffix) {
+        Boolean fileType = FileUtil.getFileType(suffix);
+        if (!fileType) {
             return R.fail("文件类型为空!");
         }
+
         //文件存储路径
         String filePath = FILE_PATH.concat(File.separator).concat(DateUtil.generateDateTimeStr()).concat(File.separator);
         log.info("文件上传!当前文件存储路径=== {}", filePath);
-        String newFilename = UuidUtil.generateUuidWithDate() + "." + fileType;
+        String newFilename = UuidUtil.generateUuidWithDate() + "." + suffix;
         FileUtil.uploadFile(file, filePath, newFilename);
 
         String result = filePath.concat(newFilename).replaceAll("\\\\", "/");
@@ -63,6 +57,8 @@ public class FileController {
         UploadFileOutputDto uploadFileOutputDto = new UploadFileOutputDto();
         uploadFileOutputDto.setFileName(newFilename);
         uploadFileOutputDto.setFilePath(subResult);
+        log.info("文件上传!结束返回接口参数为 {}", JSON.toJSONString(uploadFileOutputDto));
+
         return R.ok(uploadFileOutputDto);
     }
 

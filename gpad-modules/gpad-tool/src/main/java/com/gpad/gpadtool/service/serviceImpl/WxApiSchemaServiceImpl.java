@@ -34,6 +34,9 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
     @Value("${wx.app-schemaUrl}")
     private String appSchemaUrl;
 
+    @Value("${wx.sitApp-schemaUrl}")
+    private String sitAppSchemaUrl;
+
     @Autowired
     private RestTemplate restTemplate;
 
@@ -41,16 +44,29 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
     public R<String> getgetSkipSchemaUrl(String wxApiSchemaUrl) {
         String str = "weixin://dl/business/?t=F06tNGRdOcj";
         LoginResVo tokenUerName = UrlSchemaUntils.getTokenUerName();
+        log.info("data参数获取成功1:  {}", JSON.toJSONString(tokenUerName));
+
         WxTokenVO wxTokenVO = getAppToken(tokenUerName);
+        log.info("获取加密后得token2为:  {}", JSON.toJSONString(wxTokenVO));
+
         String skipSchemaUrl = getSkipSchemaUrl(wxTokenVO.getToken(),wxApiSchemaUrl);
-        log.info("skipSchemaUrl加密后的数据:  {}", skipSchemaUrl);
+        log.info("skipSchemaUrl加密后的数据3:  {}", skipSchemaUrl);
+        log.info("method:getgetSkipSchemaUrl 执行结束");
         return R.ok(skipSchemaUrl,"获取成功");
+    }
+
+    @Override
+    public R sitUrlSchema(String wxApiSchemaUrl) {
+        String str = sitAppSchemaUrl;
+        log.info("跳转码获取为:  {}", str);
+        return  R.ok(str);
     }
 
 
     public String getSkipSchemaUrl(String token,String wxApiSchemaUrl) {
+        log.info("进入到连接获取接口:  {},入参为{}", JSONObject.toJSONString(token),wxApiSchemaUrl);
         String url = appSchemaUrl;
-        String wxApiUrl = "src=https://pad-test.spgacmotorfm.com/h5/";
+        String wxApiUrl = "src=https://pad-test.spgacmotorfm.com/";
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("appId", "wx86a1eb5a53a6973b");
         jsonObject.put("envVersion", "release");
@@ -66,10 +82,12 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         HttpEntity request = new HttpEntity(json, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         log.info("请求对象加密后的数据:  {}", JSONObject.toJSONString(response.getBody()));
+        log.info("到连接获取接口:  {},入参为{}", JSONObject.toJSONString(token),wxApiSchemaUrl);
         return response.getBody();
     }
 
     public WxTokenVO getAppToken(LoginResVo tokenUerName) {
+        log.info("进入获取小程序token接口->>>>>{}",JSONObject.toJSONString(tokenUerName));
         String url = "https://malltest.gacmotor.com/boss-admin-app/getToken";
         HttpEntity<LoginResVo> loginResVoHttpEntity = new HttpEntity<>(tokenUerName);
         ResponseEntity<String> exchange = restTemplate.exchange(url, HttpMethod.POST, loginResVoHttpEntity, String.class);
@@ -81,6 +99,7 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         wxTokenVO.setExpirationTime(expirationTime);
         log.info("token参数获取为->>>>>{}",JSONObject.toJSONString(wxTokenVO));
         log.info("token参数获取为->>>>>{}",JSONObject.toJSONString(exchange));
+        log.info("执行结束->>>>>{}",JSONObject.toJSONString(wxTokenVO));
         //TODO 判断
         return wxTokenVO;
     }
