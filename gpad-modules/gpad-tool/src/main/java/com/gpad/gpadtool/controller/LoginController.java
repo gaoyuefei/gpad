@@ -1,19 +1,15 @@
 package com.gpad.gpadtool.controller;
 
 
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.gpad.common.core.domain.R;
 import com.gpad.common.core.web.domain.AjaxResult;
-import com.gpad.common.redis.service.RedisService;
 import com.gpad.gpadtool.constant.RedisKey;
-import com.gpad.gpadtool.domain.entity.FileInfo;
 import com.gpad.gpadtool.domain.vo.ScanCodeTokenInfoVo;
 import com.gpad.gpadtool.service.ScrmService;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.util.Strings;
@@ -26,9 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Donald.Lee
@@ -53,9 +47,6 @@ public class LoginController {
     @Autowired
     private RedisTemplate redisTemplate;
 
-    @Autowired
-    private RedisService redisService;
-
     /**
      * 生成二维码
      */
@@ -79,20 +70,20 @@ public class LoginController {
         log.info("获取token! sign {}",sign);
         if (Boolean.TRUE.equals(redisTemplate.hasKey(sign.toUpperCase(Locale.ROOT)))){
             //通过sign查redis缓存的token
-            String token = redisTemplate.opsForValue().get(sign.toUpperCase(Locale.ROOT)).toString();
+            String token = redisTemplate.opsForValue().get(sign.toUpperCase(Locale.ROOT))+"";
             if (Strings.isNotEmpty(token)){
                 log.info("获取token! token1 {}",token);
                 //能查到，返回token
                 return R.ok(JSONObject.parseObject(token, ScanCodeTokenInfoVo.class));
             }
-            String token2 = redisTemplate.opsForValue().get(sign).toString();
+            String token2 = redisTemplate.opsForValue().get(sign)+"";
             if (Strings.isNotEmpty(token)){
                 log.info("获取token! token2 {}",token);
                 //能查到，返回token
                 return R.ok(JSONObject.parseObject(token2, ScanCodeTokenInfoVo.class));
             }
         }else {
-            String token3 = redisTemplate.opsForValue().get(sign).toString();
+            String token3 = redisTemplate.opsForValue().get(sign) +"";
             return R.ok(JSONObject.parseObject(token3, ScanCodeTokenInfoVo.class));
         }
         //查不到返回失败

@@ -15,6 +15,7 @@ import com.gpad.common.core.exception.ServiceException;
 import com.gpad.common.core.utils.StringUtils;
 import com.gpad.common.core.vo.GentlemanSaltingVo;
 import com.gpad.gpadtool.constant.FlowNodeNum;
+import com.gpad.gpadtool.domain.dto.FileInfoDto;
 import com.gpad.gpadtool.domain.dto.FlowInfoDto;
 import com.gpad.gpadtool.domain.entity.GpadIdentityAuthInfo;
 import com.gpad.gpadtool.domain.entity.HandoverCarCheckInfo;
@@ -129,8 +130,16 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         //必填校验  TODO 判断文件是否为空
         if (null == file && null == fileCustomerPng){
             //TODO 上传到文件服务器 存储到数据库
-
-            return R.ok(null,"产品个人签署成功");
+            FileInfoDto fileInfoDto = new FileInfoDto();
+            fileInfoDto.setFilePath(autoSignatureInputBO.getMemorySignPath());
+            fileInfoDto.setBussinessNo(autoSignatureInputBO.getBussinessNo());
+            fileInfoDto.setId(autoSignatureInputBO.getFileId());
+            fileInfoDto.setFileType(1);
+            fileInfoDto.setLinkType(31);
+            Boolean result = fileInfoRepository.saveOrUpdateFileInfoDto(fileInfoDto);
+            if (!result){
+               throw new ServiceException("文件入库失败",500);
+            }
         }
 
         R result = turnOnLineSignature(autoSignatureInputBO,gentlemanSaltingVo,file,fileCustomerPng,fileProductPng);

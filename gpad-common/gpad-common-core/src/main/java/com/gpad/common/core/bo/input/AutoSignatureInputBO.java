@@ -19,6 +19,9 @@ public class AutoSignatureInputBO {
     @ApiModelProperty(value = "客户签名坐标")
     private String id;
 
+    @ApiModelProperty(value = "文件ID")
+    private String fileId;
+
     @ApiModelProperty(value = "客户签名坐标")
     private String chapteJson;
 

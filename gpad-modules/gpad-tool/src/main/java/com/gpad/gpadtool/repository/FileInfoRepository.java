@@ -57,12 +57,8 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
         list.forEach(this::saveOrUpdateFileInfoDto);
     }
 
-    public void saveOrUpdateFileInfoDto(FileInfoDto fileInfoDto) {
-        /*if (bybussinessNo==null){
-            saveFileInfoDto(fileInfoDto);
-        }else {
-            updateById(fileInfoDto);
-        }*/
+    public Boolean saveOrUpdateFileInfoDto(FileInfoDto fileInfoDto) {
+        return this.saveOrUpdate(JSONObject.parseObject(JSONObject.toJSONString(fileInfoDto),FileInfo.class));
     }
 
     public FileInfoDto updateById(FileInfoDto fileInfoDto){
@@ -93,7 +89,7 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
     }
 
     public Boolean updateReadyDeliverCarFile(List<FileInfoDto> linkType) {
-            Boolean result = false;
+        Boolean result = false;
         if (CollectionUtil.isEmpty(linkType) || linkType.size() == 0){
             return true;
         }
