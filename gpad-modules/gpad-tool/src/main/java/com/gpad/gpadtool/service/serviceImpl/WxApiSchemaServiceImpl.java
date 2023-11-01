@@ -58,9 +58,9 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         jsonObject.put("query", wxApiUrl + wxApiSchemaUrl);
         String json = com.alibaba.fastjson.JSONObject.toJSONString(jsonObject);
         log.info("加密后的数据:  {}", json);
-        restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+//        restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
         HttpHeaders headers = new HttpHeaders();
-        headers.add("token",token);
+        headers.add("Authorization",token);
         headers.setContentType(MediaType.APPLICATION_JSON);
         //封装成一个请求对象
         HttpEntity request = new HttpEntity(json, headers);

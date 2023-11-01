@@ -13,6 +13,7 @@ import com.gpad.gpadtool.domain.dto.SyncScrmDeptInfoParamVo;
 import com.gpad.gpadtool.domain.dto.SyncScrmInfoResultDto;
 import com.gpad.gpadtool.domain.dto.SyncScrmRoleInfoParamVo;
 import com.gpad.gpadtool.domain.dto.scrm.*;
+import com.gpad.gpadtool.domain.vo.ScanCodeTokenInfoVo;
 import com.gpad.gpadtool.domain.vo.SyncScrmUserInfoParamVo;
 import com.gpad.gpadtool.repository.UserInfoRepository;
 import com.gpad.gpadtool.service.ScrmService;
@@ -24,6 +25,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -104,7 +106,7 @@ public class ScrmController {
     @Operation(summary = "企业微信扫码回调")
     @GetMapping("/wx/callback")
     public void callback(@RequestParam("code") String code, @RequestParam("state") String state) throws Exception {
-        log.info("企业微信扫码回调--->>> code = {}; state = {}", code, state);
+        log.info("企业微信扫码回调--->>>1 code = {}; state = {}", code, state);
         R<WxUserInfoDto> userInfoByCode = scrmService.getUserInfoByCode(code);
         log.info("企业微信扫码回调---getUserInfoByCode --->>>  {}", JSONObject.toJSONString(userInfoByCode));
         if (userInfoByCode.getCode() != 200) {
@@ -136,8 +138,14 @@ public class ScrmController {
         log.info("打印key为{}",sign);
         String decodeSign = URLDecoder.decode(sign, "UTF-8");
         log.info("解密后key为{}",decodeSign);
+
+        ScanCodeTokenInfoVo scanCodeTokenInfoVo = new ScanCodeTokenInfoVo();
+        scanCodeTokenInfoVo.setCode("200");
+        scanCodeTokenInfoVo.setExpressTime("180");
+        scanCodeTokenInfoVo.setMsg("回调登录成功");
+        scanCodeTokenInfoVo.setToken(access_token.toString());
         redisService.setCacheObject(decodeSign, access_token.toString(), RedisKey.ACCESS_TOKEN_EXPIRE_TIME, TimeUnit.MINUTES);
-        log.info("回调结束");
+        log.info("回调程序执行结束返回登录令牌");
     }
 
     /**
@@ -344,7 +352,7 @@ public class ScrmController {
         AccountOnLineStatusInputDto accountOnLineStatusInputDto = new AccountOnLineStatusInputDto();
         accountOnLineStatusInputDto.setEmployeeNo(employeeNo);
         R<AccountOnLineStatusOutPutDto> accountOnLineStatusOutPutDtoR = scrmService.accountOnLineStatus(accountOnLineStatusInputDto);
-        if (accountOnLineStatusOutPutDtoR.getData().getResultCode().equals("1")) {
+        if (!accountOnLineStatusOutPutDtoR.getData().getResultCode().equals("1")) {
 //            //用userCode查SCRM用户表
             ScrmWxCropUserInfoInputDto scrmWxCropUserInfoInputDto = new ScrmWxCropUserInfoInputDto();
             scrmWxCropUserInfoInputDto.setUserId(employeeNo);

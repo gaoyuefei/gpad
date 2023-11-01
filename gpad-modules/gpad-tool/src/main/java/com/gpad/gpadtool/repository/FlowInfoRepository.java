@@ -37,7 +37,8 @@ public class FlowInfoRepository extends ServiceImpl<FlowInfoMapper, FlowInfo> {
         LambdaQueryWrapper<FlowInfo> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(FlowInfo::getBussinessNo,bussinessNo);
         FlowInfo flowInfo = this.getOne(wrapper);
-        return JSONObject.parseObject(JSONObject.toJSONString(flowInfo),FlowInfoDto.class);
+        FlowInfoDto obj = JSONObject.parseObject(JSONObject.toJSONString(flowInfo), FlowInfoDto.class);
+        return ObjectUtil.isNotEmpty(obj)?obj:new FlowInfoDto();
     }
 
     

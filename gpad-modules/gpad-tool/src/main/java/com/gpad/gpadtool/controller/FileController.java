@@ -59,10 +59,10 @@ public class FileController {
         FileUtil.uploadFile(file, filePath, newFilename);
 
         String result = filePath.concat(newFilename).replaceAll("\\\\", "/");
-
+        String subResult = result.substring(4);
         UploadFileOutputDto uploadFileOutputDto = new UploadFileOutputDto();
         uploadFileOutputDto.setFileName(newFilename);
-        uploadFileOutputDto.setFilePath(result);
+        uploadFileOutputDto.setFilePath(subResult);
         return R.ok(uploadFileOutputDto);
     }
 
