@@ -61,6 +61,7 @@ public class AutoSignatureInputBO {
     @ApiModelProperty(value = "电话号码")
     private String productMobile;
 
+    @NotBlank
     @ApiModelProperty(value = "记忆签")
     private String memorySignPath;
 

@@ -1,9 +1,10 @@
 package com.gpad.gpadtool.service;
 
-import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.gpad.common.core.domain.R;
 import com.gpad.common.core.exception.ServiceException;
+import com.gpad.gpadtool.constant.CommCode;
 import com.gpad.gpadtool.constant.FlowNodeNum;
 import com.gpad.gpadtool.domain.dto.*;
 import com.gpad.gpadtool.domain.entity.OrderDetail;
@@ -379,11 +380,12 @@ public class GRTService {
         if(R.FAIL == grtOrderDetail.getCode()){
             throw new ServiceException(grtOrderDetail.getMsg(),grtOrderDetail.getCode());
         }
+        log.info("GRT-待交车订单详情接口method：getGrtOrderDetail()调用结束 --->>>{}", JSON.toJSONString(orderDetailOutBO));
         List<OrderDetailResultDto> data = grtOrderDetail.getData();
-        if (data.size() > 0){
-            BeanUtils.copyProperties(data.get(0),orderDetailOutBO);
+        if (data.size() <= 0){
+           throw new ServiceException("查询订单信息有误", CommCode.DATA_NOT_FOUND.getCode());
         }
-
+        BeanUtils.copyProperties(data.get(0),orderDetailOutBO);
         //查询数据库数据
             try {
                 //幂等处理
@@ -396,10 +398,9 @@ public class GRTService {
                 //订单信息入库
                 result = orderDetailRepository.saveOrderDetailEntity(data.get(0),bussinessNo);
                 if (!result){
-                    throw new ServiceException("订单信息入库",500);
+                    throw new ServiceException("订单信息入库",CommCode.DATA_UPDATE_WRONG.getCode());
                 }
                 log.info("method:saveOrderDetailEntity().订单内容: {}", grtOrderDetail.getData());
-
                 //新建交车流程信息并入库 -- 步骤为第一步 // TODO
                 FlowInfoDto flowInfoDto = new FlowInfoDto();
                 flowInfoDto.setBussinessNo(bussinessNo);
@@ -407,7 +408,7 @@ public class GRTService {
                 flowInfoDto.setVersion(0);
                 result = flowInfoRepository.saveFlowInfoFirstNode(flowInfoDto);
                 if (!result){
-                    throw new ServiceException("流程接口入库失败",500);
+                    throw new ServiceException("流程接口入库失败",CommCode.DATA_UPDATE_WRONG.getCode());
                 }
                 orderDetailOutBO.setBussinessNo(bussinessNo);
                 }else {

@@ -14,6 +14,7 @@ import com.gpad.common.core.domain.R;
 import com.gpad.common.core.exception.ServiceException;
 import com.gpad.common.core.utils.StringUtils;
 import com.gpad.common.core.vo.GentlemanSaltingVo;
+import com.gpad.gpadtool.constant.CommCode;
 import com.gpad.gpadtool.constant.FlowNodeNum;
 import com.gpad.gpadtool.domain.dto.FileInfoDto;
 import com.gpad.gpadtool.domain.dto.FlowInfoDto;
@@ -34,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.entity.mime.content.FileBody;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,10 +65,13 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
     @Autowired
     private FlowInfoRepository flowInfoRepository;
+
     @Autowired
     private FileInfoRepository fileInfoRepository;
+
     @Autowired
     private GpadIdentityAuthInfoRepository gpadIdentityAuthInfoRepository;
+
     @Autowired
     private HandoverCarCheckInfoRepository handoverCarCheckInfoRepository;
 
@@ -76,92 +81,88 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public R<String> startGentlemanSignature(AutoSignatureInputBO autoSignatureInputBO, MultipartFile file,MultipartFile fileCustomerPng,MultipartFile fileProductPng) {
+        String data = "";
         String bussinessNo = autoSignatureInputBO.getBussinessNo();
-
-        //安全认证->接口加盐处理
-        GentlemanSaltingVo gentlemanSaltingVo = getAuthSafety();
-
-        //TODO 查询数据
-        GpadIdentityAuthInfo gpadIdentityAuthInfo = gpadIdentityAuthInfoRepository.checkMemorySign(autoSignatureInputBO);
-        if(!ObjectUtil.isNotEmpty(gpadIdentityAuthInfo)){
-            return R.fail(null,"产品专家认证失败，请检查身份证号");
-        }
-        autoSignatureInputBO.setProductName(gpadIdentityAuthInfo.getProductName());
-        autoSignatureInputBO.setIdentityType1(1);
-        autoSignatureInputBO.setIdentityCard1(gpadIdentityAuthInfo.getIdentityCard());
-        autoSignatureInputBO.setProductMobile(gpadIdentityAuthInfo.getProductMobile());
-        GpadIdentityAuthInfo byId = gpadIdentityAuthInfoRepository.getById(2);
-        autoSignatureInputBO.setMemorySignPath(byId.getFilePath());
-        AuthUserSignatureInputBO authUserSignatureInputBO = new AuthUserSignatureInputBO();
-        BeanUtil.copyProperties(authUserSignatureInputBO,authUserSignatureInputBO);
-        Boolean result1 = gpadIdentityAuthInfoRepository.updateAuthUserSignature(authUserSignatureInputBO);
-        if(!result1){
-            return R.fail(null,"产品专家认证失败，请检查身份证号");
-        }
-        //校验当前个人是否实名认证 TODO 1.询问前端是否需要跳转不同页面    3.代码优化 参数封装方法
-        if (autoSignatureInputBO.getIdentityType() == 1){
-            if(!personValid(gentlemanSaltingVo,autoSignatureInputBO.getProductName(),autoSignatureInputBO.getIdentityCard1())){
-                return R.fail(null,"产品专家认证失败，请检查身份证号");
+        try {
+            RedisLockUtils.lock(bussinessNo);
+            //TODO 查询数据
+            GpadIdentityAuthInfo gpadIdentityAuthInfo = gpadIdentityAuthInfoRepository.checkMemorySign(autoSignatureInputBO);
+            if(!ObjectUtil.isNotEmpty(gpadIdentityAuthInfo)){
+                return R.fail(null, CommCode.UNKNOWN_REAL_NAME.getCode(),"请先通过实名认证");
             }
-        }
 
-        if(null == fileCustomerPng){
-//            GpadIdentityAuthInfo gpadIdentityAuthInfo = gpadIdentityAuthInfoRepository.checkMemorySign(autoSignatureInputBO);
-            //双条件判断 是否实名
-//            if (!StringUtils.isNotEmpty(gpadIdentityAuthInfo.getFilePath()) &&
-//                    gpadIdentityAuthInfo.getFilePath().equals(autoSignatureInputBO.getMemorySignPath())){
-//                return R.fail(null,"产平专家未实名登记");
-//            }
-            // TODO 更换命名
             autoSignatureInputBO.setProductName(gpadIdentityAuthInfo.getProductName());
-            autoSignatureInputBO.setIdentityCard1(gpadIdentityAuthInfo.getIdentityCard());
             autoSignatureInputBO.setIdentityType1(1);
+            autoSignatureInputBO.setIdentityCard1(gpadIdentityAuthInfo.getIdentityCard());
             autoSignatureInputBO.setProductMobile(gpadIdentityAuthInfo.getProductMobile());
-            //发起追加签署
-        }else {
+            autoSignatureInputBO.setMemorySignPath(gpadIdentityAuthInfo.getFilePath());
 
-            //校验当前个人是否实名认证
+            //安全认证->接口加盐处理
+            GentlemanSaltingVo gentlemanSaltingVo = getAuthSafety();
+
+            //校验当前个人是否实名认证 TODO 1.询问前端是否需要跳转不同页面    3.代码优化 参数封装方法
             if (autoSignatureInputBO.getIdentityType() == 1){
-                if(!personValid(gentlemanSaltingVo,autoSignatureInputBO.getFullName(),autoSignatureInputBO.getIdentityCard())){
-                    return R.fail(null,"客户实名认证失败，请检查身份证号");
+                if(!personValid(gentlemanSaltingVo,autoSignatureInputBO.getProductName(),autoSignatureInputBO.getIdentityCard1())){
+                    return R.fail(null,"产品专家认证失败，请检查身份证号,手机号");
                 }
             }
-        }
-        //必填校验  TODO 判断文件是否为空
-        if (null == file && null == fileCustomerPng){
-            //TODO 上传到文件服务器 存储到数据库
-            FileInfoDto fileInfoDto = new FileInfoDto();
-            fileInfoDto.setFilePath(autoSignatureInputBO.getMemorySignPath());
-            fileInfoDto.setBussinessNo(autoSignatureInputBO.getBussinessNo());
-            fileInfoDto.setId(autoSignatureInputBO.getFileId());
-            fileInfoDto.setFileType(1);
-            fileInfoDto.setLinkType(31);
-            Boolean result = fileInfoRepository.saveOrUpdateFileInfoDto(fileInfoDto);
-            if (!result){
-               throw new ServiceException("文件入库失败",500);
+
+            AuthUserSignatureInputBO authUserSignatureInputBO = new AuthUserSignatureInputBO();
+            BeanUtil.copyProperties(autoSignatureInputBO,authUserSignatureInputBO);
+            Boolean result1 = gpadIdentityAuthInfoRepository.updateAuthUserSignature(authUserSignatureInputBO);
+            if(!result1){
+                throw  new ServiceException("产品专家认证失败，请检查身份证号",CommCode.DATA_UPDATE_WRONG.getCode());
             }
-        }
 
-        R result = turnOnLineSignature(autoSignatureInputBO,gentlemanSaltingVo,file,fileCustomerPng,fileProductPng);
-        if (!StringUtils.isNotEmpty(result.getData().toString())){
-            return R.fail(null,"发起线上签失败");
-        }
+            //必填校验  TODO 判断文件是否为空
+            if (null == file && null == fileCustomerPng){
+                //TODO 上传到文件服务器 存储到数据库
+                FileInfoDto fileInfoDto = new FileInfoDto();
+                fileInfoDto.setFilePath(autoSignatureInputBO.getMemorySignPath());
+                fileInfoDto.setBussinessNo(autoSignatureInputBO.getBussinessNo());
+                fileInfoDto.setId(autoSignatureInputBO.getFileId());
+                fileInfoDto.setFileType(1);
+                fileInfoDto.setLinkType(31);
+                Boolean result = fileInfoRepository.saveOrUpdateFileInfoDto(fileInfoDto);
+                if (!result){
+                    throw new ServiceException("文件数据入库失败",CommCode.DATA_UPDATE_WRONG.getCode());
+                }
+                return R.ok(null,"专家签名成功(入库成功)");
+            }
 
-        RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
-       //构建请求参数
-        Map<String,Object> params=new HashMap<>();
-        String apl = result.getData().toString();
-        params.put("applyNo", apl); //TODO *
-        ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkAnonyDetail",params);
-        String data = "";
-        if (ObjectUtil.isNotEmpty(ri)){
-            data = ri.getData();
+            if(null != fileCustomerPng){
+                //校验当前个人是否实名认证
+                if (autoSignatureInputBO.getIdentityType() == 1){
+                    if(!personValid(gentlemanSaltingVo,autoSignatureInputBO.getFullName(),autoSignatureInputBO.getIdentityCard())){
+                        return R.fail(null,"客户实名认证失败，请检查身份证号");
+                    }
+                }
+            }
+
+            R result = turnOnLineSignature(autoSignatureInputBO,gentlemanSaltingVo,file,fileCustomerPng,fileProductPng);
+            if (!StringUtils.isNotEmpty(result.getData().toString())){
+                return R.fail(null,CommCode.INTFR_OUTTER_INVOKE_ERROR.getCode(),"发起线上签失败");
+            }
+
+            RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
+            //构建请求参数
+            Map<String,Object> params=new HashMap<>();
+            String apl = result.getData().toString();
+            params.put("applyNo", apl); //TODO *
+            ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkAnonyDetail",params);
+
+            if (ObjectUtil.isNotEmpty(ri)){
+                data = ri.getData();
+            }
+
+            Boolean res = handoverCarCheckInfoRepository.updatecontractInfoById(apl, data, autoSignatureInputBO);
+            if (!res){
+                throw new ServiceException("合同连接入库失败",CommCode.DATA_UPDATE_WRONG.getCode());
+            }
+        } finally {
+            RedisLockUtils.unlock(bussinessNo);
         }
-        Boolean res = handoverCarCheckInfoRepository.updatecontractInfoById(apl, data, autoSignatureInputBO);
-        if (!res){
-            System.out.println(1);
-        }
-        return R.ok(data);
+        return R.ok(data,"合同发起成功");
     }
 
     public R turnOnLineSignature(AutoSignatureInputBO autoSignatureInputBO,GentlemanSaltingVo gentlemanSaltingVo, MultipartFile file, MultipartFile fileCustomerPng,MultipartFile fileProductPng) {
@@ -210,7 +211,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                     throw new ServiceException("君子签名重传失败",500);
                 }
 
-                //覆盖之前得签名 TODO //提取参数 默认调用 产品专家
+                //覆盖之前得签名 TODO //提取参数 默认调用 客户名字
                 if (null != fileCustomerPng){
                     result = uploadMemorySignPath(gentlemanSaltingVo,localCustomerPng,autoSignatureInputBO.getIdentityCard());
                     if (!result){
@@ -227,20 +228,16 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 }
                 params.put("isArchive",isArchive);
                 params.put("file",localFile);
-                params.put("contractName",autoSignatureInputBO.getContractName()); //合同名称
+                params.put("contractName",autoSignatureInputBO.getContractName());
                 params.put("signatories",signatories.toJSONString());
                 log.info("封住结束参数为{}", JSONObject.toJSONString(signatories));
                 //这里必须用new String，因为使用的是IdentityHashMap（为了多个file的同name上传）
-            /*params.put(new String("attachFiles"),new File("/per.png"));
-            params.put(new String("attachFiles"),new File("/ent.png"));*/
-                //params.put("attachFiles",new File("/per.png"));
-                //params.put("attachFiles",new File("/ent.png"));
 
                 //开始调用外部接口
                 String str= HttpClientUtils.init().getPost(url,null,params,true);
                 log.info("封装结束参数为{}", JSONObject.toJSONString(str));
                 if (false){
-                    throw new ServiceException("君子签名发起失败",500);
+                    throw new ServiceException("君子签名发起失败",CommCode.INTFR_OUTTER_INVOKE_ERROR.getCode());
                 }
                 if (!StringUtils.isEmpty(str)){
                     apl = JSON.parseObject(str).getString("data");
@@ -249,14 +246,14 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 // 数据入库 TODO 是否归档 在数据落库
                 Boolean rel = handoverCarCheckInfoRepository.updatecontractInfoById(apl,null,autoSignatureInputBO);
                 if (!rel){
-                    throw new ServiceException("合同存储失败",500);
+                    throw new ServiceException("合同PDF入库失败",CommCode.DATA_UPDATE_WRONG.getCode());
                 }
             }else {
                 //覆盖之前得签名 TODO //提取参数 默认调用 产品专家
                 if (null != fileCustomerPng){
                     Boolean result = uploadMemorySignPath(gentlemanSaltingVo,localCustomerPng,autoSignatureInputBO.getIdentityCard());
                     if (!result){
-                        throw new ServiceException("君子签名重传失败",500);
+                        throw new ServiceException("追加签名PDF入库失败",CommCode.DATA_UPDATE_WRONG.getCode());
                     }
                 }
                 //追加 -> 发起签约
@@ -543,19 +540,26 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     @Override
     public R authUserSignatureValid(AuthUserSignatureInputBO authUserSignatureInputBO) {
         Boolean result = false;
-        //安全认证->接口加盐处理
-        GentlemanSaltingVo gentlemanSaltingVo = getAuthSafety();
-        result = personValid(gentlemanSaltingVo, authUserSignatureInputBO.getFullName(), authUserSignatureInputBO.getIdentityCard());
-        if (!result){
-            throw new ServiceException("实名认证失败",500);
+        String bussinessNo = authUserSignatureInputBO.getBussinessNo();
+        try {
+            RedisLockUtils.lock(bussinessNo);
+            //安全认证->接口加盐处理
+            GentlemanSaltingVo gentlemanSaltingVo = getAuthSafety();
+            result = personValid(gentlemanSaltingVo, authUserSignatureInputBO.getFullName(), authUserSignatureInputBO.getIdentityCard());
+            if (!result){
+                throw new ServiceException("实名认证失败",500);
+            }
+            //查询当前账号是不是第一次签名，如果是就添加   不是就修改
+            result = gpadIdentityAuthInfoRepository.saveAuthUserSignatureValid(authUserSignatureInputBO);
+            if (!result){
+                throw new ServiceException(CommCode.DATA_UPDATE_WRONG.getMessage(),CommCode.DATA_UPDATE_WRONG.getCode());
+            }
+            // TODO 上线时打开
+        } finally {
+            RedisLockUtils.unlock(bussinessNo);
         }
-        //查询当前账号是不是第一次签名，如果是就添加   不是就修改
-        result = gpadIdentityAuthInfoRepository.saveAuthUserSignatureValid(authUserSignatureInputBO);
-        if (!result){
-            throw new ServiceException("账号实名失败",500);
-        }
-        // TODO 上线时打开
-        return R.ok(result);
+
+        return R.ok(result,"二要素验证成功");
     }
 
     public File transferToFile(MultipartFile multipartFile,String suffix) throws IOException {

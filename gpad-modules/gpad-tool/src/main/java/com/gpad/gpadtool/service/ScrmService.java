@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.*;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Service;
@@ -46,6 +47,7 @@ import static com.gpad.common.core.web.domain.AjaxResult.*;
  * @createTime 2023年09月21日 16:56:00
  */
 @Service
+@RefreshScope
 public class ScrmService {
     @Value("${wx.appId}")
     private String appId;

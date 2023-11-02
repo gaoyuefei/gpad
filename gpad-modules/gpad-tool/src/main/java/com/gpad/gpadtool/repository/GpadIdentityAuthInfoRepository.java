@@ -44,10 +44,10 @@ public class GpadIdentityAuthInfoRepository extends ServiceImpl<GpadIdentityAuth
                 .delFlag(0)
                 .createTime(new Date())
                 .build();
-       return this.save(build);
+       return this.saveOrUpdate(build);
     }
 
     public Boolean updateAuthUserSignature(AuthUserSignatureInputBO authUserSignatureInputBO) {
-        return true;
+        return this.saveAuthUserSignatureValid(authUserSignatureInputBO);
     }
 }

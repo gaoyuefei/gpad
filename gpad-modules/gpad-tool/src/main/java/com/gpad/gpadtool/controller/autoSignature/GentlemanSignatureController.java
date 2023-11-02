@@ -8,6 +8,7 @@ import com.gpad.common.core.bo.input.ContinueStartSignatureInputBO;
 import com.gpad.common.core.domain.R;
 import com.gpad.gpadtool.service.AutoSignatureService;
 import io.swagger.v3.oas.annotations.Operation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,6 +22,7 @@ import javax.annotation.Resource;
  * @Description: 君子签证
  * @Version: 1.0
  */
+@Slf4j
 @RestController
 @RequestMapping("/gentlemanSignature")
 public class GentlemanSignatureController {
@@ -36,9 +38,11 @@ public class GentlemanSignatureController {
     public R<String> startGentlemanSignature(@RequestParam(value = "autoSignatureInputBOForm",required = false) String autoSignatureInputBOForm,
                                              @RequestParam(value = "file",required = false) MultipartFile file,
                                              @RequestParam(value = "fileCustomerPng",required = false) MultipartFile fileCustomerPng,
-                                             @RequestParam(value = "fileProductPng",required = false) MultipartFile fileProductPng
+                                             @RequestParam(value = "fileProductPng") MultipartFile fileProductPng
     ){
-        System.out.println(autoSignatureInputBOForm);
+
+        //TODO  校验 直接返回避免资源消耗
+        log.info("发起裙子签证进入1 method：startGentlemanSignature--->>> {}",JSON.toJSONString(autoSignatureInputBOForm));
         AutoSignatureInputBO autoSignatureInputBO = JSON.parseObject(autoSignatureInputBOForm, AutoSignatureInputBO.class);
         return autoSignatureService.startGentlemanSignature(autoSignatureInputBO,file,fileCustomerPng,fileProductPng);
     }
