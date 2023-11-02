@@ -12,20 +12,17 @@ import com.gpad.common.core.exception.ServiceException;
 import com.gpad.gpadtool.constant.FlowNodeNum;
 import com.gpad.gpadtool.domain.dto.FileInfoDto;
 import com.gpad.gpadtool.domain.dto.FlowInfoDto;
+import com.gpad.gpadtool.domain.dto.HandoverCarPrepareDto;
 import com.gpad.gpadtool.domain.dto.HandoverCarPrepareOutBO;
 import com.gpad.gpadtool.domain.entity.FileInfo;
 import com.gpad.gpadtool.domain.entity.HandoverCarPrepare;
-import com.gpad.gpadtool.domain.dto.HandoverCarPrepareDto;
-import com.gpad.gpadtool.domain.entity.OrderDetail;
 import com.gpad.gpadtool.repository.FileInfoRepository;
 import com.gpad.gpadtool.repository.FlowInfoRepository;
 import com.gpad.gpadtool.repository.HandoverCarPrepareRepository;
 import com.gpad.gpadtool.repository.OrderDetailRepository;
 import com.gpad.gpadtool.utils.RedisLockUtils;
-import com.gpad.gpadtool.utils.UuidUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
-import org.apache.poi.util.StringUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * @author Donald.Lee
@@ -168,31 +164,32 @@ public class HandoverCarPrepareService {
             throw new ServiceException("订单编号有误",R.FAIL);
         }
 
-//        //查询订单详情
-//        OrderDetail orderDetail = orderDetailRepository.queryOrderDetail(bussinessNo);
-//        if (ObjectUtil.isEmpty(orderDetail)){
-//            throw new ServiceException("请在确认车辆到店,订单状态有误",R.FAIL);
-//        }
-
         HandoverCarPrepare handoverCarPrepare = handoverCarPrepareRepository.queryBybussinessNo(bussinessNo);
         readyDeliverCarOutBO.setBussinessNo(bussinessNo);
         BeanUtil.copyProperties(handoverCarPrepare,readyDeliverCarOutBO);
 
         String supplies = readyDeliverCarOutBO.getSupplies();
         if(!org.apache.commons.lang3.StringUtils.isBlank(supplies)){
-            String substring = supplies.substring(1, supplies.length() - 1);
+            String substring = supplies.substring(supplies.indexOf("[")+1, supplies.length()-1);
             List<Integer> list = new ArrayList<>();
-            String[] split = substring.split(",");
-            for (String s : split) {
-                list.add(Integer.valueOf(s));
+            if (!org.apache.commons.lang3.StringUtils.isBlank(substring)){
+                System.out.println(substring);
+                String[] split = substring.split(",");
+                for (String s : split) {
+                    System.out.println(s.trim());
+                }
+                for (String s : split) {
+                    list.add(Integer.valueOf(s.trim()));
+                }
+                readyDeliverCarOutBO.setSuppliesAtt(list);
             }
             readyDeliverCarOutBO.setSuppliesAtt(list);
         }
         readyDeliverCarOutBO.setId(handoverCarPrepare.getId());
         List<FileInfo> fileInfos = fileInfoRepository.queryFileBybussinessNo(bussinessNo);
         List<FileInfoDto> list = new ArrayList<>();
-        FileInfoDto fileInfoDto = new FileInfoDto();
         fileInfos.forEach(fileInfo -> {
+            FileInfoDto fileInfoDto = new FileInfoDto();
             BeanUtils.copyProperties(fileInfo,fileInfoDto);
             list.add(fileInfoDto);
         });
