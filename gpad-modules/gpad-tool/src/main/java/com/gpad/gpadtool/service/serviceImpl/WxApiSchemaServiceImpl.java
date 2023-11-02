@@ -1,10 +1,11 @@
 package com.gpad.gpadtool.service.serviceImpl;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.gpad.common.core.domain.R;
+import com.gpad.common.core.utils.StringUtils;
 import com.gpad.gpadtool.domain.vo.LoginResVo;
-import com.gpad.gpadtool.domain.vo.ResponseEntityVo;
 import com.gpad.gpadtool.domain.vo.WxTokenVO;
 import com.gpad.gpadtool.service.WxApiSchemaService;
 import com.gpad.gpadtool.utils.UrlSchemaUntils;
@@ -12,11 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 /**
  * @BelongsProject: gpad
@@ -65,6 +65,7 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
 
     public String getSkipSchemaUrl(String token,String wxApiSchemaUrl) {
         log.info("进入到连接获取接口:  {},入参为{}", JSONObject.toJSONString(token),wxApiSchemaUrl);
+        String data = "";
         String url = appSchemaUrl;
         String wxApiUrl = "src=https://pad-test.spgacmotorfm.com/";
         JSONObject jsonObject = new JSONObject();
@@ -83,7 +84,13 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         log.info("请求对象加密后的数据:  {}", JSONObject.toJSONString(response.getBody()));
         log.info("到连接获取接口:  {},入参为{}", JSONObject.toJSONString(token),wxApiSchemaUrl);
-        return response.getBody();
+        if (ObjectUtil.isNotEmpty(response)){
+            String body = response.getBody();
+            if(StringUtils.isNotEmpty(body)){
+                 data = Objects.requireNonNull(JSONObject.parseObject(body)).getString("data");
+            }
+        }
+        return data;
     }
 
     public WxTokenVO getAppToken(LoginResVo tokenUerName) {
