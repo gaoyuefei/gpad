@@ -24,7 +24,7 @@ public class GpadIdentityAuthInfoRepository extends ServiceImpl<GpadIdentityAuth
 
 
     public GpadIdentityAuthInfo checkMemorySign(AutoSignatureInputBO autoSignatureInputBO) {
-        List<GpadIdentityAuthInfo> list = this.lambdaQuery().eq(GpadIdentityAuthInfo::getBussinessNo, autoSignatureInputBO.getBussinessNo()).list();
+        List<GpadIdentityAuthInfo> list = this.lambdaQuery().eq(GpadIdentityAuthInfo::getAccount, autoSignatureInputBO.getAccount()).list();
         if (CollectionUtil.isNotEmpty(list) && list.size() > 0){
             return list.get(0);
         }

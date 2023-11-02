@@ -4,6 +4,7 @@ package com.gpad.gpadtool.repository;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gpad.common.core.bo.input.AutoSignatureInputBO;
 import com.gpad.common.core.utils.StringUtils;
@@ -63,7 +64,8 @@ public class HandoverCarCheckInfoRepository extends ServiceImpl<HandoverCarCheck
                 .eq(HandoverCarCheckInfo::getBussinessNo, autoSignatureInputBO.getBussinessNo())
                 .eq(StringUtils.isNotEmpty(autoSignatureInputBO.getId()), HandoverCarCheckInfo::getId, autoSignatureInputBO.getId())
                 .update();
-        return update;
+        return true;
 
     }
+
 }

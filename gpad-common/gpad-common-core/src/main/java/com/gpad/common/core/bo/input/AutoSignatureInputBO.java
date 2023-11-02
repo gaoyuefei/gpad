@@ -25,6 +25,11 @@ public class AutoSignatureInputBO {
     @ApiModelProperty(value = "客户签名坐标")
     private String chapteJson;
 
+    @ApiModelProperty(value = "账号")
+    private String account;
+    @ApiModelProperty(value = "账号")
+    private Long accountId;
+
     @NotBlank
     @ApiModelProperty(value = "订单编号")
     private String bussinessNo;

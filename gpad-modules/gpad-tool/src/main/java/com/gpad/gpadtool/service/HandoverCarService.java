@@ -116,7 +116,9 @@ public class HandoverCarService {
             //变更交车流程信息  handover_car_flow_info 修改流程状态
             FlowInfoDto bybussinessNo = flowInfoRepository.getBybussinessNo(handoverCarOutBO.getBussinessNo());
             Integer nodeNum = bybussinessNo.getNodeNum();
-
+            if (null == nodeNum ){
+                nodeNum = 0;
+            }
             if ( nodeNum < 2){
                 FlowInfoDto flow = new FlowInfoDto();
                 flow.setBussinessNo(handoverCarOutBO.getBussinessNo());

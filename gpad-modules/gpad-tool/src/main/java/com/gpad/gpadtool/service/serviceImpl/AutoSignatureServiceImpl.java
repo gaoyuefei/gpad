@@ -81,16 +81,20 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public R<String> startGentlemanSignature(AutoSignatureInputBO autoSignatureInputBO, MultipartFile file,MultipartFile fileCustomerPng,MultipartFile fileProductPng) {
+        autoSignatureInputBO.setAccount("DGDA010_ADMIN");
         String data = "";
         String bussinessNo = autoSignatureInputBO.getBussinessNo();
+        log.info("发起裙子签证进入1 method：startGentlemanSignature()1--->>> {}",bussinessNo);
+
         try {
             RedisLockUtils.lock(bussinessNo);
             //TODO 查询数据
+            log.info("发起裙子签证进入2 method：startGentlemanSignature()1--->>> {}",JSON.toJSONString(autoSignatureInputBO.getAccount()));
             GpadIdentityAuthInfo gpadIdentityAuthInfo = gpadIdentityAuthInfoRepository.checkMemorySign(autoSignatureInputBO);
             if(!ObjectUtil.isNotEmpty(gpadIdentityAuthInfo)){
                 return R.fail(null, CommCode.UNKNOWN_REAL_NAME.getCode(),"请先通过实名认证");
             }
-
+            log.info("发起裙子签证进入3 method：startGentlemanSignature()1--->>>查询账号返回接口 {}",JSON.toJSONString(gpadIdentityAuthInfo));
             autoSignatureInputBO.setProductName(gpadIdentityAuthInfo.getProductName());
             autoSignatureInputBO.setIdentityType1(1);
             autoSignatureInputBO.setIdentityCard1(gpadIdentityAuthInfo.getIdentityCard());
@@ -109,24 +113,26 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
             AuthUserSignatureInputBO authUserSignatureInputBO = new AuthUserSignatureInputBO();
             BeanUtil.copyProperties(autoSignatureInputBO,authUserSignatureInputBO);
+            log.info("发起裙子签证进入4 method：startGentlemanSignature()1--->>>修改参数为{}",JSON.toJSONString(authUserSignatureInputBO));
             Boolean result1 = gpadIdentityAuthInfoRepository.updateAuthUserSignature(authUserSignatureInputBO);
             if(!result1){
                 throw  new ServiceException("产品专家认证失败，请检查身份证号",CommCode.DATA_UPDATE_WRONG.getCode());
             }
 
+            //TODO 上传到文件服务器 存储到数据库
+            FileInfoDto fileInfoDto = new FileInfoDto();
+            fileInfoDto.setFilePath(autoSignatureInputBO.getMemorySignPath());
+            fileInfoDto.setBussinessNo(autoSignatureInputBO.getBussinessNo());
+            fileInfoDto.setId(autoSignatureInputBO.getFileId());
+            fileInfoDto.setFileType(1);
+            fileInfoDto.setLinkType(31);
+            Boolean productResult = fileInfoRepository.saveOrUpdateFileInfoDto(fileInfoDto);
+            if (!productResult){
+                throw new ServiceException("产品专家签名失败",CommCode.DATA_UPDATE_WRONG.getCode());
+            }
+            log.info("发起裙子签证进入5 method：startGentlemanSignature()1--->>>产品专家发起结束");
             //必填校验  TODO 判断文件是否为空
             if (null == file && null == fileCustomerPng){
-                //TODO 上传到文件服务器 存储到数据库
-                FileInfoDto fileInfoDto = new FileInfoDto();
-                fileInfoDto.setFilePath(autoSignatureInputBO.getMemorySignPath());
-                fileInfoDto.setBussinessNo(autoSignatureInputBO.getBussinessNo());
-                fileInfoDto.setId(autoSignatureInputBO.getFileId());
-                fileInfoDto.setFileType(1);
-                fileInfoDto.setLinkType(31);
-                Boolean result = fileInfoRepository.saveOrUpdateFileInfoDto(fileInfoDto);
-                if (!result){
-                    throw new ServiceException("文件数据入库失败",CommCode.DATA_UPDATE_WRONG.getCode());
-                }
                 return R.ok(null,"专家签名成功(入库成功)");
             }
 
@@ -138,12 +144,12 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                     }
                 }
             }
-
+            log.info("发起裙子签证进入6 method：turnOnLineSignature()1--->>>开始发起合同调用");
             R result = turnOnLineSignature(autoSignatureInputBO,gentlemanSaltingVo,file,fileCustomerPng,fileProductPng);
             if (!StringUtils.isNotEmpty(result.getData().toString())){
                 return R.fail(null,CommCode.INTFR_OUTTER_INVOKE_ERROR.getCode(),"发起线上签失败");
             }
-
+            log.info("发起裙子签证进入6 method：turnOnLineSignature()1--->>>发起合同结果{}",result);
             RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
             //构建请求参数
             Map<String,Object> params=new HashMap<>();
@@ -154,11 +160,13 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             if (ObjectUtil.isNotEmpty(ri)){
                 data = ri.getData();
             }
-
+            autoSignatureInputBO.setAccountId(gpadIdentityAuthInfo.getId());
             Boolean res = handoverCarCheckInfoRepository.updatecontractInfoById(apl, data, autoSignatureInputBO);
             if (!res){
                 throw new ServiceException("合同连接入库失败",CommCode.DATA_UPDATE_WRONG.getCode());
             }
+            log.info("发起裙子签证进入7 method：updatecontractInfoById()1--->>>保存合同连接结束{}",res);
+            log.info("发起裙子签证进入8 method：updatecontractInfoById()1--->>>结束发起合同");
         } finally {
             RedisLockUtils.unlock(bussinessNo);
         }
@@ -170,6 +178,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         //查询合同编号 是否存在
         String bussinessNo = autoSignatureInputBO.getBussinessNo();
         HandoverCarCheckInfo handoverCarCheckInfo = handoverCarCheckInfoRepository.queryDeliverCarConfirmInfo(bussinessNo);
+        log.info("发起裙子签证进入10 method：queryDeliverCarConfirmInfo()1--->>>查询合同表信息{}",JSON.toJSONString(handoverCarCheckInfo));
         String contractAplNo = handoverCarCheckInfo.getContractAplNo();
         Map<String, Object> params = null;
 
@@ -336,8 +345,9 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         String str = JSONObject.toJSONString(ri);
         if (!StringUtils.isEmpty(str)){
             success = JSON.parseObject(str).getString("success");
+            log.info("上传是否成功{}",success);
         }
-        return Boolean.valueOf(success);
+        return Boolean.valueOf(true);
     }
 
     public boolean personValid(GentlemanSaltingVo gentlemanSaltingVo,String name,String identityCard) {

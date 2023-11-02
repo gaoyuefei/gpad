@@ -2,6 +2,7 @@ package com.gpad.gpadtool.service;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
@@ -105,13 +106,11 @@ public class HandoverCarPrepareService {
                     if (!result) {
                         throw new ServiceException("交车准备信息入库", R.FAIL);
                     }
-
                     result = fileInfoRepository.saveReadyDeliverCarFile(handoverCarPrepareDto.getLinkType());
                     if (!result) {
                         throw new ServiceException("bussinessNo -> 绑定的文件服务器", R.FAIL);
                     }
-
-                    log.info("method:saveReadyDeliverCarInfoOrderNo().交车准备内容: {}", "result");
+                    log.info("method:saveReadyDeliverCarInfoOrderNo().交车准备内容: {}", result);
                 }else {
                     updateById(handoverCarPrepareDto);
                     result = fileInfoRepository.updateReadyDeliverCarFile(handoverCarPrepareDto.getLinkType());
@@ -125,6 +124,9 @@ public class HandoverCarPrepareService {
 
                 if (ObjectUtil.isNotEmpty(bybussinessNo)){
                     nodeNum = bybussinessNo.getNodeNum();
+                }
+                if(null == nodeNum){
+                    nodeNum = 0;
                 }
                 if (2 == nodeNum  && "1".equals(handoverCarPrepareDto.getButton())){
                     //扭转流程订单流程状态
@@ -149,6 +151,7 @@ public class HandoverCarPrepareService {
 
 
     public HandoverCarPrepareDto updateById(HandoverCarPrepareDto handoverCarPrepareDto){
+        log.info("method:updateById().交车准备内容: {}", JSON.toJSONString(handoverCarPrepareDto));
         boolean result = handoverCarPrepareRepository.updateById(JSONObject.parseObject(JSONObject.toJSONString(handoverCarPrepareDto), HandoverCarPrepare.class));
         if (!result){
             throw new ServiceException("交车准备页面更新失败",R.FAIL);

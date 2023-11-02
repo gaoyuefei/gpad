@@ -1,5 +1,6 @@
 package com.gpad.gpadtool.repository;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
@@ -11,6 +12,7 @@ import com.gpad.gpadtool.domain.dto.FileInfoDto;
 import com.gpad.gpadtool.domain.entity.FileInfo;
 import com.gpad.gpadtool.mapper.FileInfoMapper;
 import com.gpad.gpadtool.utils.UuidUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -24,6 +26,7 @@ import java.util.function.Consumer;
  * @Description TODO
  * @createTime 2023年09月22日 17:59:00
  */
+@Slf4j
 @Service
 public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
 
@@ -98,7 +101,7 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
                 if (!StringUtils.isBlank(fileInfoDto.getId())){
                     result = this.updateFileInfo(fileInfoDto);
                 }else {
-                    result = this.saveReadyDeliverCarFile(linkType);
+                    result = this.saveReadyDeliverCarFileBnNO(linkType);
                 }
             }
         }
@@ -106,7 +109,27 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
         return result;
     }
 
+    private Boolean saveReadyDeliverCarFileBnNO(List<FileInfoDto> linkType) {
+        linkType.forEach(fileInfoDto -> {
+            FileInfo fileInfo = new FileInfo();
+            BeanUtil.copyProperties(fileInfoDto,fileInfo);
+            saveOrUpdate(fileInfo);
+        });
+        return true;
+    }
+
     private Boolean updateFileInfo(FileInfoDto fileInfoDto) {
         return this.updateById(JSONObject.parseObject(JSONObject.toJSONString(fileInfoDto),FileInfo.class));
+    }
+
+    public Boolean saveReadyDeliverCarFileNo(List<FileInfoDto> list, String bussinessNo) {
+        List<FileInfo> fileInfos = new ArrayList<>();
+        if (CollectionUtil.isEmpty(list) || list.size() == 0){
+            return true;
+        }
+        list.forEach(l->fileInfos.add(JSONObject.parseObject(JSONObject.toJSONString(l),FileInfo.class)));
+        fileInfos.forEach(s -> s.setBussinessNo(bussinessNo));
+        log.info("method:saveReadyDeliverCarFileNo().交车准备内容: {}", fileInfos);
+        return this.saveBatch(fileInfos);
     }
 }

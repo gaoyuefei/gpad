@@ -13,6 +13,8 @@ public class HandoverCarCheckInfoOutBO {
 
     @ApiModelProperty(value = "id")
     private Long id;
+    @ApiModelProperty(value = "账号ID")
+    private String  accountId;
     @ApiModelProperty(value = "订单号")
     private String bussinessNo;
     @ApiModelProperty(value = "订单类型（普通订单，集合订单）")
