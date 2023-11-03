@@ -86,13 +86,22 @@ public class GRTController {
      */
     @Operation(summary = "GRT-修改计划交车日期")
     @PostMapping("/grt/updateGrtOrderDeliverDate")
-    public R updateGrtOrderDeliverDate(@RequestBody OrderDeliverDateParamVo orderDeliverDateParamVo) throws InterruptedException {
+    public R updateGrtOrderDeliverDate(@RequestBody OrderDeliverDateParamVo orderDeliverDateParamVo)  {
         log.info("GRT-修改计划交车日期 --->>> {}", orderDeliverDateParamVo);
         return grtService.updateGrtOrderDeliverDate(orderDeliverDateParamVo);
     }
 
 
 
+    /**
+     * 对接GRT推送订单状态变更
+     */
+    @Operation(summary = "对接GRT交车状态变更接口")
+    @PostMapping("/out/grt/changeOrderStatus2Grt")
+    public R<Void> changeOrderStatus2Grt(@RequestBody OrderStatusVo orderStatusVo){
+        log.info("对接GRT推送订单状态变更 --->>> {}", JSONObject.toJSONString(orderStatusVo));
+        return grtService.changeOrderStatus2Grt(orderStatusVo);
+    }
 
 
 
@@ -206,16 +215,6 @@ public class GRTController {
 
 
         return new ChangeOrderStatusResultDto("200",null);
-    }
-
-    /**
-     * 对接GRT推送订单状态变更
-     */
-    @Operation(summary = "对接GRT交车状态变更接口")
-    @PostMapping("/out/grt/changeOrderStatus2Grt")
-    public R<Void> changeOrderStatus2Grt(@RequestBody OrderStatusVo orderStatusVo){
-        log.info("对接GRT推送订单状态变更 --->>> {}", JSONObject.toJSONString(orderStatusVo));
-        return grtService.changeOrderStatus2Grt(orderStatusVo);
     }
 
     /**

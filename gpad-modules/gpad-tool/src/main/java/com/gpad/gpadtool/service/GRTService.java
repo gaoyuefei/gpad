@@ -272,11 +272,6 @@ public class GRTService {
     public R<List<OrderDetailResultDto>> getGrtOrderDetail(String bussinessNo) {
         long timestamp = System.currentTimeMillis();
         String sign = GRTSignUtil.sign(GRTSignUtil.APP_KEY_GRT, timestamp, GRTSignUtil.SECRET_KEY_GRT);
-        try {
-            Thread.sleep(800);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("reqId", UuidUtil.generateUuid());
         httpHeaders.add("reqFrom","PAD");
@@ -325,13 +320,28 @@ public class GRTService {
     }
 
     public R<Void> changeOrderStatus2Grt(OrderStatusVo orderStatusVo){
-        ResponseEntity<BaseGrtResultDto> response = restTemplate.exchange(changeOrderStatus2GrtUrl, HttpMethod.POST, new HttpEntity<>(orderStatusVo), BaseGrtResultDto.class);
+        log.info("method:changeOrderStatus2Grt() --->>> url为{}", changeOrderStatus2GrtUrl);
+        long timestamp = System.currentTimeMillis();
+        String sign = GRTSignUtil.sign(GRTSignUtil.APP_KEY_GRT, timestamp, GRTSignUtil.SECRET_KEY_GRT);
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("reqId", UuidUtil.generateUuid());
+        httpHeaders.add("reqFrom","PAD");
+        httpHeaders.add("reqTime", DateUtil.getNowDateStr());
+        httpHeaders.add("sign", sign);
+        httpHeaders.add("appKey", GRTSignUtil.APP_KEY_GRT);
+        httpHeaders.add("timestamp", String.valueOf(timestamp));
+        HttpEntity<OrderStatusVo> requestEntity = new HttpEntity<>(orderStatusVo,httpHeaders);
+        log.info("查询交车确认信息 --->>> {}", JSONObject.toJSONString(requestEntity.getHeaders()));
+
+        ResponseEntity<BaseGrtResultDto> response = restTemplate.exchange(changeOrderStatus2GrtUrl, HttpMethod.POST, requestEntity, BaseGrtResultDto.class);
         if (response.getStatusCode() != HttpStatus.OK){
             return R.fail(response.getBody() == null?"null" : response.getBody().getMessage());
         }
         if (response.getBody()==null || response.getBody().getStatus().equals("500")){
             return R.fail("调用GRT推送订单状态变更失败!  错误信息: "+(response.getBody()==null?"null":response.getBody().getMessage()));
         }
+        log.info("method:changeOrderStatus2Grt() --->>> 方法执行结束{}",response.getBody());
         return R.ok(null,response.getBody().getMessage());
     }
 
@@ -347,11 +357,10 @@ public class GRTService {
         return R.ok(null,response.getBody().getMessage());
     }
 
-    public R updateGrtOrderDeliverDate(OrderDeliverDateParamVo orderDeliverDateParamVo) throws InterruptedException {
-
+    public R updateGrtOrderDeliverDate(OrderDeliverDateParamVo orderDeliverDateParamVo) {
+        log.info("进入 method：updateGrtOrderDeliverDate： --->>> url为{}", pushUpdateRecordToGrt);
         long timestamp = System.currentTimeMillis();
         String sign = GRTSignUtil.sign(GRTSignUtil.APP_KEY_GRT, timestamp, GRTSignUtil.SECRET_KEY_GRT);
-        Thread.sleep(800);
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("reqId", UuidUtil.generateUuid());
         httpHeaders.add("reqFrom","PAD");
@@ -360,7 +369,7 @@ public class GRTService {
         httpHeaders.add("appKey", GRTSignUtil.APP_KEY_GRT);
         httpHeaders.add("timestamp", String.valueOf(timestamp));
         HttpEntity<OrderDeliverDateParamVo> requestEntity = new HttpEntity<>(orderDeliverDateParamVo,httpHeaders);
-        log.info("查询交车确认信息 --->>> {}", JSONObject.toJSONString(requestEntity.getHeaders()));
+        log.info("封装请求头为 --->>> {}", JSONObject.toJSONString(requestEntity.getHeaders()));
 
         ResponseEntity<BaseGrtResultDto> response = restTemplate.exchange(pushUpdateRecordToGrt, HttpMethod.POST, requestEntity, BaseGrtResultDto.class);
         if (response.getStatusCode() != HttpStatus.OK){
@@ -369,6 +378,8 @@ public class GRTService {
         if (null == response.getBody() || "500".equals(response.getBody().getStatus())){
             return R.fail("调用GRT推送订单数据变更失败!  错误信息: "+(response.getBody()==null?"null":response.getBody().getMessage()));
         }
+
+        log.info("进入 method：updateGrtOrderDeliverDate： --->>> 执行结束{}", response.getBody());
         return R.ok(null,response.getBody().getMessage());
     }
 

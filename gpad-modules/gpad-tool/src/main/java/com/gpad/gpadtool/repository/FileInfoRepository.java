@@ -101,25 +101,24 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
                 if (!StringUtils.isBlank(fileInfoDto.getId())){
                     result = this.updateFileInfo(fileInfoDto);
                 }else {
-                    result = this.saveReadyDeliverCarFileBnNO(linkType);
+                    result = this.saveReadyDeliverCarFileBnNO(fileInfoDto);
                 }
             }
         }
-
         return result;
     }
 
-    private Boolean saveReadyDeliverCarFileBnNO(List<FileInfoDto> linkType) {
-        linkType.forEach(fileInfoDto -> {
+    private Boolean saveReadyDeliverCarFileBnNO(FileInfoDto fileInfoDto) {
             FileInfo fileInfo = new FileInfo();
             BeanUtil.copyProperties(fileInfoDto,fileInfo);
             saveOrUpdate(fileInfo);
-        });
         return true;
     }
 
     private Boolean updateFileInfo(FileInfoDto fileInfoDto) {
-        return this.updateById(JSONObject.parseObject(JSONObject.toJSONString(fileInfoDto),FileInfo.class));
+        FileInfo entity = JSONObject.parseObject(JSONObject.toJSONString(fileInfoDto), FileInfo.class);
+        log.info("method:saveReadyDeliverCarFileNo().交车准备内容: {}", JSONObject.toJSONString(entity));
+        return this.updateById(entity);
     }
 
     public Boolean saveReadyDeliverCarFileNo(List<FileInfoDto> list, String bussinessNo) {

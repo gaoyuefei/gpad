@@ -6,11 +6,11 @@ import com.gpad.common.core.domain.R;
 import com.gpad.gpadtool.domain.dto.UploadFileOutputDto;
 import com.gpad.gpadtool.utils.DateUtil;
 import com.gpad.gpadtool.utils.FileUtil;
+import com.gpad.gpadtool.utils.MonitorUtil;
 import com.gpad.gpadtool.utils.UuidUtil;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,6 +41,7 @@ public class FileController {
     @Operation(summary = "文件上传")
     @PostMapping("/uploadFile")
     public R<UploadFileOutputDto> uploadFile(@RequestParam("file") MultipartFile file,@RequestParam("suffix") String suffix) {
+        MonitorUtil.start();
         Boolean fileType = FileUtil.getFileType(suffix);
         if (!fileType) {
             return R.fail("文件类型为空!");
@@ -58,7 +59,7 @@ public class FileController {
         uploadFileOutputDto.setFileName(newFilename);
         uploadFileOutputDto.setFilePath(subResult);
         log.info("文件上传!结束返回接口参数为 {}", JSON.toJSONString(uploadFileOutputDto));
-
+        MonitorUtil.finish("uploadFile");
         return R.ok(uploadFileOutputDto);
     }
 
