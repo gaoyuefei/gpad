@@ -103,7 +103,9 @@ public enum GrtToPadEnums {
         }
 
         if ("14041010".equals(value)){
-            return StringUtils.isEmpty(bindStatus)?"3":"4";
+            //兼容GRT传值
+//            return StringUtils.isEmpty(bindStatus)?"3":"4";
+            return "4";
         }
 
         if ("14041019".equals(value)){

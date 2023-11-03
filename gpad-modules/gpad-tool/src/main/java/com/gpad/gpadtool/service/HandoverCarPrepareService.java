@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.gpad.common.core.domain.R;
 import com.gpad.common.core.exception.ServiceException;
+import com.gpad.gpadtool.constant.CommCode;
 import com.gpad.gpadtool.constant.FlowNodeNum;
 import com.gpad.gpadtool.domain.dto.FileInfoDto;
 import com.gpad.gpadtool.domain.dto.FlowInfoDto;
@@ -161,7 +162,7 @@ public class HandoverCarPrepareService {
 
         String bussinessNo = handoverCarPrepareDto.getBussinessNo();
         if (StringUtils.isBlank(bussinessNo)){
-            throw new ServiceException("订单编号有误",R.FAIL);
+            throw new ServiceException(CommCode.DATA_IS_WRONG.getMessage(), CommCode.DATA_IS_WRONG.getCode());
         }
 
         HandoverCarPrepare handoverCarPrepare = handoverCarPrepareRepository.queryBybussinessNo(bussinessNo);
@@ -169,21 +170,22 @@ public class HandoverCarPrepareService {
         BeanUtil.copyProperties(handoverCarPrepare,readyDeliverCarOutBO);
 
         String supplies = readyDeliverCarOutBO.getSupplies();
-        if(!org.apache.commons.lang3.StringUtils.isBlank(supplies)){
-            String substring = supplies.substring(supplies.indexOf("[")+1, supplies.length()-1);
-            List<Integer> list = new ArrayList<>();
-            if (!org.apache.commons.lang3.StringUtils.isBlank(substring)){
-                System.out.println(substring);
-                String[] split = substring.split(",");
-                for (String s : split) {
-                    System.out.println(s.trim());
-                }
-                for (String s : split) {
-                    list.add(Integer.valueOf(s.trim()));
+        //兼容传值
+        if (null != supplies && !"".equals(supplies) && !"null".equals(supplies)){
+            if(!org.apache.commons.lang3.StringUtils.isBlank(supplies)){
+                String substring = supplies.substring(supplies.indexOf("[")+1, supplies.length()-1);
+                List<Integer> list = new ArrayList<>();
+                if (!org.apache.commons.lang3.StringUtils.isBlank(substring)){
+                    System.out.println(substring);
+                    String[] split = substring.split(",");
+                    for (String s : split) {
+                        list.add(Integer.valueOf(s.trim()));
+                    }
+                    readyDeliverCarOutBO.setSuppliesAtt(list);
                 }
                 readyDeliverCarOutBO.setSuppliesAtt(list);
-            }
-            readyDeliverCarOutBO.setSuppliesAtt(list);
+        }
+
         }
         readyDeliverCarOutBO.setId(handoverCarPrepare.getId());
         List<FileInfo> fileInfos = fileInfoRepository.queryFileBybussinessNo(bussinessNo);

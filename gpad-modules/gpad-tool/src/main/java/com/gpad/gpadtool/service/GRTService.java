@@ -143,7 +143,7 @@ public class GRTService {
         log.info("GRT拼接后URL为 --->>> {}",url);
 
         ResponseEntity<OrderNoListResultDto> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, OrderNoListResultDto.class);
-        log.info("GRT返回参数 --->>> {}", JSONObject.toJSONString(response));
+        log.info("GRT返回参数 --->>> response{}", JSONObject.toJSONString(response));
 
         OrderNoListResultDto orderNoListResultDto = response.getBody();
 
@@ -155,17 +155,17 @@ public class GRTService {
 
         List<OrderNoResultDto> data = orderNoListResultDto.getData();
         data.forEach(s-> {
+            log.info("打印转换参数为code码{},VIN{},BindStatus{}",s.getOrderStatus(), s.getVin(),s.getBindStatus());
             s.setOrderStatus(GrtToPadEnums.getValueByVin(s.getOrderStatus(), s.getVin(), s.getBindStatus()));
-            String valueByVin = GrtToPadEnums.getValueByVin(s.getOrderStatus(), s.getVin(), s.getBindStatus());
-            System.out.println(valueByVin);
         });
-
+        data.sort((o1, o2) -> o2.getDeliveringDate().compareTo(o1.getDeliveringDate()));
+        log.info("GRT订单列表返回数据为{}",JSON.toJSONString(data));
         OrderNoListResultOutBo orderNoListResultOutBo = new OrderNoListResultOutBo();
         orderNoListResultOutBo.setData(data);
         orderNoListResultOutBo.setPageNum(orderNoListResultDto.getPageNum());
         orderNoListResultOutBo.setPageSize(orderNoListResultDto.getPageSize());
         orderNoListResultOutBo.setTotal(orderNoListResultDto.getTotal());
-
+        log.info("grtGetOrderNoList{}",JSON.toJSONString(data));
         return R.ok(orderNoListResultOutBo);
     }
 
@@ -205,7 +205,7 @@ public class GRTService {
                     url.concat("&customerPhone=").concat(orderNoListParamVo.getMobilePhone())
                     : url.concat("?customerPhone=").concat(orderNoListParamVo.getMobilePhone());
         }
-        //订单状态 0   1   2  3  4  5
+        //订单状态 0   1   2  3  4 已完成  5
         if (Strings.isNotEmpty(orderNoListParamVo.getOrderStatus())){
             url = url.contains("?") ?
                     url.concat("&orderStatus=").concat(orderNoListParamVo.getOrderStatus())
