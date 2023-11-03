@@ -88,20 +88,20 @@ public class HandoverCarPrepareService {
 
     @Transactional(rollbackFor = Exception.class)
     public R<Boolean> saveOrUpdateHandoverCarPrepareDto(HandoverCarPrepareDto handoverCarPrepareDto) {
+        log.info("开始执行方法 --->>> method:saveOrUpdateHandoverCarPrepareDto{}", JSONObject.toJSONString(handoverCarPrepareDto));
         Boolean result = false;
         Integer nodeNum = 0;
         String bussinessNo = handoverCarPrepareDto.getBussinessNo();
-
             try {
                 RedisLockUtils.lock(bussinessNo);
                 //TODO 前端有ID 一定要传ID
                 if (Strings.isBlank(handoverCarPrepareDto.getId()) && !checkedbussinessNo(bussinessNo)) {
+                    log.info("进入保存方法 --->>> method:saveOrUpdateHandoverCarPrepareDto{},{}", bussinessNo,handoverCarPrepareDto.getId());
                     //幂等处理
-                    System.out.println("锁");
                     //交车准备信息入库  bussinessNo -> 绑定的文件服务器
                     result = handoverCarPrepareRepository.saveReadyDeliverCarInfoOrderNo(handoverCarPrepareDto);
                     if (!result) {
-                        throw new ServiceException("交车准备信息入库", R.FAIL);
+                        throw new ServiceException("bussinessNo -> 交车准备信息入库失败", CommCode.DATA_UPDATE_WRONG.getCode());
                     }
                     result = fileInfoRepository.saveReadyDeliverCarFile(handoverCarPrepareDto.getLinkType());
                     if (!result) {
@@ -109,19 +109,23 @@ public class HandoverCarPrepareService {
                     }
                     log.info("method:saveReadyDeliverCarInfoOrderNo().交车准备内容: {}", result);
                 }else {
-                    updateById(handoverCarPrepareDto);
+                    result = updateById(handoverCarPrepareDto);
+                    if (!result) {
+                        throw new ServiceException("bussinessNo -> 更新文件服务异常", CommCode.DATA_UPDATE_WRONG.getCode());
+                    }
                     result = fileInfoRepository.updateReadyDeliverCarFile(handoverCarPrepareDto.getLinkType());
                     //TODO 文件服务器异常
                     if (!result) {
                         throw new ServiceException("bussinessNo -> 更新文件服务异常", R.FAIL);
                     }
-//                    handoverCarPrepareRepository.updateReadyDeliverCarInfoOrderNo(handoverCarPrepareDto);
                 }
                 FlowInfoDto bybussinessNo = flowInfoRepository.getBybussinessNo(handoverCarPrepareDto.getBussinessNo());
+                log.info("当前节点信息为 --->>>:bybussinessNo{}", JSON.toJSONString(bybussinessNo));
 
                 if (ObjectUtil.isNotEmpty(bybussinessNo)){
                     nodeNum = bybussinessNo.getNodeNum();
                 }
+
                 if(null == nodeNum){
                     nodeNum = 0;
                 }
@@ -147,13 +151,15 @@ public class HandoverCarPrepareService {
     }
 
 
-    public HandoverCarPrepareDto updateById(HandoverCarPrepareDto handoverCarPrepareDto){
+    public Boolean updateById(HandoverCarPrepareDto handoverCarPrepareDto){
         log.info("method:updateById().交车准备内容: {}", JSON.toJSONString(handoverCarPrepareDto));
-        boolean result = handoverCarPrepareRepository.updateById(JSONObject.parseObject(JSONObject.toJSONString(handoverCarPrepareDto), HandoverCarPrepare.class));
+        HandoverCarPrepare handoverCarPrepare = JSONObject.parseObject(JSONObject.toJSONString(handoverCarPrepareDto), HandoverCarPrepare.class);
+        log.info("method:JSONObject.parseObject().转换后{}", JSON.toJSONString(handoverCarPrepareDto));
+        boolean result = handoverCarPrepareRepository.updateById(handoverCarPrepare);
         if (!result){
-            throw new ServiceException("交车准备页面更新失败",R.FAIL);
+            throw new ServiceException(CommCode.DATA_UPDATE_WRONG.getMessage(),CommCode.DATA_UPDATE_WRONG.getCode());
         }
-        return handoverCarPrepareDto;
+        return result;
     }
 
     public HandoverCarPrepareOutBO queryReadyDeliverCarOrderNo(HandoverCarPrepareDto handoverCarPrepareDto) {

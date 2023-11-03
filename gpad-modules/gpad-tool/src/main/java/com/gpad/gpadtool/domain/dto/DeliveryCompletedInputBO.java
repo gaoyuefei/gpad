@@ -6,7 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
-import java.util.Date;
+
 
 @Data
 @ApiModel(value = "DeliveryCompletedInputBO",description = "流程节点")
@@ -24,5 +24,8 @@ public class DeliveryCompletedInputBO {
 
     @ApiModelProperty(value = "状态")
     private String  status;
+
+    @ApiModelProperty(value = "交车准备页面Bo")
+    private HandoverCarPrepareDto  handoverCarPrepareDto;
 
 }

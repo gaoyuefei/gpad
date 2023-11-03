@@ -1,6 +1,7 @@
 package com.gpad.gpadtool.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
 import com.gpad.common.core.domain.R;
 import com.gpad.gpadtool.constant.FileLinkType;
 import com.gpad.gpadtool.constant.FileType;
@@ -87,7 +88,7 @@ public class GRTController {
     @Operation(summary = "GRT-修改计划交车日期")
     @PostMapping("/grt/updateGrtOrderDeliverDate")
     public R updateGrtOrderDeliverDate(@RequestBody OrderDeliverDateParamVo orderDeliverDateParamVo)  {
-        log.info("GRT-修改计划交车日期 --->>> {}", orderDeliverDateParamVo);
+        log.info("GRT-修改计划交车日期 --->>> {}", JSON.toJSONString(orderDeliverDateParamVo));
         return grtService.updateGrtOrderDeliverDate(orderDeliverDateParamVo);
     }
 

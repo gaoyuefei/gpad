@@ -365,18 +365,27 @@ public class GRTService {
         httpHeaders.add("appKey", GRTSignUtil.APP_KEY_GRT);
         httpHeaders.add("timestamp", String.valueOf(timestamp));
         HttpEntity<OrderDeliverDateParamVo> requestEntity = new HttpEntity<>(orderDeliverDateParamVo,httpHeaders);
-        log.info("封装请求头为 --->>> {}", JSONObject.toJSONString(requestEntity.getHeaders()));
+        log.info("封装请求头为 new HttpEntity<>(orderDeliverDateParamVo,httpHeaders)()--->>> {}", JSONObject.toJSONString(requestEntity.getHeaders()));
 
-        ResponseEntity<BaseGrtResultDto> response = restTemplate.exchange(pushUpdateRecordToGrt, HttpMethod.POST, requestEntity, BaseGrtResultDto.class);
-        if (response.getStatusCode() != HttpStatus.OK){
-            return R.fail(response.getBody() == null?"null" : response.getBody().getMessage());
+        ResponseEntity<String> response = restTemplate.exchange(pushUpdateRecordToGrt, HttpMethod.POST, requestEntity, String.class);
+        log.info("封装请求头为 --->>> response{}", JSONObject.toJSONString(response));
+        try {
+            log.info("封装请求头为 --->>> response{}", JSONObject.toJSONString(response.getBody()));
+            log.info("封装请求头为 --->>> response{}", JSONObject.toJSONString(response.getStatusCode()));
+            log.info("封装请求头为 --->>> response{}", JSONObject.toJSONString(response.getStatusCodeValue()));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        if (null == response.getBody() || "500".equals(response.getBody().getStatus())){
-            return R.fail("调用GRT推送订单数据变更失败!  错误信息: "+(response.getBody()==null?"null":response.getBody().getMessage()));
-        }
+
+//        if (response.getStatusCode() != HttpStatus.OK){
+//            return R.fail(response.getBody() == null?"null" : response.getBody().getMessage());
+//        }
+//        if (null == response.getBody() || "500".equals(response.getBody().getStatus())){
+//            return R.fail("调用GRT推送订单数据变更失败!  错误信息: "+(response.getBody()==null?"null":response.getBody().getMessage()));
+//        }
 
         log.info("进入 method：updateGrtOrderDeliverDate： --->>> 执行结束{}", response.getBody());
-        return R.ok(null,response.getBody().getMessage());
+        return R.ok(null,"修改订单状态成功");
     }
 
     @Transactional(rollbackFor = Exception.class)
