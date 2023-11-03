@@ -129,11 +129,7 @@ public class GRTService {
         long timestamp = System.currentTimeMillis();
         String sign = GRTSignUtil.sign(GRTSignUtil.APP_KEY_GRT, timestamp, GRTSignUtil.SECRET_KEY_GRT);
         log.info("GRT请求路径URL --->>> {},时间戳为:{}",sign,timestamp);
-        try {
-            Thread.sleep(800);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
         httpHeaders.add("reqId", reqId);
         httpHeaders.add("reqFrom",reqFrom);
         httpHeaders.add("reqTime", reqTime);
@@ -217,13 +213,13 @@ public class GRTService {
         }
 
         //交车开始时间 - 结束时间
-        if (Strings.isNotEmpty(orderNoListParamVo.getFinishHandoverDateStart())){
+        if (Strings.isNotEmpty(orderNoListParamVo.getReservationHandoverDateStart())){
             url = url.contains("?") ?
                     url.concat("&deliveryTimeS=").concat(orderNoListParamVo.getReservationHandoverDateStart())
                     : url.concat("?deliveryTimeS=").concat(orderNoListParamVo.getReservationHandoverDateStart());
         }
 
-        if (Strings.isNotEmpty(orderNoListParamVo.getFinishHandoverDateEnd())){
+        if (Strings.isNotEmpty(orderNoListParamVo.getReservationHandoverDateEnd())){
             url = url.contains("?") ?
                     url.concat("&deliveryTimeE=").concat(orderNoListParamVo.getReservationHandoverDateEnd())
                     : url.concat("?deliveryTimeE=").concat(orderNoListParamVo.getReservationHandoverDateEnd());
