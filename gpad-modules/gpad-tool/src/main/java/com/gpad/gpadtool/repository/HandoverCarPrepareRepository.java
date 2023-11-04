@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.gpad.common.core.utils.StringUtils;
 import com.gpad.gpadtool.domain.dto.HandoverCarPrepareDto;
 import com.gpad.gpadtool.domain.entity.HandoverCarPrepare;
 import com.gpad.gpadtool.mapper.HandoverCarPrepareMapper;
@@ -27,7 +28,7 @@ public class HandoverCarPrepareRepository extends ServiceImpl<HandoverCarPrepare
     public Boolean saveReadyDeliverCarInfoOrderNo(HandoverCarPrepareDto handoverCarPrepareDto) {
         log.info("进入保存交车 --->>> method:saveReadyDeliverCarInfoOrderNo{}",handoverCarPrepareDto.getId());
         String str = handoverCarPrepareDto.getSupplies()+"";
-        if ("[null]".equals(str)){
+        if ("[null]".equals(str) || StringUtils.isEmpty(handoverCarPrepareDto.getSupplies()) || "null".equals(handoverCarPrepareDto.getSupplies())){
             str = "[0]";
         }
         HandoverCarPrepare handoverCarPrepare = HandoverCarPrepare.builder()

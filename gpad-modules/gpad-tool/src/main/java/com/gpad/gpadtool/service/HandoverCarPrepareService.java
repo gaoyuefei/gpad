@@ -155,7 +155,7 @@ public class HandoverCarPrepareService {
         log.info("method:updateById().交车准备内容: {}", JSON.toJSONString(handoverCarPrepareDto));
         HandoverCarPrepare handoverCarPrepare = JSONObject.parseObject(JSONObject.toJSONString(handoverCarPrepareDto), HandoverCarPrepare.class);
         String str = handoverCarPrepare.getSupplies();
-        if ("[null]".equals(str)){
+        if ("[null]".equals(str) || com.gpad.common.core.utils.StringUtils.isEmpty(handoverCarPrepareDto.getSupplies()) || "null".equals(handoverCarPrepareDto.getSupplies())  ){
             handoverCarPrepare.setSupplies("[0]");
         }
         log.info("method:JSONObject.parseObject().转换后{}", JSON.toJSONString(handoverCarPrepareDto));
