@@ -86,15 +86,16 @@ public class HandoverCarController {
         if (Strings.isEmpty(handoverCarCheckInfoDto.getBussinessNo())){
             return R.fail("bussinessNo必传，请检查参数! ");
         }
-//        HandoverCarCheckInfoDto handoverCarCheckInfoOut = handoverCarCheckInfoService.getBybussinessNo(handoverCarCheckInfoDto.getBussinessNo());
+
         //客户信息
         R<List<OrderDetailResultDto>> grtOrderDetail = grtService.getGrtOrderDetail(handoverCarCheckInfoDto.getBussinessNo());
+
         //合同信息
         HandoverCarCheckInfoOutBO handoverCarCheckInfoOutBO = handoverCarCheckInfoService.queryDeliverCarConfirmInfo(handoverCarCheckInfoDto);
+
         List<OrderDetailResultDto> data = grtOrderDetail.getData();
         if (!CollectionUtil.isEmpty(data)){
             handoverCarCheckInfoOutBO.setOrderDetailResultDto(grtOrderDetail.getData().get(0));
-            handoverCarCheckInfoOutBO.setRealName(1);
         }
 
         return R.ok(handoverCarCheckInfoOutBO);

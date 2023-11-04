@@ -6,10 +6,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.gpad.common.core.bo.input.AuthUserSignatureInputBO;
-import com.gpad.common.core.bo.input.AutoSignatureGetLinkInputBO;
-import com.gpad.common.core.bo.input.AutoSignatureInputBO;
-import com.gpad.common.core.bo.input.ContinueStartSignatureInputBO;
+import com.gpad.common.core.bo.input.*;
 import com.gpad.common.core.domain.R;
 import com.gpad.common.core.exception.ServiceException;
 import com.gpad.common.core.utils.StringUtils;
@@ -20,6 +17,7 @@ import com.gpad.gpadtool.domain.dto.FileInfoDto;
 import com.gpad.gpadtool.domain.dto.FlowInfoDto;
 import com.gpad.gpadtool.domain.entity.GpadIdentityAuthInfo;
 import com.gpad.gpadtool.domain.entity.HandoverCarCheckInfo;
+import com.gpad.gpadtool.domain.vo.JzqSignatureVo;
 import com.gpad.gpadtool.repository.FileInfoRepository;
 import com.gpad.gpadtool.repository.FlowInfoRepository;
 import com.gpad.gpadtool.repository.GpadIdentityAuthInfoRepository;
@@ -88,9 +86,12 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
         try {
             RedisLockUtils.lock(bussinessNo);
+
             //TODO 查询数据
-            log.info("发起裙子签证进入2 method：startGentlemanSignature()1--->>> {}",JSON.toJSONString(autoSignatureInputBO.getAccount()));
-            GpadIdentityAuthInfo gpadIdentityAuthInfo = gpadIdentityAuthInfoRepository.checkMemorySign(autoSignatureInputBO);
+            String account = autoSignatureInputBO.getAccount();
+            log.info("发起裙子签证进入2 method：startGentlemanSignature()1--->>> {}", JSON.toJSONString(account));
+
+            GpadIdentityAuthInfo gpadIdentityAuthInfo = gpadIdentityAuthInfoRepository.checkMemorySign(account);
             if(!ObjectUtil.isNotEmpty(gpadIdentityAuthInfo)){
                 return R.fail(null, CommCode.UNKNOWN_REAL_NAME.getCode(),"请先通过实名认证");
             }
@@ -114,6 +115,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             AuthUserSignatureInputBO authUserSignatureInputBO = new AuthUserSignatureInputBO();
             BeanUtil.copyProperties(autoSignatureInputBO,authUserSignatureInputBO);
             log.info("发起裙子签证进入4 method：startGentlemanSignature()1--->>>修改参数为{}",JSON.toJSONString(authUserSignatureInputBO));
+            //TODO 这里一定要传ID  后端解析账号
             Boolean result1 = gpadIdentityAuthInfoRepository.updateAuthUserSignature(authUserSignatureInputBO);
             if(!result1){
                 throw  new ServiceException("产品专家认证失败，请检查身份证号",CommCode.DATA_UPDATE_WRONG.getCode());
@@ -244,9 +246,15 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
                 //开始调用外部接口
                 String str= HttpClientUtils.init().getPost(url,null,params,true);
+//                try {
+//                    JzqSignatureVo jzqSignatureVo = JSON.parseObject(str, JzqSignatureVo.class);
+//                    log.info("返回君子签结果未{}", JSONObject.toJSONString(jzqSignatureVo));
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
                 log.info("封装结束参数为{}", JSONObject.toJSONString(str));
                 if (false){
-                    throw new ServiceException("君子签名发起失败",CommCode.INTFR_OUTTER_INVOKE_ERROR.getCode());
+                    throw new ServiceException("君子签名发起接口失败",CommCode.INTFR_OUTTER_INVOKE_ERROR.getCode());
                 }
                 if (!StringUtils.isEmpty(str)){
                     apl = JSON.parseObject(str).getString("data");
@@ -365,6 +373,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             result = Boolean.valueOf(JSON.parseObject(str).getString("success"));
             System.out.println(result);
         }
+        log.info("身份签名认证签名结果 method:personValid{}",JSON.toJSONString(result));
         //TODO 上线要放开
         return true;
     }
@@ -510,15 +519,16 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     }
 
     @Override
-    public R authUserValid(AutoSignatureInputBO autoSignatureInputBO) {
+    public R authUserValid(AutoSignatureUserInputBO autoSignatureUserInputBO) {
         //安全认证->接口加盐处理
         GentlemanSaltingVo gentlemanSaltingVo = getAuthSafety();
-        boolean result = personValid(gentlemanSaltingVo, autoSignatureInputBO.getFullName(), autoSignatureInputBO.getIdentityCard());
+        boolean result = personValid(gentlemanSaltingVo, autoSignatureUserInputBO.getFullName(), autoSignatureUserInputBO.getIdentityCard());
         if (!result){
-            throw new ServiceException("实名认证失败",500);
+            throw new ServiceException(CommCode.IDENTITY_CARD_SIGN_WRONG.getMessage(),CommCode.IDENTITY_CARD_SIGN_WRONG.getCode());
         }
         //查询当前账号是不是第一次签名，如果是就添加   不是就修改
         // TODO 上线时打开
+        log.info("执行结果{}",result);
         return R.ok(true);
     }
 
@@ -549,6 +559,8 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
     @Override
     public R authUserSignatureValid(AuthUserSignatureInputBO authUserSignatureInputBO) {
+        log.info("进入方法method:authUserSignatureValid{}",JSON.toJSONString(authUserSignatureInputBO));
+        String account = "DGDA010_ADMIN";
         Boolean result = false;
         String bussinessNo = authUserSignatureInputBO.getBussinessNo();
         try {
@@ -557,19 +569,71 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             GentlemanSaltingVo gentlemanSaltingVo = getAuthSafety();
             result = personValid(gentlemanSaltingVo, authUserSignatureInputBO.getFullName(), authUserSignatureInputBO.getIdentityCard());
             if (!result){
-                throw new ServiceException("实名认证失败",500);
+                throw new ServiceException(CommCode.IDENTITY_CARD_SIGN_WRONG.getMessage(),CommCode.IDENTITY_CARD_SIGN_WRONG.getCode());
             }
-            //查询当前账号是不是第一次签名，如果是就添加   不是就修改
-            result = gpadIdentityAuthInfoRepository.saveAuthUserSignatureValid(authUserSignatureInputBO);
-            if (!result){
-                throw new ServiceException(CommCode.DATA_UPDATE_WRONG.getMessage(),CommCode.DATA_UPDATE_WRONG.getCode());
+
+            GpadIdentityAuthInfo gpadIdentityAuthInfo = gpadIdentityAuthInfoRepository.selectByAccount(account);
+            if (ObjectUtil.isEmpty(gpadIdentityAuthInfo)){
+                //查询当前账号是不是第一次签名，如果是就添加   不是就修改
+                result = gpadIdentityAuthInfoRepository.saveAuthUserSignatureValid(authUserSignatureInputBO);
+                if (!result){
+                    throw new ServiceException(CommCode.DATA_UPDATE_WRONG.getMessage(),CommCode.DATA_UPDATE_WRONG.getCode());
+                }
             }
+
             // TODO 上线时打开
         } finally {
             RedisLockUtils.unlock(bussinessNo);
         }
 
         return R.ok(result,"二要素验证成功");
+    }
+
+    @Override
+    public Boolean signatureUploadFile(AuthUserSignatureInputBO authUserSignatureInputBO,MultipartFile fileProductPng,String uploadPath) {
+        log.info("进入方法上传图片方法 method:signatureUploadFile{}，路径为{}",JSON.toJSONString(authUserSignatureInputBO),uploadPath);
+        String account = "DGDA010_ADMIN";
+        Boolean result = false;
+        String filePngSuffix = ".png";
+        File localProductPng = null;
+        GentlemanSaltingVo gentlemanSaltingVo = getAuthSafety();
+        try {
+            if (null != fileProductPng) {
+                localProductPng = transferToFile(fileProductPng, filePngSuffix);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        GpadIdentityAuthInfo gpadIdentityAuthInfo = gpadIdentityAuthInfoRepository.selectByAccount(account);
+        //上传到君子签 产品专家
+        String identityCard1 = gpadIdentityAuthInfo.getIdentityCard();
+        log.info("上传身份信息 identityCard1{}",identityCard1);
+        result = uploadMemorySignPath(gentlemanSaltingVo, localProductPng, identityCard1);
+        if (!result) {
+            throw new ServiceException(CommCode.UPLOAD_SIGN_PNG_WRONG.getMessage(), CommCode.UPLOAD_SIGN_PNG_WRONG.getCode());
+        }
+
+
+        if (ObjectUtil.isNotEmpty(gpadIdentityAuthInfo)){
+            authUserSignatureInputBO.setId(gpadIdentityAuthInfo.getId()+"");
+            authUserSignatureInputBO.setMemorySignPath(uploadPath);
+
+            log.info("上传身份信息 identityCard1{}",JSON.toJSONString(authUserSignatureInputBO));
+            AuthUserSignatureInputBO autoSignature = new AuthUserSignatureInputBO();
+            autoSignature.setMemorySignPath(uploadPath);
+            autoSignature.setIdentityCard1(gpadIdentityAuthInfo.getIdentityCard());
+            autoSignature.setIdentityType1(1);
+            autoSignature.setProductMobile(gpadIdentityAuthInfo.getProductMobile());
+            autoSignature.setProductName(gpadIdentityAuthInfo.getProductName())     ;
+            autoSignature.setId(authUserSignatureInputBO.getAccountId());
+            log.info("上传身份信息 identityCard1{}",JSON.toJSONString(autoSignature));
+            result = gpadIdentityAuthInfoRepository.updateAuthUserSignature(autoSignature);
+            if (!result){
+                throw  new ServiceException(CommCode.UPLOAD_SIGN_PNG_WRONG.getMessage(),CommCode.UPLOAD_SIGN_PNG_WRONG.getCode());
+            }
+        }
+        log.info("执行结束 method:signatureUploadFile{}",JSON.toJSONString(authUserSignatureInputBO));
+      return result;
     }
 
     public File transferToFile(MultipartFile multipartFile,String suffix) throws IOException {

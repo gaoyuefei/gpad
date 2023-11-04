@@ -3,16 +3,20 @@ package com.gpad.gpadtool.repository;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.gpad.common.core.domain.R;
+import com.gpad.gpadtool.domain.dto.CommonFilePathCheckInputBO;
 import com.gpad.gpadtool.domain.dto.FileInfoDto;
 import com.gpad.gpadtool.domain.entity.FileInfo;
 import com.gpad.gpadtool.mapper.FileInfoMapper;
 import com.gpad.gpadtool.utils.UuidUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -130,5 +134,23 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
         fileInfos.forEach(s -> s.setBussinessNo(bussinessNo));
         log.info("method:saveReadyDeliverCarFileNo().交车准备内容: {}", fileInfos);
         return this.saveBatch(fileInfos);
+    }
+
+    public R<List<FileInfoDto>> queryCommonFile(CommonFilePathCheckInputBO commonFilePathCheckInputBO) {
+        log.info("进入方法 mehtod：queryCommonFile(){}", JSON.toJSONString(commonFilePathCheckInputBO));
+        List<FileInfo> list = this.lambdaQuery().eq(FileInfo::getBussinessNo, commonFilePathCheckInputBO.getBussinessNo())
+                .eq(StringUtils.isNotBlank(commonFilePathCheckInputBO.getLinkType()),FileInfo::getLinkType, commonFilePathCheckInputBO.getLinkType())
+                .eq(StringUtils.isNotBlank(commonFilePathCheckInputBO.getFileType()),FileInfo::getFileType, commonFilePathCheckInputBO.getFileType())
+                .list();
+        log.info("方式执行结束 mehtod：list(){}", JSON.toJSONString(list));
+
+        List<FileInfoDto> fileInfoOutBo = new ArrayList<>();
+        list.forEach(fileInfo -> {
+            FileInfoDto fileInfoDto = new FileInfoDto();
+            BeanUtils.copyProperties(fileInfo,fileInfoDto);
+            fileInfoOutBo.add(fileInfoDto);
+        });
+        log.info("方式执行结束 对象复制之后mehtod：queryCommonFile(){}", JSON.toJSONString(fileInfoOutBo));
+        return R.ok(fileInfoOutBo);
     }
 }

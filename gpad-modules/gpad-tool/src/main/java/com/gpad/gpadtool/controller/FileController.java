@@ -3,7 +3,10 @@ package com.gpad.gpadtool.controller;
 import cn.hutool.core.util.IdUtil;
 import com.alibaba.fastjson.JSON;
 import com.gpad.common.core.domain.R;
+import com.gpad.gpadtool.domain.dto.CommonFilePathCheckInputBO;
+import com.gpad.gpadtool.domain.dto.FileInfoDto;
 import com.gpad.gpadtool.domain.dto.UploadFileOutputDto;
+import com.gpad.gpadtool.service.FileInfoService;
 import com.gpad.gpadtool.utils.DateUtil;
 import com.gpad.gpadtool.utils.FileUtil;
 import com.gpad.gpadtool.utils.MonitorUtil;
@@ -11,6 +14,7 @@ import com.gpad.gpadtool.utils.UuidUtil;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.util.List;
 
 /**
  * @author Donald.Lee
@@ -34,6 +39,9 @@ public class FileController {
 
     @Value("${config.file.path}")
     private String FILE_PATH;
+
+    @Autowired
+    private FileInfoService fileInfoService;
 
     /**
      * 文件上传
@@ -186,5 +194,14 @@ public class FileController {
         return R.ok(uploadFileOutputDto);
     }
 
+    /**
+     * 查询上传文件
+     */
+    @Operation(summary = "查询上传文件")
+    @PostMapping("/common/queryCommonFile")
+    public R<List<FileInfoDto>> queryCommonFile(@RequestBody CommonFilePathCheckInputBO commonFilePathCheckInputBO) {
+        log.info("method:uploadFile 入参{}",JSON.toJSONString(commonFilePathCheckInputBO));
+        return fileInfoService.queryCommonFile(commonFilePathCheckInputBO);
+    }
 
 }

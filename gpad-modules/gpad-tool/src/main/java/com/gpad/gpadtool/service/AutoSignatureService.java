@@ -20,10 +20,12 @@ public interface AutoSignatureService {
 
     R continueStartGenManSignature(ContinueStartSignatureInputBO continueStartSignatureInputBO);
 
-    R authUserValid(AutoSignatureInputBO autoSignatureInputBO);
+    R authUserValid(AutoSignatureUserInputBO autoSignatureUserInputBO);
 
     R turnOffSignature(String status, String bussinessNo);
 
     R authUserSignatureValid(AuthUserSignatureInputBO authUserSignatureInputBO);
+
+    Boolean signatureUploadFile(AuthUserSignatureInputBO authUserSignatureInputBO,MultipartFile fileProductPng,String result);
 
 }

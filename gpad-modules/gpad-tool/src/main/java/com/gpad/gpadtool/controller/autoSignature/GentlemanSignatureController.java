@@ -1,18 +1,22 @@
 package com.gpad.gpadtool.controller.autoSignature;
 
 import com.alibaba.fastjson.JSON;
-import com.gpad.common.core.bo.input.AuthUserSignatureInputBO;
-import com.gpad.common.core.bo.input.AutoSignatureGetLinkInputBO;
-import com.gpad.common.core.bo.input.AutoSignatureInputBO;
-import com.gpad.common.core.bo.input.ContinueStartSignatureInputBO;
+import com.gpad.common.core.bo.input.*;
 import com.gpad.common.core.domain.R;
+import com.gpad.gpadtool.domain.dto.UploadFileOutputDto;
 import com.gpad.gpadtool.service.AutoSignatureService;
+import com.gpad.gpadtool.utils.DateUtil;
+import com.gpad.gpadtool.utils.FileUtil;
+import com.gpad.gpadtool.utils.MonitorUtil;
+import com.gpad.gpadtool.utils.UuidUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.File;
 
 /**
  * @BelongsProject: gpad-api
@@ -26,6 +30,9 @@ import javax.annotation.Resource;
 @RestController
 @RequestMapping("/gentlemanSignature")
 public class GentlemanSignatureController {
+
+    @Value("${config.file.path}")
+    private String FILE_PATH;
 
     @Resource
     AutoSignatureService  autoSignatureService;
@@ -98,9 +105,18 @@ public class GentlemanSignatureController {
      * 企业实名认证重传
      */
     @Operation(summary = "二要数认证接口")
-    @PostMapping("/v2/auth/userValid")
+    @PostMapping("/v2/auth/accountValid")
     public R authUserSignatureValid(@RequestBody AuthUserSignatureInputBO authUserSignatureInputBO){
         return autoSignatureService.authUserSignatureValid(authUserSignatureInputBO);
+    }
+
+    /**
+     * 企业实名认证重传
+     */
+    @Operation(summary = "二要数认证接口")
+    @PostMapping("/v2/auth/userValid")
+    public R authUserSignatureValid(@RequestBody AutoSignatureUserInputBO autoSignatureUserInputBO){
+        return autoSignatureService.authUserValid(autoSignatureUserInputBO);
     }
 
 //    /**
@@ -123,12 +139,34 @@ public class GentlemanSignatureController {
 
 
     /**
-     * 发起线下签署
+     * 君子签个人签名上传
      */
-    @Operation(summary = "发起线下签署")
-    @GetMapping("/turn/off/signature132132132")
-    public R turnOffSignature(@RequestBody AutoSignatureInputBO autoSignatureInputBO){
-        return null;
+    @Operation(summary = "君子签个人签名上传")
+    @PostMapping("/Signature/uploadFile")
+    public R<UploadFileOutputDto> signatureUploadFile(@RequestParam(value = "fileProductPng") MultipartFile fileProductPng,
+                                                      @RequestParam(value = "suffix") String suffix,
+                                                      @RequestParam(value = "authUserSignatureInputBO", required = false) String authUserSignatureInputBO) {
+        AuthUserSignatureInputBO productSignature = JSON.parseObject(authUserSignatureInputBO, AuthUserSignatureInputBO.class);
+        MonitorUtil.start();
+        Boolean fileType = FileUtil.getFileType(suffix);
+        if (!fileType) {
+            return R.fail("文件类型为空!");
+        }
+        //文件存储路径
+        String filePath = FILE_PATH.concat(File.separator).concat(DateUtil.generateDateTimeStr()).concat(File.separator);
+        log.info("文件上传!当前文件存储路径=== {}", filePath);
+        String newFilename = UuidUtil.generateUuidWithDate() + "." + suffix;
+        FileUtil.uploadFile(fileProductPng, filePath, newFilename);
+
+        String result = filePath.concat(newFilename).replaceAll("\\\\", "/");
+        String subResult = result.substring(4);
+        UploadFileOutputDto uploadFileOutputDto = new UploadFileOutputDto();
+        uploadFileOutputDto.setFileName(newFilename);
+        uploadFileOutputDto.setFilePath(subResult);
+        log.info("文件上传!结束返回接口参数为 {}", JSON.toJSONString(uploadFileOutputDto));
+        autoSignatureService.signatureUploadFile(productSignature,fileProductPng,subResult);
+        MonitorUtil.finish("uploadFile");
+        return R.ok(uploadFileOutputDto);
     }
 
 }

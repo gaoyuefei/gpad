@@ -1,6 +1,7 @@
 package com.gpad.gpadtool.domain.dto;
 
 
+import com.gpad.gpadtool.domain.entity.GpadIdentityAuthInfo;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -15,6 +16,7 @@ public class HandoverCarCheckInfoOutBO {
     private Long id;
     @ApiModelProperty(value = "账号ID")
     private String  accountId;
+
     @ApiModelProperty(value = "订单号")
     private String bussinessNo;
     @ApiModelProperty(value = "订单类型（普通订单，集合订单）")
@@ -102,7 +104,10 @@ public class HandoverCarCheckInfoOutBO {
     private String updateBy;
     private Date updateTime;
 
-    @ApiModelProperty(value = "订单详情实体")
+    @ApiModelProperty(value = "订单详情实体返参")
     private OrderDetailResultDto orderDetailResultDto;
+
+    @ApiModelProperty(value = "文件类型返参")
+    private GpadIdentityAuthInfo gpadIdentityAuthInfo;
 
 }

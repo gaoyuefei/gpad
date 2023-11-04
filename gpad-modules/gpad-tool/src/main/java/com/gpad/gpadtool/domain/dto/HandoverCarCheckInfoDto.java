@@ -1,6 +1,7 @@
 package com.gpad.gpadtool.domain.dto;
 
 
+import com.gpad.gpadtool.domain.entity.GpadIdentityAuthInfo;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

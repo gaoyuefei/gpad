@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.gpad.common.core.domain.R;
 import com.gpad.common.core.exception.ServiceException;
+import com.gpad.gpadtool.constant.CommCode;
 import com.gpad.gpadtool.constant.FlowNodeNum;
 import com.gpad.gpadtool.domain.dto.*;
 import com.gpad.gpadtool.domain.entity.FileInfo;
@@ -232,13 +233,13 @@ public class HandoverCarService {
             FlowInfoDto bybussinessNo = flowInfoRepository.getBybussinessNo(bussinessNo);
             if (ObjectUtil.isNotEmpty(bybussinessNo)) {
                 Integer nodeNum = bybussinessNo.getNodeNum();
-                if("3".equals(nodeNum)){
+                if("3".equals(nodeNum+"")){
                     FlowInfoDto flowInfoDto = new FlowInfoDto();
                     flowInfoDto.setBussinessNo(bussinessNo);
                     flowInfoDto.setNodeNum(FlowNodeNum.HAND_OVER_CAR_GUIDE.getCode());
                     result = flowInfoRepository.updateDeliverCarReadyToConfirm(flowInfoDto);
                     if (!result){
-                        throw new ServiceException("当前流程状态不符合",500);
+                        throw new ServiceException(CommCode.DATA_UPDATE_WRONG.getMessage(), CommCode.DATA_UPDATE_WRONG.getCode());
                     }
                 }
                 return R.ok(result);
