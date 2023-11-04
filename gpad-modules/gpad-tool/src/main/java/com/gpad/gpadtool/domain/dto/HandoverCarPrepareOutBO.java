@@ -49,7 +49,7 @@ public class HandoverCarPrepareOutBO {
     private Integer purchaseTax;
 
     @ApiModelProperty(value = "用品及随车附件")
-    private List<Integer> supplies;
+    private String supplies;
 
     @ApiModelProperty(value = "用品及随车附件")
     private List<Integer> suppliesAtt;
