@@ -178,7 +178,7 @@ public class HandoverCarPrepareService {
         HandoverCarPrepare handoverCarPrepare = handoverCarPrepareRepository.queryBybussinessNo(bussinessNo);
         readyDeliverCarOutBO.setBussinessNo(bussinessNo);
         BeanUtil.copyProperties(handoverCarPrepare,readyDeliverCarOutBO);
-        List<Integer> supplies = readyDeliverCarOutBO.getSupplies();
+        String supplies = handoverCarPrepare.getSupplies();
         readyDeliverCarOutBO.setSupplies(supplies);
         //兼容传值
 //        if (null != supplies && !"".equals(supplies) && !"null".equals(supplies)){
