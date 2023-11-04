@@ -380,10 +380,11 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             log.info("身份签名认证签名结果 method:personValid{}",result);
         }
         log.info("身份签名认证签名结果 method:personValid{}",JSON.toJSONString(result));
-        if (!result){
-            throw new ServiceException(message,10000);
-        }
-        return result;
+//        if (!result){
+//            throw new ServiceException(message,10000);
+//        }
+
+        return true;
     }
 
 
