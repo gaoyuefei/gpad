@@ -26,6 +26,10 @@ public class HandoverCarPrepareRepository extends ServiceImpl<HandoverCarPrepare
 
     public Boolean saveReadyDeliverCarInfoOrderNo(HandoverCarPrepareDto handoverCarPrepareDto) {
         log.info("进入保存交车 --->>> method:saveReadyDeliverCarInfoOrderNo{}",handoverCarPrepareDto.getId());
+        String str = handoverCarPrepareDto.getSupplies()+"";
+        if ("[null]".equals(str)){
+            str = "[0]";
+        }
         HandoverCarPrepare handoverCarPrepare = HandoverCarPrepare.builder()
                 .bussinessNo(handoverCarPrepareDto.getBussinessNo())
                 .loanStatus(handoverCarPrepareDto.getLoanStatus())
@@ -36,7 +40,7 @@ public class HandoverCarPrepareRepository extends ServiceImpl<HandoverCarPrepare
                 .carCertificate(handoverCarPrepareDto.getCarCertificate())
                 .licensePlateNum(handoverCarPrepareDto.getLicensePlateNum())
                 .carCertificate(handoverCarPrepareDto.getCarCertificate())
-                .supplies(handoverCarPrepareDto.getSupplies()+"")
+                .supplies(str)
                 .remark(handoverCarPrepareDto.getRemark())
                 .createTime(new Date())
                 .build();
@@ -61,5 +65,21 @@ public class HandoverCarPrepareRepository extends ServiceImpl<HandoverCarPrepare
         HandoverCarPrepare handoverCarPrepare = new HandoverCarPrepare();
         BeanUtil.copyProperties(handoverCarPrepareDto,handoverCarPrepare);
         this.saveOrUpdate(handoverCarPrepare);
+    }
+
+    public HandoverCarPrepareDto selectByBussinessNo(String bussinessNo) {
+        HandoverCarPrepareDto handoverCarPrepareDto = new  HandoverCarPrepareDto();
+        List<HandoverCarPrepare> list = this.lambdaQuery().eq(HandoverCarPrepare::getBussinessNo, bussinessNo)
+                .orderByDesc(HandoverCarPrepare::getCreateTime)
+                .list();
+        if (CollectionUtil.isNotEmpty(list)){
+            if (list.size() > 0){
+
+                HandoverCarPrepare handoverCarPrepare = list.get(0);
+                BeanUtil.copyProperties(handoverCarPrepare,handoverCarPrepareDto);
+                return handoverCarPrepareDto;
+            }
+        }
+        return null;
     }
 }

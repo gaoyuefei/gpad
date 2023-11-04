@@ -1,10 +1,14 @@
 package com.gpad.gpadtool.service;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.gpad.common.core.domain.R;
 import com.gpad.common.core.exception.ServiceException;
+import com.gpad.common.core.utils.StringUtils;
 import com.gpad.gpadtool.constant.CommCode;
 import com.gpad.gpadtool.constant.FlowNodeNum;
 import com.gpad.gpadtool.domain.dto.*;
@@ -17,12 +21,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 /**
  * @author Donald.Lee
@@ -40,6 +43,7 @@ public class HandoverCarService {
     private FileInfoRepository fileInfoRepository;
     @Autowired
     private HandoverCarPrepareService handoverCarPrepareService;
+
     @Autowired
     private HandoverCarCheckInfoService handoverCarCheckInfoService;
     @Autowired
@@ -223,8 +227,11 @@ public class HandoverCarService {
         return R.ok(fileInfoOutBo);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public R<Boolean> deliveryCompletedNext(DeliveryCompletedInputBO deliveryCompletedInputBO) {
         Boolean result = false;
+        String status = "";
+        String message = "";
         String bussinessNo = deliveryCompletedInputBO.getBussinessNo();
         try {
             //幂等处理
@@ -241,11 +248,36 @@ public class HandoverCarService {
                     if (!result){
                         throw new ServiceException(CommCode.DATA_UPDATE_WRONG.getMessage(), CommCode.DATA_UPDATE_WRONG.getCode());
                     }
-                }
-                return R.ok(result);
-            }
-            return R.fail("当前流程状态不符合");
 
+                    R<List<OrderDetailResultDto>> grtOrderDetail = grtService.getGrtOrderDetail(bussinessNo);
+                    List<OrderDetailResultDto> data = grtOrderDetail.getData();
+                    if (CollectionUtil.isEmpty(data)){
+                       throw new ServiceException("交车完成查询VIN获取失败,请重试",CommCode.DATA_IS_WRONG.getCode());
+                    }
+                    OrderDetailResultDto orderDetailResultDto = data.get(0);
+                    HandoverCarPrepareDto handoverCarPrepareDto = handoverCarPrepareService.selectByBussinessNo(bussinessNo);
+                    if(ObjectUtil.isEmpty(handoverCarPrepareDto)){
+                        throw new ServiceException("交车完成,获取车牌失败，请重试",CommCode.DATA_IS_WRONG.getCode());
+                    }
+                    OrderStatusVo orderStatusVo = new OrderStatusVo();
+                    orderStatusVo.setLicense(handoverCarPrepareDto.getLicensePlateNum());
+                    orderStatusVo.setVin(orderDetailResultDto.getVin());
+                    orderStatusVo.setBussinessNo(bussinessNo);
+                    R<Void> voidR = grtService.changeOrderStatus2Grt(orderStatusVo);
+                    String dataOut = JSON.toJSONString(voidR);
+                    if (StringUtils.isNotEmpty(dataOut)){
+                        log.info("返回参数为{}",JSON.toJSONString(dataOut));
+                        status = JSONUtil.parseObj(dataOut).get("code") + "";
+                        message = JSONUtil.parseObj(dataOut).get("msg") + "";
+                        if ("200".equals(status)){
+                           return R.ok(null,message);
+                        }
+                        throw new ServiceException(message,500);
+                    }
+                }
+                return R.ok(null,500,"当前流程节点错误");
+            }
+            return R.fail(null,CommCode.PARAM_IS_BLANK.getCode(),CommCode.PARAM_IS_BLANK.getMessage());
         } finally {
             RedisLockUtils.unlock(bussinessNo);
         }

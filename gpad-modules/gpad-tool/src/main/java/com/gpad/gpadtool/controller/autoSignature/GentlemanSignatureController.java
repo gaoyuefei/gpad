@@ -1,8 +1,12 @@
 package com.gpad.gpadtool.controller.autoSignature;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.gpad.common.core.bo.input.*;
 import com.gpad.common.core.domain.R;
+import com.gpad.common.core.exception.ServiceException;
+import com.gpad.common.core.utils.StringUtils;
+import com.gpad.gpadtool.constant.CommCode;
 import com.gpad.gpadtool.domain.dto.UploadFileOutputDto;
 import com.gpad.gpadtool.service.AutoSignatureService;
 import com.gpad.gpadtool.utils.DateUtil;
@@ -51,6 +55,19 @@ public class GentlemanSignatureController {
         //TODO  校验 直接返回避免资源消耗
         log.info("发起裙子签证进入1 method：startGentlemanSignature--->>> {}",JSON.toJSONString(autoSignatureInputBOForm));
         AutoSignatureInputBO autoSignatureInputBO = JSON.parseObject(autoSignatureInputBOForm, AutoSignatureInputBO.class);
+        // TODO 客户测试临时应对
+        if (ObjectUtil.isEmpty(autoSignatureInputBO)){
+            throw new ServiceException("客户信息有误，请检查客户信息", CommCode.DATA_UPDATE_WRONG.getCode());
+        }
+        if (StringUtils.isEmpty(autoSignatureInputBO.getIdentityCard())){
+            throw new ServiceException("客户身份信息有误，请检查身份信息", CommCode.DATA_UPDATE_WRONG.getCode());
+        }
+        if (StringUtils.isEmpty(autoSignatureInputBO.getFullName())){
+            throw new ServiceException("客户姓名有误，请检查姓名信息", CommCode.DATA_UPDATE_WRONG.getCode());
+        }
+        if (StringUtils.isEmpty(autoSignatureInputBO.getMobile())){
+            throw new ServiceException("客户手机号码有误，请检查手机号码信息", CommCode.DATA_UPDATE_WRONG.getCode());
+        }
         return autoSignatureService.startGentlemanSignature(autoSignatureInputBO,file,fileCustomerPng,fileProductPng);
     }
 
@@ -73,36 +90,8 @@ public class GentlemanSignatureController {
         return autoSignatureService.continueStartGenManSignature(continueStartSignatureInputBO);
     }
 
-
     /**
-     * 企业实名认证状态查询
-     */
-    @Operation(summary = "企业实名认证状态查询")
-    @PostMapping("/v2/sign/signatory/add1")
-    public R checkRealNameAuthSecurity(@RequestBody ContinueStartSignatureInputBO continueStartSignatureInputBO){
-        return null;
-    }
-
-    /**
-     * 企业实名认证上传
-     */
-    @Operation(summary = "企业实名认证上传")
-    @PostMapping("/v2/sign/signatory/add2")
-    public R uploadRealBusinessNameAuth(@RequestBody ContinueStartSignatureInputBO continueStartSignatureInputBO){
-        return null;
-    }
-
-    /**
-     * 企业实名认证重传
-     */
-    @Operation(summary = "企业实名认证重传")
-    @PostMapping("/v2/sign/signatory/add3")
-    public R againUploadRealBusinessNameAuth(@RequestBody ContinueStartSignatureInputBO continueStartSignatureInputBO){
-        return null;
-    }
-
-    /**
-     * 企业实名认证重传
+     * 产品
      */
     @Operation(summary = "二要数认证接口")
     @PostMapping("/v2/auth/accountValid")
@@ -111,7 +100,7 @@ public class GentlemanSignatureController {
     }
 
     /**
-     * 企业实名认证重传
+     * 客户
      */
     @Operation(summary = "二要数认证接口")
     @PostMapping("/v2/auth/userValid")

@@ -3,6 +3,7 @@ package com.gpad.gpadtool.service.serviceImpl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -17,7 +18,6 @@ import com.gpad.gpadtool.domain.dto.FileInfoDto;
 import com.gpad.gpadtool.domain.dto.FlowInfoDto;
 import com.gpad.gpadtool.domain.entity.GpadIdentityAuthInfo;
 import com.gpad.gpadtool.domain.entity.HandoverCarCheckInfo;
-import com.gpad.gpadtool.domain.vo.JzqSignatureVo;
 import com.gpad.gpadtool.repository.FileInfoRepository;
 import com.gpad.gpadtool.repository.FlowInfoRepository;
 import com.gpad.gpadtool.repository.GpadIdentityAuthInfoRepository;
@@ -31,18 +31,14 @@ import com.junziqian.sdk.util.RequestUtils;
 import com.junziqian.sdk.util.http.HttpClientUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.http.entity.mime.content.FileBody;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.constraints.NotBlank;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -130,7 +126,10 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             fileInfoDto.setLinkType(31);
             Boolean productResult = fileInfoRepository.saveOrUpdateFileInfoDto(fileInfoDto);
             if (!productResult){
-                throw new ServiceException("产品专家签名失败",CommCode.DATA_UPDATE_WRONG.getCode());
+                throw new ServiceException("产品专家签名订单绑定失败",CommCode.DATA_UPDATE_WRONG.getCode());
+            }
+            if (!productResult){
+                return R.fail(null,"产品专家签名订单绑定失败号,请求重新上传");
             }
             log.info("发起裙子签证进入5 method：startGentlemanSignature()1--->>>产品专家发起结束");
             //必填校验  TODO 判断文件是否为空
@@ -158,10 +157,10 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             String apl = result.getData().toString();
             params.put("applyNo", apl); //TODO *
             ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkAnonyDetail",params);
-
             if (ObjectUtil.isNotEmpty(ri)){
                 data = ri.getData();
             }
+
             autoSignatureInputBO.setAccountId(gpadIdentityAuthInfo.getId());
             Boolean res = handoverCarCheckInfoRepository.updatecontractInfoById(apl, data, autoSignatureInputBO);
             if (!res){
@@ -360,23 +359,33 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
     public boolean personValid(GentlemanSaltingVo gentlemanSaltingVo,String name,String identityCard) {
         Boolean result = false;
+        String msg = "";
+        String code = "";
+        String message = "";
         RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
         //构建请求参数
         Map<String,Object> params = getCommonValidPostParams(gentlemanSaltingVo);
         params.put("name",name);
         params.put("identityCard",identityCard);
         ResultInfo<Void> ri= requestUtils.doPost("/v2/auth/userValid",params);
-        System.out.println(ri);
-        String string = JSONObject.toJSONString(ri);
+        log.info("身份签名认证签名结果 method:personValid{}",JSONObject.toJSONString(ri));
         String str = JSONObject.toJSONString(ri);
         if (!StringUtils.isEmpty(str)){
-            result = Boolean.valueOf(JSON.parseObject(str).getString("success"));
-            System.out.println(result);
+            message = JSONUtil.parseObj(str).get("data") + "";
+            log.info("身份签名认证签名结果 method:message{}",message);
+            msg = JSONUtil.parseObj(message).get("valid")+"";
+            log.info("身份签名认证签名结果 method:msg{}",message);
+            result = Boolean.valueOf(msg);
+            log.info("身份签名认证签名结果 method:personValid{}",result);
         }
         log.info("身份签名认证签名结果 method:personValid{}",JSON.toJSONString(result));
-        //TODO 上线要放开
-        return true;
+        if (!result){
+            throw new ServiceException(message,10000);
+        }
+        return result;
     }
+
+
 
     public Map<String, Object> getCommonValidPostParams(GentlemanSaltingVo gentlemanSaltingVo) {
         Map<String, Object> params = new HashMap<>();
@@ -527,9 +536,8 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             throw new ServiceException(CommCode.IDENTITY_CARD_SIGN_WRONG.getMessage(),CommCode.IDENTITY_CARD_SIGN_WRONG.getCode());
         }
         //查询当前账号是不是第一次签名，如果是就添加   不是就修改
-        // TODO 上线时打开
         log.info("执行结果{}",result);
-        return R.ok(true);
+        return R.ok(result,"客户实名认证");
     }
 
     @Override
@@ -567,7 +575,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             RedisLockUtils.lock(bussinessNo);
             //安全认证->接口加盐处理
             GentlemanSaltingVo gentlemanSaltingVo = getAuthSafety();
-            result = personValid(gentlemanSaltingVo, authUserSignatureInputBO.getFullName(), authUserSignatureInputBO.getIdentityCard());
+            result = personValid(gentlemanSaltingVo, authUserSignatureInputBO.getProductName(), authUserSignatureInputBO.getIdentityCard1());
             if (!result){
                 throw new ServiceException(CommCode.IDENTITY_CARD_SIGN_WRONG.getMessage(),CommCode.IDENTITY_CARD_SIGN_WRONG.getCode());
             }
@@ -680,21 +688,27 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 ////        System.out.println(ri);
 //////        ResultInfo<Void> ri= requestUtils.doPost("/v2/sign/notify",params);
 ////        System.out.println(ri);
-////        RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
-////        //构建请求参数
-////        Map<String,Object> params=new HashMap<>();
-////        params.put("name","张现彬");//
-////        params.put("identityCard","372522198405100972");//
-////        ResultInfo<Void> ri= requestUtils.doPost("/v2/auth/userValid",params);
-////        if (null != ri.getData()){
-////            String data = ri.getData()+"";
-////            String s = JSONUtil.parseObj(data).get("valid") + "";
-////            Boolean x = Boolean.valueOf(s);
-////            System.out.println(
-////                    x
-////            );
-////            System.out.println(data);
-////        }
+//        RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
+//        //构建请求参数
+//        Map<String,Object> params=new HashMap<>();
+//        params.put("name","张现彬");//
+//        params.put("identityCard","372522198405100972");//
+//        ResultInfo<Void> ri= requestUtils.doPost("/v2/auth/userValid",params);
+//        System.out.println(ri);
+//        if (null != ri.getData()){
+//            String data = ri.getData()+"";
+//            System.out.println(data);
+
+//            String s = JSONUtil.parseObj(data).get("valid") + "";
+//            String code = JSONUtil.parseObj(data).get("code") + "";
+//            System.out.println(code);
+//            String message = JSONUtil.parseObj(data).get("message") + "";
+//            System.out.println(message);
+//            Boolean aBoolean = Boolean.valueOf(s);
+//            Boolean x = s);
+//            System.out.println(x);
+//            System.out.println(data);
+//       }
 ////
 //
 //
@@ -719,8 +733,8 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 ////       获取PDF下载文件
 //        RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
 //        //构建请求参数
-//        Map<String,Object> params=new HashMap<>();
-//        params.put("applyNo","APL1717365084781039616"); //TODO *
+//        Map<String,Object> params =new HashMap<>();
+//        params.put("applyNo","APL1720759513336266752"); //TODO *
 //        ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkFile",params);
 //        System.out.println(ri);
 //

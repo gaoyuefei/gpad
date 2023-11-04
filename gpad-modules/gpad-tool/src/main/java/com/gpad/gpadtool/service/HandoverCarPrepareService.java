@@ -154,6 +154,10 @@ public class HandoverCarPrepareService {
     public Boolean updateById(HandoverCarPrepareDto handoverCarPrepareDto){
         log.info("method:updateById().交车准备内容: {}", JSON.toJSONString(handoverCarPrepareDto));
         HandoverCarPrepare handoverCarPrepare = JSONObject.parseObject(JSONObject.toJSONString(handoverCarPrepareDto), HandoverCarPrepare.class);
+        String str = handoverCarPrepare.getSupplies();
+        if ("[null]".equals(str)){
+            handoverCarPrepare.setSupplies("[0]");
+        }
         log.info("method:JSONObject.parseObject().转换后{}", JSON.toJSONString(handoverCarPrepareDto));
         boolean result = handoverCarPrepareRepository.updateById(handoverCarPrepare);
         if (!result){
@@ -174,25 +178,27 @@ public class HandoverCarPrepareService {
         HandoverCarPrepare handoverCarPrepare = handoverCarPrepareRepository.queryBybussinessNo(bussinessNo);
         readyDeliverCarOutBO.setBussinessNo(bussinessNo);
         BeanUtil.copyProperties(handoverCarPrepare,readyDeliverCarOutBO);
-
-        String supplies = readyDeliverCarOutBO.getSupplies();
+        List<Integer> supplies = readyDeliverCarOutBO.getSupplies();
+        readyDeliverCarOutBO.setSupplies(supplies);
         //兼容传值
-        if (null != supplies && !"".equals(supplies) && !"null".equals(supplies)){
-            if(!org.apache.commons.lang3.StringUtils.isBlank(supplies)){
-                String substring = supplies.substring(supplies.indexOf("[")+1, supplies.length()-1);
-                List<Integer> list = new ArrayList<>();
-                if (!org.apache.commons.lang3.StringUtils.isBlank(substring)){
-                    System.out.println(substring);
-                    String[] split = substring.split(",");
-                    for (String s : split) {
-                        list.add(Integer.valueOf(s.trim()));
-                    }
-                    readyDeliverCarOutBO.setSuppliesAtt(list);
-                }
-                readyDeliverCarOutBO.setSuppliesAtt(list);
-        }
-
-        }
+//        if (null != supplies && !"".equals(supplies) && !"null".equals(supplies)){
+//            if(!org.apache.commons.lang3.StringUtils.isBlank(supplies)){
+//                String substring = supplies.substring(supplies.indexOf("[")+1, supplies.length()-1);
+//                if (!"null".equals(substring)){
+//                    List<Integer> list = new ArrayList<>();
+//                    if (!org.apache.commons.lang3.StringUtils.isBlank(substring)){
+//                        System.out.println(substring);
+//                        String[] split = substring.split(",");
+//                        for (String s : split) {
+//                            list.add(Integer.valueOf(s.trim()));
+//                        }
+//                        readyDeliverCarOutBO.setSuppliesAtt(list);
+//                    }
+//                    readyDeliverCarOutBO.setSuppliesAtt(list);
+//                }
+//            }
+//
+//        }
         readyDeliverCarOutBO.setId(handoverCarPrepare.getId());
         List<FileInfo> fileInfos = fileInfoRepository.queryFileBybussinessNo(bussinessNo);
         List<FileInfoDto> list = new ArrayList<>();
@@ -203,5 +209,9 @@ public class HandoverCarPrepareService {
         });
         readyDeliverCarOutBO.setLinkType(list);
         return readyDeliverCarOutBO;
+    }
+
+    public HandoverCarPrepareDto selectByBussinessNo(String bussinessNo) {
+        return handoverCarPrepareRepository.selectByBussinessNo(bussinessNo);
     }
 }
