@@ -22,7 +22,7 @@ public interface AutoSignatureService {
 
     R authUserValid(AutoSignatureUserInputBO autoSignatureUserInputBO);
 
-    R turnOffSignature(String status, String bussinessNo);
+    R turnOffSignature(SignatureTurnOffSignInputBO signatureTurnOffSignInputBO);
 
     R authUserSignatureValid(AuthUserSignatureInputBO authUserSignatureInputBO);
 

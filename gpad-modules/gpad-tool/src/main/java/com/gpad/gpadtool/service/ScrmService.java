@@ -268,6 +268,10 @@ public class ScrmService {
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
         log.info(response.getBody());
         ScrmPdiFileListOutputDto scrmPdiFileListOutputDto = JSONObject.parseObject(response.getBody(),ScrmPdiFileListOutputDto.class);
+        if (ObjectUtil.isEmpty(response)){
+            return R.fail(null,"查询PDI任务为null");
+//            if (scrmPdiFileListOutputDto.getResultCode() > 0)
+        }
         log.info(JSONObject.toJSONString(scrmPdiFileListOutputDto));
         if (ObjectUtil.isNotEmpty(scrmPdiFileListOutputDto)){
             if(StringUtils.isNotEmpty(scrmPdiFileListOutputDto.getStatus())){
@@ -275,7 +279,7 @@ public class ScrmService {
                 scrmPdiFileListOutputDto.setStatus(result);
             }
         }
-        return R.ok(scrmPdiFileListOutputDto);
+        return R.ok(null,scrmPdiFileListOutputDto.getResultMessage());
     }
 
     public R<ScrmPdiFileListOutputDto> getPdiSchema(ScrmPdiFileListInputDto scrmPdiFileListInputDto){

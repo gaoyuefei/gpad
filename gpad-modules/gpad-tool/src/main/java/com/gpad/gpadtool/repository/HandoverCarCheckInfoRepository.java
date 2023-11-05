@@ -29,6 +29,7 @@ public class HandoverCarCheckInfoRepository extends ServiceImpl<HandoverCarCheck
 
     public HandoverCarCheckInfo queryDeliverCarConfirmInfo(String bussinessNo) {
         List<HandoverCarCheckInfo> list = this.lambdaQuery().eq(HandoverCarCheckInfo::getBussinessNo, bussinessNo)
+                .orderByDesc(HandoverCarCheckInfo::getCreateTime)
                 .eq(HandoverCarCheckInfo::getDelFlag, 0).list();
         if(!CollectionUtil.isEmpty(list)){
          return list.size() > 0 ? (list.get(0)):(new HandoverCarCheckInfo());
@@ -64,8 +65,22 @@ public class HandoverCarCheckInfoRepository extends ServiceImpl<HandoverCarCheck
                 .eq(HandoverCarCheckInfo::getBussinessNo, autoSignatureInputBO.getBussinessNo())
                 .eq(StringUtils.isNotEmpty(autoSignatureInputBO.getId()), HandoverCarCheckInfo::getId, autoSignatureInputBO.getId())
                 .update();
-        return true;
+        return update;
 
     }
 
+    public Boolean updateSignTypeById(Long id,String bussinessNo) {
+        boolean update = this.lambdaUpdate().setSql(" version = version + 1 ")
+                .set(HandoverCarCheckInfo::getSignType, 1)
+                .set(HandoverCarCheckInfo::getSignStatus, 1)
+                .eq(HandoverCarCheckInfo::getDelFlag, "0")
+                .eq(HandoverCarCheckInfo::getBussinessNo, bussinessNo)
+                .eq(StringUtils.isNotEmpty(id+""), HandoverCarCheckInfo::getId,id)
+                .update();
+        return update;
+    }
+
+    public boolean saveOrUpdateHandoverCarInfo(HandoverCarCheckInfo handoverCarInfor) {
+        return this.saveOrUpdate(handoverCarInfor);
+    }
 }

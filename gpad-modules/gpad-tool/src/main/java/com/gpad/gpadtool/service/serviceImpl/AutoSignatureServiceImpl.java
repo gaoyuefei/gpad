@@ -39,6 +39,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -147,6 +148,9 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             }
             log.info("发起裙子签证进入6 method：turnOnLineSignature()1--->>>开始发起合同调用");
             R result = turnOnLineSignature(autoSignatureInputBO,gentlemanSaltingVo,file,fileCustomerPng,fileProductPng);
+            if (ObjectUtil.isEmpty(result)){
+                return R.fail(null,CommCode.INTFR_OUTTER_INVOKE_ERROR.getCode(),"发起线上签失败");
+            }
             if (!StringUtils.isNotEmpty(result.getData().toString())){
                 return R.fail(null,CommCode.INTFR_OUTTER_INVOKE_ERROR.getCode(),"发起线上签失败");
             }
@@ -164,10 +168,11 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             autoSignatureInputBO.setAccountId(gpadIdentityAuthInfo.getId());
             Boolean res = handoverCarCheckInfoRepository.updatecontractInfoById(apl, data, autoSignatureInputBO);
             if (!res){
-                throw new ServiceException("合同连接入库失败",CommCode.DATA_UPDATE_WRONG.getCode());
+                throw new ServiceException("合同连接保存失败",CommCode.DATA_UPDATE_WRONG.getCode());
             }
             log.info("发起裙子签证进入7 method：updatecontractInfoById()1--->>>保存合同连接结束{}",res);
             log.info("发起裙子签证进入8 method：updatecontractInfoById()1--->>>结束发起合同");
+
         } finally {
             RedisLockUtils.unlock(bussinessNo);
         }
@@ -206,7 +211,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        Boolean result = false;
         try {
             RedisLockUtils.lock(bussinessNo);
             if (!StringUtils.isNotEmpty(contractAplNo)){
@@ -215,10 +220,12 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 Integer isArchive = 0;
 
                 //覆盖之前得签名 TODO //提取参数 默认调用 产品专家
-                String identityCard1 = autoSignatureInputBO.getIdentityCard1();
-                Boolean result = uploadMemorySignPath(gentlemanSaltingVo,localProductPng, identityCard1);
-                if (!result){
-                    throw new ServiceException("君子签名重传失败",500);
+                if (null != localProductPng){
+                    String identityCard1 = autoSignatureInputBO.getIdentityCard1();
+                     result = uploadMemorySignPath(gentlemanSaltingVo,localProductPng, identityCard1);
+                    if (!result){
+                        throw new ServiceException(CommCode.UPLOAD_SIGN_PNG_WRONG.getMessage(),CommCode.UPLOAD_SIGN_PNG_WRONG.getCode());
+                    }
                 }
 
                 //覆盖之前得签名 TODO //提取参数 默认调用 客户名字
@@ -262,13 +269,13 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 // 数据入库 TODO 是否归档 在数据落库
                 Boolean rel = handoverCarCheckInfoRepository.updatecontractInfoById(apl,null,autoSignatureInputBO);
                 if (!rel){
-                    throw new ServiceException("合同PDF入库失败",CommCode.DATA_UPDATE_WRONG.getCode());
+                    throw new ServiceException("合同信息PDF保存失败",CommCode.DATA_UPDATE_WRONG.getCode());
                 }
             }else {
                 //覆盖之前得签名 TODO //提取参数 默认调用 产品专家
                 if (null != fileCustomerPng){
-                    Boolean result = uploadMemorySignPath(gentlemanSaltingVo,localCustomerPng,autoSignatureInputBO.getIdentityCard());
-                    if (!result){
+                    Boolean result1 = uploadMemorySignPath(gentlemanSaltingVo,localCustomerPng,autoSignatureInputBO.getIdentityCard());
+                    if (!result1){
                         throw new ServiceException("追加签名PDF入库失败",CommCode.DATA_UPDATE_WRONG.getCode());
                     }
                 }
@@ -544,27 +551,56 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public R<Boolean> turnOffSignature(String status,String bussinessNo) {
+    public R<Boolean> turnOffSignature(SignatureTurnOffSignInputBO signatureTurnOffSignInputBO) {
+        String status = signatureTurnOffSignInputBO.getStatus();
+        String bussinessNo = signatureTurnOffSignInputBO.getBussinessNo();
         Boolean result = false;
-        FlowInfoDto bybussinessNo = flowInfoRepository.getBybussinessNo(bussinessNo);
-        Integer nodeNum = bybussinessNo.getNodeNum();
-        int i = Integer.parseInt(status);
-        if (i != nodeNum){
-            throw new ServiceException("状态有误",500);
-        }
+        try {
+            RedisLockUtils.lock(bussinessNo);
+            FlowInfoDto bybussinessNo = flowInfoRepository.getBybussinessNo(bussinessNo);
+            Integer nodeNum = bybussinessNo.getNodeNum();
+            int i = Integer.parseInt(status);
+            if (!(3 == nodeNum)){
+                throw new ServiceException("该订单实际流程订单与实际不符，请重新加载页面",CommCode.DATA_IS_WRONG.getCode());
+            }
+            HandoverCarCheckInfo handoverCarCheckInfo = handoverCarCheckInfoRepository.queryDeliverCarConfirmInfo(bussinessNo);
+            if ("1".equals(handoverCarCheckInfo.getSignType()+"")){
+                throw new ServiceException("该订单已发起线下签署，请重新加载页面",CommCode.DATA_IS_WRONG.getCode());
+            }
+            String uiid = signatureTurnOffSignInputBO.getId();
+            Long id = handoverCarCheckInfo.getId();
+            HandoverCarCheckInfo handoverCarInfor = new HandoverCarCheckInfo();
+            BeanUtil.copyProperties(handoverCarCheckInfo,handoverCarInfor);
+            handoverCarInfor.setBussinessNo(bussinessNo);
+            handoverCarInfor.setSignType(1);
+            handoverCarInfor.setConfirmUserName("无");
+            handoverCarInfor.setConfirmUserPhone("无");
+            handoverCarInfor.setOrderType(1);
+            handoverCarInfor.setSignStatus(2);
+            handoverCarInfor.setId(id);
+            handoverCarInfor.setDelFlag(0);
+            handoverCarInfor.setVersion(0);
+            if (StringUtils.isNotEmpty(uiid)){
+                handoverCarInfor.setUpdateTime(new Date());
+            }else {
+                handoverCarInfor.setCreateTime(new Date());
+            }
+            result = handoverCarCheckInfoRepository.saveOrUpdateHandoverCarInfo(handoverCarInfor);
+            if (!result){
+                throw new ServiceException("该订单发起线下签署状态修改失败，请检查是否签署",CommCode.DATA_IS_WRONG.getCode());
+            }
 
-        if (true){
-            System.out.println("查询数据合同是否能归档：0:未归档 ,1：归档");
+//            FlowInfoDto flow = new FlowInfoDto();
+//            flow.setBussinessNo(bussinessNo);
+//            flow.setNodeNum(FlowNodeNum.HAND_OVER_CAR_GUIDE.getCode());
+//            result = flowInfoRepository.updateDeliverCarReadyToConfirm(flow);
+//            if (!result){
+//                throw new ServiceException("流程接口扭转失败",500);
+//            }
+        } finally {
+            RedisLockUtils.unlock(bussinessNo);
         }
-
-        FlowInfoDto flow = new FlowInfoDto();
-        flow.setBussinessNo(bussinessNo);
-        flow.setNodeNum(FlowNodeNum.HAND_OVER_CAR_GUIDE.getCode());
-        result = flowInfoRepository.updateDeliverCarReadyToConfirm(flow);
-        if (!result){
-            throw new ServiceException("流程接口扭转失败",500);
-        }
-        return R.ok(result);
+        return R.ok(result,"发起线下签署成功");
     }
 
     @Override

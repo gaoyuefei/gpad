@@ -49,10 +49,14 @@ public class GentlemanSignatureController {
     public R<String> startGentlemanSignature(@RequestParam(value = "autoSignatureInputBOForm",required = false) String autoSignatureInputBOForm,
                                              @RequestParam(value = "file",required = false) MultipartFile file,
                                              @RequestParam(value = "fileCustomerPng",required = false) MultipartFile fileCustomerPng,
-                                             @RequestParam(value = "fileProductPng") MultipartFile fileProductPng
+                                             @RequestParam(value = "fileProductPng",required = false) MultipartFile fileProductPng
     ){
 
         //TODO  校验 直接返回避免资源消耗
+        if (null == fileProductPng && null == fileCustomerPng){
+            return R.ok(null,"专家签名成功,等待用户签名");
+        }
+
         log.info("发起裙子签证进入1 method：startGentlemanSignature--->>> {}",JSON.toJSONString(autoSignatureInputBOForm));
         AutoSignatureInputBO autoSignatureInputBO = JSON.parseObject(autoSignatureInputBOForm, AutoSignatureInputBO.class);
         // TODO 客户测试临时应对
@@ -65,9 +69,9 @@ public class GentlemanSignatureController {
         if (StringUtils.isEmpty(autoSignatureInputBO.getFullName())){
             throw new ServiceException("客户姓名有误，请检查姓名信息", CommCode.DATA_UPDATE_WRONG.getCode());
         }
-        if (StringUtils.isEmpty(autoSignatureInputBO.getMobile())){
-            throw new ServiceException("客户手机号码有误，请检查手机号码信息", CommCode.DATA_UPDATE_WRONG.getCode());
-        }
+//        if (StringUtils.isEmpty(autoSignatureInputBO.getMobile())){
+//            throw new ServiceException("客户手机号码有误，请检查手机号码信息", CommCode.DATA_UPDATE_WRONG.getCode());
+//        }
         return autoSignatureService.startGentlemanSignature(autoSignatureInputBO,file,fileCustomerPng,fileProductPng);
     }
 
@@ -121,9 +125,9 @@ public class GentlemanSignatureController {
      * 发起线下签署
      */
     @Operation(summary = "发起线下签署")
-    @GetMapping("/turn/off/signature")
-    public R turnOffSignature(@RequestParam("status") String status , @RequestParam("bussinessNo") String bussinessNo){
-        return autoSignatureService.turnOffSignature(status,bussinessNo);
+    @PostMapping("/turn/off/signature")
+    public R turnOffSignature(@RequestBody SignatureTurnOffSignInputBO SignatureTurnOffSignInputBO){
+        return autoSignatureService.turnOffSignature(SignatureTurnOffSignInputBO);
     }
 
 

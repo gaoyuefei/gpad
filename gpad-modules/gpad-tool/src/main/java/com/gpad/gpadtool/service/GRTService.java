@@ -158,7 +158,7 @@ public class GRTService {
             log.info("打印转换参数为code码{},VIN{},BindStatus{}",s.getOrderStatus(), s.getVin(),s.getBindStatus());
             s.setOrderStatus(GrtToPadEnums.getValueByVin(s.getOrderStatus(), s.getVin(), s.getBindStatus()));
         });
-        data.sort((o1, o2) -> o2.getDeliveringDate().compareTo(o1.getDeliveringDate()));
+//        data.sort((o1, o2) -> o2.getDeliveringDate().compareTo(o1.getDeliveringDate()));
         log.info("GRT订单列表返回数据为{}",JSON.toJSONString(data));
         OrderNoListResultOutBo orderNoListResultOutBo = new OrderNoListResultOutBo();
         orderNoListResultOutBo.setData(data);

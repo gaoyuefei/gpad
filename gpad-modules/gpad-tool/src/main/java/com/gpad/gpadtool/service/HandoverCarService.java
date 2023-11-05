@@ -13,9 +13,7 @@ import com.gpad.gpadtool.constant.CommCode;
 import com.gpad.gpadtool.constant.FlowNodeNum;
 import com.gpad.gpadtool.domain.dto.*;
 import com.gpad.gpadtool.domain.entity.FileInfo;
-import com.gpad.gpadtool.repository.FileInfoRepository;
-import com.gpad.gpadtool.repository.FlowInfoRepository;
-import com.gpad.gpadtool.repository.OrderDetailRepository;
+import com.gpad.gpadtool.repository.*;
 import com.gpad.gpadtool.utils.RedisLockUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -43,7 +41,6 @@ public class HandoverCarService {
     private FileInfoRepository fileInfoRepository;
     @Autowired
     private HandoverCarPrepareService handoverCarPrepareService;
-
     @Autowired
     private HandoverCarCheckInfoService handoverCarCheckInfoService;
     @Autowired
@@ -149,11 +146,10 @@ public class HandoverCarService {
             //交车确认信息入库
             result = handoverCarCheckInfoService.saveDeliverCarConfirmInfo(handoverCarCheckInfoDto);
             if (!result){
-                throw new ServiceException("合同信息入库失败",500);
+                throw new ServiceException("合同信息保存失败",CommCode.DATA_UPDATE_WRONG.getCode());
             }
             log.info("method:saveDeliverCarConfirmInfo().合同信息入库失败: {}", JSONObject.toJSONString(handoverCarCheckInfoDto));
            //TODO  保存记忆签图片
-
             //
             //新建交车流程信息并入库 -- 步骤为第一步 //
 //            FlowInfoDto flowInfoDto = new FlowInfoDto();
