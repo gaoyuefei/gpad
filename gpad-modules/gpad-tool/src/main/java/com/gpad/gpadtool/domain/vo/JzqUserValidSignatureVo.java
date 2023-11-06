@@ -12,7 +12,7 @@ import lombok.Data;
  * @Version: 1.0
  */
 @Data
-public class JzqSignatureVo {
+public class JzqUserValidSignatureVo {
 
     @ApiModelProperty(value = "data")
     private Boolean success;
@@ -24,6 +24,6 @@ public class JzqSignatureVo {
     private String resultCode;
 
     @ApiModelProperty(value = "key")
-    private String data;
+    private JzqDataValidSignatureVo data;
 }
 

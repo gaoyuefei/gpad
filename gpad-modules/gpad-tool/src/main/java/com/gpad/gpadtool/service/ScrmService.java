@@ -265,8 +265,10 @@ public class ScrmService {
         headers.add("Authorization", "Basic c2NybXVzZXI6R2Fjc2NybUAxMjM=");
         //封装成一个请求对象
         HttpEntity request = new HttpEntity(json, headers);
+        log.info("PDI请求头为{}",JSON.toJSONString(request));
+        log.info("PDI请求路径为{}",url);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
-        log.info(response.getBody());
+        log.info("PDI返回参数为{}",JSON.toJSONString(response.getBody()));
         ScrmPdiFileListOutputDto scrmPdiFileListOutputDto = JSONObject.parseObject(response.getBody(),ScrmPdiFileListOutputDto.class);
         if (ObjectUtil.isEmpty(response)){
             return R.fail(null,"查询PDI任务为null");
@@ -279,6 +281,7 @@ public class ScrmService {
                 scrmPdiFileListOutputDto.setStatus(result);
             }
         }
+        log.info("PDI执行结束");
         return R.ok(null,scrmPdiFileListOutputDto.getResultMessage());
     }
 

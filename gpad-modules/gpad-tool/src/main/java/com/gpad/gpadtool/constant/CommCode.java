@@ -76,8 +76,9 @@ public enum CommCode {
     DATA_SERIALIZE_ERROR(10002005, "comm.data.already.existed", "序列化失败"),
     DATA_UNSERIALIZE_ERROR(10002006, "comm.data.already.existed", "反序列化失败"),
     UNKNOWN_REAL_NAME(10002007, "comm.data.not.found", "反序列化失败"),
-    IDENTITY_CARD_SIGN_WRONG(10002009, "comm.data.not.found", "君子签校验身份信息报错"),
+    IDENTITY_CARD_SIGN_WRONG(10002009, "comm.data.not.found", "君子签校验身份信息失败"),
     IDENTITY_WRITEPNG_SIGN_WRONG(100020012, "comm.data.not.found", "君子签签名序列化失败"),
+    IDENTITY_WRITEPNG_SIGN_INFO_WRONG(100020013, "comm.data.not.found", "君子签签名二要素认证失败"),
     UPLOAD_SIGN_PNG_WRONG(10002010, "comm.data.not.found", "上传个人签名失败");
 
 

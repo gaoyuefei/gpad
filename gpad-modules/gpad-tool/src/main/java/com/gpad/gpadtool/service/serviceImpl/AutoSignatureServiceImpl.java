@@ -18,6 +18,8 @@ import com.gpad.gpadtool.domain.dto.FileInfoDto;
 import com.gpad.gpadtool.domain.dto.FlowInfoDto;
 import com.gpad.gpadtool.domain.entity.GpadIdentityAuthInfo;
 import com.gpad.gpadtool.domain.entity.HandoverCarCheckInfo;
+import com.gpad.gpadtool.domain.vo.JzqDataValidSignatureVo;
+import com.gpad.gpadtool.domain.vo.JzqUserValidSignatureVo;
 import com.gpad.gpadtool.repository.FileInfoRepository;
 import com.gpad.gpadtool.repository.FlowInfoRepository;
 import com.gpad.gpadtool.repository.GpadIdentityAuthInfoRepository;
@@ -377,23 +379,41 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         params.put("identityCard",identityCard);
         ResultInfo<Void> ri= requestUtils.doPost("/v2/auth/userValid",params);
         log.info("身份签名认证签名结果 method:personValid{}",JSONObject.toJSONString(ri));
-        String str = JSONObject.toJSONString(ri);
-        if (!StringUtils.isEmpty(str)){
-            message = JSONUtil.parseObj(str).get("data") + "";
-            log.info("身份签名认证签名结果 method:message{}",message);
-            msg = JSONUtil.parseObj(message).get("valid")+"";
-            log.info("身份签名认证签名结果 method:msg{}",message);
-            result = Boolean.valueOf(msg);
-            log.info("身份签名认证签名结果 method:personValid{}",result);
+
+        JzqUserValidSignatureVo jzqUserValidSignatureVo = JSON.parseObject(JSONObject.toJSONString(ri), JzqUserValidSignatureVo.class);
+
+        if (ObjectUtil.isNotEmpty((jzqUserValidSignatureVo))){
+            if (jzqUserValidSignatureVo.getSuccess()){
+                JzqDataValidSignatureVo data = jzqUserValidSignatureVo.getData();
+                if (ObjectUtil.isEmpty(data)){
+                    throw new ServiceException(CommCode.IDENTITY_WRITEPNG_SIGN_INFO_WRONG.getMessage(),CommCode.IDENTITY_WRITEPNG_SIGN_INFO_WRONG.getCode());
+                }
+                 result = data.getValid();
+                if (result){
+//                   R.ok(data.getValid() + "", data.getMessage());
+                    result = data.getValid();
+
+                    log.info("正常返回:jzqUserValidSignatureVo.getSuccess()为true时 result--->{}",JSONObject.toJSONString(result));
+                    return true;
+                }else {
+                    log.info("异常返回时:jzqUserValidSignatureVo.getSuccess()为false时 异常结束执行valid--->{}",JSONObject.toJSONString(result));
+//                    R.fail(data.getValid(), Integer.parseInt(data.getCode()), data.getMessage());
+//                    throw new ServiceException(data.getMessage(),CommCode.IDENTITY_WRITEPNG_SIGN_INFO_WRONG.getCode());
+
+                }
+
+            }else {
+//               R.fail(jzqUserValidSignatureVo.getData() + "", CommCode.IDENTITY_CARD_SIGN_WRONG.getCode(), jzqUserValidSignatureVo.getMsg());
+                result = jzqUserValidSignatureVo.getSuccess();
+                log.info("jzqUserValidSignatureVo.getSuccess()为false时，--->{}",JSONObject.toJSONString(result));
+                throw new ServiceException(jzqUserValidSignatureVo.getMsg(),CommCode.IDENTITY_WRITEPNG_SIGN_INFO_WRONG.getCode());
+                // TODO 上线时放开
+            }
         }
-        log.info("身份签名认证签名结果 method:personValid{}",JSON.toJSONString(result));
-//        if (!result){
-//            throw new ServiceException(message,10000);
-//        }
-
-        return true;
+        // TODO 放开校验
+        result = true;
+        return result;
     }
-
 
 
     public Map<String, Object> getCommonValidPostParams(GentlemanSaltingVo gentlemanSaltingVo) {
