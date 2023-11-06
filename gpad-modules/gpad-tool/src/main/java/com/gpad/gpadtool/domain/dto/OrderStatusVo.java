@@ -20,4 +20,6 @@ public class OrderStatusVo {
     private String vin;
     @ApiModelProperty(value =  "车牌号")
     private String license;
+    @ApiModelProperty(value =  "是否交车标识")
+    private String isDelivery;
 }

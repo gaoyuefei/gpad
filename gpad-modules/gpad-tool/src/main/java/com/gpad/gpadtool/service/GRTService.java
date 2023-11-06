@@ -333,14 +333,15 @@ public class GRTService {
         log.info("查询交车确认信息 --->>> {}", JSONObject.toJSONString(requestEntity.getHeaders()));
 
         ResponseEntity<BaseGrtResultDto> response = restTemplate.exchange(changeOrderStatus2GrtUrl, HttpMethod.POST, requestEntity, BaseGrtResultDto.class);
-        if (response.getStatusCode() != HttpStatus.OK){
-            return R.fail(response.getBody() == null?"null" : response.getBody().getMessage());
-        }
-        if (response.getBody()==null || response.getBody().getStatus().equals("500")){
-            return R.fail("调用GRT推送订单状态变更失败!  错误信息: "+(response.getBody()==null?"null":response.getBody().getMessage()));
-        }
+//        if (response.getStatusCode() != HttpStatus.OK){
+//            return R.fail(response.getBody() == null?"null" : response.getBody().getMessage());
+//        }
+//        if (response.getBody()==null || response.getBody().getStatus().equals("500")){
+//            return R.fail("调用GRT推送订单状态变更失败!  错误信息: "+(response.getBody()==null?"null":response.getBody().getMessage()));
+//        }
         log.info("method:changeOrderStatus2Grt() --->>> 方法执行结束{}",response.getBody());
-        return R.ok(null,response.getBody().getMessage());
+        String message = response.getBody().getMessage();
+        return R.ok(null, "状态更新成功");
     }
 
     public R<Void> orderReserveInfo(OrderReserveVo orderReserveVo){

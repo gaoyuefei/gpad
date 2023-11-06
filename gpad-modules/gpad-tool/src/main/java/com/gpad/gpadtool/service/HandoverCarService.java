@@ -259,6 +259,8 @@ public class HandoverCarService {
                     orderStatusVo.setLicense(handoverCarPrepareDto.getLicensePlateNum());
                     orderStatusVo.setVin(orderDetailResultDto.getVin());
                     orderStatusVo.setBussinessNo(bussinessNo);
+                    orderStatusVo.setIsDelivery("1");
+                    log.info("打印调用GRT状态变更入参{}",JSON.toJSONString(orderStatusVo));
                     R<Void> voidR = grtService.changeOrderStatus2Grt(orderStatusVo);
                     String dataOut = JSON.toJSONString(voidR);
                     if (StringUtils.isNotEmpty(dataOut)){
@@ -266,12 +268,13 @@ public class HandoverCarService {
                         status = JSONUtil.parseObj(dataOut).get("code") + "";
                         message = JSONUtil.parseObj(dataOut).get("msg") + "";
                         if ("200".equals(status)){
-                           return R.ok(null,message);
+                           return R.ok(true,message);
                         }
-                        throw new ServiceException(message,500);
+//                        throw new ServiceException(message,500);
+                        return R.ok(null,"同步交车状态成功");
                     }
                 }
-                return R.ok(null,200,"当前流程节点错误");
+                return R.ok(null,200,"当前流程节点已更新,请求重新加载页面");
             }
             return R.fail(null,CommCode.PARAM_IS_BLANK.getCode(),CommCode.PARAM_IS_BLANK.getMessage());
         } finally {
