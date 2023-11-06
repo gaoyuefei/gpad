@@ -329,6 +329,7 @@ public class GRTService {
         httpHeaders.add("appKey", GRTSignUtil.APP_KEY_GRT);
         httpHeaders.add("timestamp", String.valueOf(timestamp));
         HttpEntity<OrderStatusVo> requestEntity = new HttpEntity<>(orderStatusVo,httpHeaders);
+        log.info("查询交车确认信息 --->>> {}", JSONObject.toJSONString(requestEntity));
         log.info("查询交车确认信息 --->>> {}", JSONObject.toJSONString(requestEntity.getHeaders()));
 
         ResponseEntity<BaseGrtResultDto> response = restTemplate.exchange(changeOrderStatus2GrtUrl, HttpMethod.POST, requestEntity, BaseGrtResultDto.class);

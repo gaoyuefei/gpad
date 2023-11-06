@@ -271,7 +271,7 @@ public class HandoverCarService {
                         throw new ServiceException(message,500);
                     }
                 }
-                return R.ok(null,500,"当前流程节点错误");
+                return R.ok(null,200,"当前流程节点错误");
             }
             return R.fail(null,CommCode.PARAM_IS_BLANK.getCode(),CommCode.PARAM_IS_BLANK.getMessage());
         } finally {

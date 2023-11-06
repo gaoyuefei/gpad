@@ -2,7 +2,11 @@ package com.gpad.gpadtool.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson2.JSON;
+import com.gpad.common.core.constant.TokenConstants;
 import com.gpad.common.core.domain.R;
+import com.gpad.common.core.utils.JwtUtils;
+import com.gpad.common.core.utils.StringUtils;
+import com.gpad.common.security.utils.SecurityUtils;
 import com.gpad.gpadtool.constant.FileLinkType;
 import com.gpad.gpadtool.constant.FileType;
 import com.gpad.gpadtool.domain.dto.*;
@@ -56,7 +60,16 @@ public class GRTController {
      */
     @Operation(summary = "GRT-获取GRT订单列表接口")
     @PostMapping("/grt/getOrderNoList")
-    public R getOrderNoList(@RequestBody OrderNoListParamVo orderNoListParamVo){
+    public R getOrderNoList(HttpServletRequest request ,@RequestBody OrderNoListParamVo orderNoListParamVo){
+        String username = SecurityUtils.getUsername();
+        log.info("GRT-获取GRT订单列表接口 --->>>username {}", JSONObject.toJSONString(username));
+        String token = request.getHeader("Authorization");
+            // 如果前端设置了令牌前缀，则裁剪掉前缀
+            if (StringUtils.isNotEmpty(token) && token.startsWith(TokenConstants.PREFIX)) {
+                token = token.replaceFirst(TokenConstants.PREFIX, StringUtils.EMPTY);
+            }
+        String userName = JwtUtils.getUserName(token);
+        log.info("GRT-获取GRT订单列表接口userName --->>> {}", JSONObject.toJSONString(userName));
         // TODO 登录账号
         log.info("GRT-获取GRT订单列表接口 --->>> {}", JSONObject.toJSONString(orderNoListParamVo));
         return grtService.grtGetOrderNoList(orderNoListParamVo);

@@ -16,6 +16,8 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Objects;
 
 /**
@@ -72,7 +74,14 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         jsonObject.put("appId", "wx86a1eb5a53a6973b");
         jsonObject.put("envVersion", "release");
         jsonObject.put("path", "pages/web");
-        jsonObject.put("query", wxApiUrl + wxApiSchemaUrl);
+
+        String encodeUrl = null;
+        try {
+            encodeUrl = URLEncoder.encode(wxApiUrl + wxApiSchemaUrl, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        jsonObject.put("query", encodeUrl);
         String json = com.alibaba.fastjson.JSONObject.toJSONString(jsonObject);
         log.info("加密后的数据:  {}", json);
 //        restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
