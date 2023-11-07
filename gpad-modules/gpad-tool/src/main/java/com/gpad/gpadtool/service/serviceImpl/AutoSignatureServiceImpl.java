@@ -597,7 +597,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             handoverCarInfor.setConfirmUserName("无");
             handoverCarInfor.setConfirmUserPhone("无");
             handoverCarInfor.setOrderType(1);
-            handoverCarInfor.setSignStatus(2);
+            handoverCarInfor.setSignStatus(1);
             handoverCarInfor.setId(id);
             handoverCarInfor.setDelFlag(0);
             handoverCarInfor.setVersion(0);
