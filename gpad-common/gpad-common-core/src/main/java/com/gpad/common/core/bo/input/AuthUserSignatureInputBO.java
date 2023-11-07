@@ -25,6 +25,9 @@ public class AuthUserSignatureInputBO {
     @ApiModelProperty(value = "订单编号")
     private String bussinessNo;
 
+    @ApiModelProperty(value = "账号")
+    private String account;
+
     @NotBlank
     @ApiModelProperty(value = "全名")
     private String productName;
