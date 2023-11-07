@@ -69,7 +69,8 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         log.info("进入到连接获取接口:  {},入参为{}", JSONObject.toJSONString(token),wxApiSchemaUrl);
         String data = "";
         String url = appSchemaUrl;
-        String wxApiUrl = "src=https://pad-test.spgacmotorfm.com/";
+        String str = "src=";
+        String wxApiUrl = "https://pad-test.spgacmotorfm.com/";
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("appId", "wx86a1eb5a53a6973b");
         jsonObject.put("envVersion", "release");
@@ -81,7 +82,7 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        jsonObject.put("query", encodeUrl);
+        jsonObject.put("query", str + encodeUrl);
         String json = com.alibaba.fastjson.JSONObject.toJSONString(jsonObject);
         log.info("加密后的数据:  {}", json);
 //        restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
@@ -101,6 +102,19 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         }
         return data;
     }
+
+//    public static void main(String[] args) {
+//        String str = "https://pad-test.spgacmotorfm.com/pages/deliveryCeremony/index";
+//        String str = ?bussinessNo=DSODGDA0102021050700001
+//        String encodeUrl = null;
+//        try {
+//            encodeUrl = URLEncoder.encode(str, "UTF-8");
+//        } catch (UnsupportedEncodingException e) {
+//            e.printStackTrace();
+//        }
+//
+//        System.out.println(encodeUrl);
+//    }
 
     public WxTokenVO getAppToken(LoginResVo tokenUerName) {
         log.info("进入获取小程序token接口->>>>>{}",JSONObject.toJSONString(tokenUerName));
