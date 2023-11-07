@@ -181,7 +181,7 @@ public class ScrmController {
         log.info("外部接口调用method:getWxCropUserInfo结束--->>> {}", JSONObject.toJSONString(scrmWxCropUserInfoOutputDtoR));
         if (!scrmWxCropUserInfoOutputDtoR.getData().getCode().equals("200")) {
             //TODO redis里存 key = sign; value = 跟前端约定得唯一标记+错误信息
-            throw new ServiceException("SCRM扫码获取登录令牌",500);
+            throw new ServiceException("SCRM扫码获取登录令牌失败",500);
         }
         LoginUser loginUser = new LoginUser();
         SysUser sysUser = new SysUser();

@@ -1,5 +1,6 @@
 package com.gpad.gpadtool.service;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.gpad.common.core.domain.R;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -142,15 +144,22 @@ public class GRTService {
         String url = grtConcatURL(orderNoListParamVo);
         log.info("GRT拼接后URL为 --->>> {}",url);
 
-        ResponseEntity<OrderNoListResultDto> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, OrderNoListResultDto.class);
-        log.info("GRT返回参数 --->>> response{}", JSONObject.toJSONString(response));
+        ResponseEntity<OrderNoListResultDto> response = null;
+        try {
+            response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, OrderNoListResultDto.class);
+            log.info("GRT返回参数 --->>> response{}", JSONObject.toJSONString(response));
+        } catch (RestClientException e) {
+            e.printStackTrace();
+        }
 
         OrderNoListResultDto orderNoListResultDto = response.getBody();
 
         if (null == orderNoListResultDto || orderNoListResultDto.getStatus() == null){
-            return R.fail("对接GRT获取待交车订单列表出错!  接口返回null! " );
+//            return R.fail("对接GRT获取待交车订单列表出错!  接口返回null! " );
+            return R.ok(null,"查无数据");
         }else if (!orderNoListResultDto.getStatus().equals("200")){
-            return R.fail("对接GRT获取待交车订单列表出错!  ".concat(orderNoListResultDto.getMessage() == null ? "接口返回null! " : orderNoListResultDto.getMessage()));
+//            return R.fail("对接GRT获取待交车订单列表出错!  ".concat(orderNoListResultDto.getMessage() == null ? "接口返回null! " : orderNoListResultDto.getMessage()));
+            return R.ok(null,"查无数据");
         }
 
         List<OrderNoResultDto> data = orderNoListResultDto.getData();
@@ -284,16 +293,26 @@ public class GRTService {
         log.info("url1 --->>> {}", JSONObject.toJSONString(url1));
         log.info("url --->>> {}", JSONObject.toJSONString(url));
 
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
+        ResponseEntity<String> response = null;
+        try {
+            response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
+        } catch (RestClientException e) {
+            e.printStackTrace();
+        }
+        if (ObjectUtil.isEmpty(response)){
+            return R.fail(null,"查无数据");
+        }
+        log.info("订单详情接口 --->>> response{}", JSONObject.toJSONString(response.getBody()));
+
         OrderDetailListResultDto orderDetailListResultDto = JSONObject.parseObject(response.getBody(), OrderDetailListResultDto.class);
-        log.info("查询交车确认信息 --->>> response{}", JSONObject.toJSONString(response));
+        log.info("订单详情接口 --->>> response{}", JSONObject.toJSONString(response));
 
         if (orderDetailListResultDto == null || orderDetailListResultDto.getStatus() == null){
-            return R.fail("对接GRT获取待交车订单详情出错!接口返回null  ");
+            return R.fail(null,"查无数据");
         }else if (!"200".equals(orderDetailListResultDto.getStatus())){
-            return R.fail("对接GRT获取待交车订单详情出错!  ".concat(orderDetailListResultDto.getMessage()));
+            return R.fail(null,"查无数据");
         }
-        log.info("查询交车确认信息 --->>> response{}", JSONObject.toJSONString(response.getBody()));
+        log.info("订单详情接口 --->>> response{}", JSONObject.toJSONString(response.getBody()));
         return R.ok(orderDetailListResultDto.getData());
     }
 
@@ -332,7 +351,15 @@ public class GRTService {
         log.info("查询交车确认信息 --->>> {}", JSONObject.toJSONString(requestEntity));
         log.info("查询交车确认信息 --->>> {}", JSONObject.toJSONString(requestEntity.getHeaders()));
 
-        ResponseEntity<BaseGrtResultDto> response = restTemplate.exchange(changeOrderStatus2GrtUrl, HttpMethod.POST, requestEntity, BaseGrtResultDto.class);
+        ResponseEntity<BaseGrtResultDto> response = null;
+        try {
+            response = restTemplate.exchange(changeOrderStatus2GrtUrl, HttpMethod.POST, requestEntity, BaseGrtResultDto.class);
+        } catch (RestClientException e) {
+            e.printStackTrace();
+        }
+        if (ObjectUtil.isEmpty(response)){
+            return R.fail(null, "状态更新失败，请求检查交车流程是否完成");
+        }
 //        if (response.getStatusCode() != HttpStatus.OK){
 //            return R.fail(response.getBody() == null?"null" : response.getBody().getMessage());
 //        }
@@ -370,12 +397,21 @@ public class GRTService {
         HttpEntity<OrderDeliverDateParamVo> requestEntity = new HttpEntity<>(orderDeliverDateParamVo,httpHeaders);
         log.info("封装请求头为 new HttpEntity<>(orderDeliverDateParamVo,httpHeaders)()--->>> {}", JSONObject.toJSONString(requestEntity.getHeaders()));
 
-        ResponseEntity<String> response = restTemplate.exchange(pushUpdateRecordToGrt, HttpMethod.POST, requestEntity, String.class);
+        ResponseEntity<String> response = null;
+        try {
+            response = restTemplate.exchange(pushUpdateRecordToGrt, HttpMethod.POST, requestEntity, String.class);
+        } catch (RestClientException e) {
+            e.printStackTrace();
+        }
+        log.info("修改预计交车时间 --->>> response为{}", JSONObject.toJSONString(response));
+        if (ObjectUtil.isEmpty(response)){
+            return R.fail(null,"订单状态修改失败");
+        }
         log.info("封装请求头为 --->>> response{}", JSONObject.toJSONString(response));
         try {
-            log.info("封装请求头为 --->>> response{}", JSONObject.toJSONString(response.getBody()));
-            log.info("封装请求头为 --->>> response{}", JSONObject.toJSONString(response.getStatusCode()));
-            log.info("封装请求头为 --->>> response{}", JSONObject.toJSONString(response.getStatusCodeValue()));
+            log.info("修改预计交车时间 --->>> body{}", JSONObject.toJSONString(response.getBody()));
+            log.info("修改预计交车时间 --->>> StatusCode{}", JSONObject.toJSONString(response.getStatusCode()));
+            log.info("修改预计交车时间 --->>> StatusCodeValue{}", JSONObject.toJSONString(response.getStatusCodeValue()));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -397,12 +433,14 @@ public class GRTService {
         OrderDetailOutBO orderDetailOutBO = new OrderDetailOutBO();
         R<List<OrderDetailResultDto>> grtOrderDetail = getGrtOrderDetail(bussinessNo);
         if(R.FAIL == grtOrderDetail.getCode()){
-            throw new ServiceException(grtOrderDetail.getMsg(),grtOrderDetail.getCode());
+//            throw new ServiceException(grtOrderDetail.getMsg(),grtOrderDetail.getCode());
+            return R.ok(null,"查无数据");
         }
         log.info("GRT-待交车订单详情接口method：getGrtOrderDetail()调用结束 --->>>{}", JSON.toJSONString(orderDetailOutBO));
         List<OrderDetailResultDto> data = grtOrderDetail.getData();
         if (data.size() <= 0){
-           throw new ServiceException("查询订单信息有误", CommCode.DATA_NOT_FOUND.getCode());
+//           throw new ServiceException("查询订单信息有误", CommCode.DATA_NOT_FOUND.getCode());
+            return R.ok(null,"查无数据");
         }
         BeanUtils.copyProperties(data.get(0),orderDetailOutBO);
         //查询数据库数据
@@ -417,7 +455,7 @@ public class GRTService {
                 //订单信息入库
                 result = orderDetailRepository.saveOrderDetailEntity(data.get(0),bussinessNo);
                 if (!result){
-                    throw new ServiceException("订单信息入库",CommCode.DATA_UPDATE_WRONG.getCode());
+                    throw new ServiceException("订单信息入库失败",CommCode.DATA_UPDATE_WRONG.getCode());
                 }
                 log.info("method:saveOrderDetailEntity().订单内容: {}", grtOrderDetail.getData());
                 //新建交车流程信息并入库 -- 步骤为第一步 // TODO

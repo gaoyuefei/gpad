@@ -27,6 +27,7 @@ import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.*;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URLEncoder;
@@ -396,9 +397,18 @@ public class ScrmService {
         //封装成一个请求对象
         HttpEntity request = new HttpEntity(json, headers);
         log.info("外部接口调用地址--->>> request{}", JSONObject.toJSONString(request));
-        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
-        log.info("外部接口调用返回body--->>> request{}",response.getBody());
         ScrmWxCropUserInfoOutputDto scrmWxCropUserInfoOutputDto = new ScrmWxCropUserInfoOutputDto();
+        ResponseEntity<String> response = null;
+        try {
+            response = restTemplate.postForEntity(url, request, String.class);
+        } catch (RestClientException e) {
+            e.printStackTrace();
+        }
+        if (ObjectUtil.isEmpty(response)){
+            return R.fail(scrmWxCropUserInfoOutputDto,"账号信息查无数据");
+        }
+        log.info("外部接口调用返回body--->>> request{}",response.getBody());
+
         try {
              scrmWxCropUserInfoOutputDto = JSONObject.parseObject(response.getBody(), ScrmWxCropUserInfoOutputDto.class);
         } catch (Exception e) {

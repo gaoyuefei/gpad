@@ -49,7 +49,7 @@ public class OrderNoResultDto {
     @ApiModelProperty(value = "预约交车日")
     private String deliveringDate;
     @ApiModelProperty(value = "交车完成日")
-    private String finishDate;
+    private String finishTime;
     @ApiModelProperty(value = "配车时间")
     private String dispatchedDate;
     @ApiModelProperty(value = "车辆到店时间")

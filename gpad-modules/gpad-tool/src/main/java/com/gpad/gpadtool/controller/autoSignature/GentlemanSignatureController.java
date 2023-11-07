@@ -6,6 +6,7 @@ import com.gpad.common.core.bo.input.*;
 import com.gpad.common.core.domain.R;
 import com.gpad.common.core.exception.ServiceException;
 import com.gpad.common.core.utils.StringUtils;
+import com.gpad.common.security.utils.SecurityUtils;
 import com.gpad.gpadtool.constant.CommCode;
 import com.gpad.gpadtool.domain.dto.UploadFileOutputDto;
 import com.gpad.gpadtool.service.AutoSignatureService;
@@ -72,6 +73,8 @@ public class GentlemanSignatureController {
 //        if (StringUtils.isEmpty(autoSignatureInputBO.getMobile())){
 //            throw new ServiceException("客户手机号码有误，请检查手机号码信息", CommCode.DATA_UPDATE_WRONG.getCode());
 //        }
+        String username = SecurityUtils.getUsername();
+        autoSignatureInputBO.setAccount(username);
         return autoSignatureService.startGentlemanSignature(autoSignatureInputBO,file,fileCustomerPng,fileProductPng);
     }
 

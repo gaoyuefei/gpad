@@ -47,7 +47,7 @@ public class GpadIdentityAuthInfoRepository extends ServiceImpl<GpadIdentityAuth
                 .productName(authUserSignatureInputBO.getProductName())
                 .filePath(authUserSignatureInputBO.getMemorySignPath())
                 .identityType("1")
-                .account("DGDA010_ADMIN")
+                .account(authUserSignatureInputBO.getAccount())
                 .version(0)
                 .delFlag(0)
                 .createTime(new Date())

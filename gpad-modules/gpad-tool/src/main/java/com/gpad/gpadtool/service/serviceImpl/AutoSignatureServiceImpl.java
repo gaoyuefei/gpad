@@ -12,6 +12,7 @@ import com.gpad.common.core.domain.R;
 import com.gpad.common.core.exception.ServiceException;
 import com.gpad.common.core.utils.StringUtils;
 import com.gpad.common.core.vo.GentlemanSaltingVo;
+import com.gpad.common.security.utils.SecurityUtils;
 import com.gpad.gpadtool.constant.CommCode;
 import com.gpad.gpadtool.constant.FlowNodeNum;
 import com.gpad.gpadtool.domain.dto.FileInfoDto;
@@ -78,7 +79,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public R<String> startGentlemanSignature(AutoSignatureInputBO autoSignatureInputBO, MultipartFile file,MultipartFile fileCustomerPng,MultipartFile fileProductPng) {
-        autoSignatureInputBO.setAccount("DGDA010_ADMIN");
+//        autoSignatureInputBO.setAccount("DGDA010_ADMIN");
         String data = "";
         String bussinessNo = autoSignatureInputBO.getBussinessNo();
         log.info("发起裙子签证进入1 method：startGentlemanSignature()1--->>> {}",bussinessNo);
@@ -113,6 +114,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
             AuthUserSignatureInputBO authUserSignatureInputBO = new AuthUserSignatureInputBO();
             BeanUtil.copyProperties(autoSignatureInputBO,authUserSignatureInputBO);
+            authUserSignatureInputBO.setAccount(authUserSignatureInputBO.getAccount());
             log.info("发起裙子签证进入4 method：startGentlemanSignature()1--->>>修改参数为{}",JSON.toJSONString(authUserSignatureInputBO));
             //TODO 这里一定要传ID  后端解析账号
             Boolean result1 = gpadIdentityAuthInfoRepository.updateAuthUserSignature(authUserSignatureInputBO);
@@ -398,20 +400,19 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 }else {
                     log.info("异常返回时:jzqUserValidSignatureVo.getSuccess()为false时 异常结束执行valid--->{}",JSONObject.toJSONString(result));
 //                    R.fail(data.getValid(), Integer.parseInt(data.getCode()), data.getMessage());
-//                    throw new ServiceException(data.getMessage(),CommCode.IDENTITY_WRITEPNG_SIGN_INFO_WRONG.getCode());
-
+                    throw new ServiceException(data.getMessage(),CommCode.IDENTITY_WRITEPNG_SIGN_INFO_WRONG.getCode());
                 }
 
             }else {
 //               R.fail(jzqUserValidSignatureVo.getData() + "", CommCode.IDENTITY_CARD_SIGN_WRONG.getCode(), jzqUserValidSignatureVo.getMsg());
-                result = jzqUserValidSignatureVo.getSuccess();
+//                result = jzqUserValidSignatureVo.getSuccess();
                 log.info("jzqUserValidSignatureVo.getSuccess()为false时，--->{}",JSONObject.toJSONString(result));
                 throw new ServiceException(jzqUserValidSignatureVo.getMsg(),CommCode.IDENTITY_WRITEPNG_SIGN_INFO_WRONG.getCode());
                 // TODO 上线时放开
             }
         }
         // TODO 放开校验
-        result = true;
+//        result = true;
         return result;
     }
 
@@ -626,8 +627,13 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     @Override
     public R authUserSignatureValid(AuthUserSignatureInputBO authUserSignatureInputBO) {
         log.info("进入方法method:authUserSignatureValid{}",JSON.toJSONString(authUserSignatureInputBO));
-        String account = "DGDA010_ADMIN";
+        String username = SecurityUtils.getUsername();
+        if (StringUtils.isEmpty(username)){
+            return R.fail(false,"请求令牌身份信息不合法");
+        }
+        String account = username;
         Boolean result = false;
+        authUserSignatureInputBO.setAccount(username);
         String bussinessNo = authUserSignatureInputBO.getBussinessNo();
         try {
             RedisLockUtils.lock(bussinessNo);
@@ -658,7 +664,8 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     @Override
     public Boolean signatureUploadFile(AuthUserSignatureInputBO authUserSignatureInputBO,MultipartFile fileProductPng,String uploadPath) {
         log.info("进入方法上传图片方法 method:signatureUploadFile{}，路径为{}",JSON.toJSONString(authUserSignatureInputBO),uploadPath);
-        String account = "DGDA010_ADMIN";
+        String username = SecurityUtils.getUsername();
+        String account = username;
         Boolean result = false;
         String filePngSuffix = ".png";
         File localProductPng = null;

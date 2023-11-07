@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.gpad.common.security.utils.SecurityUtils;
 import com.gpad.gpadtool.constant.SnowIdGenerator;
 import com.gpad.gpadtool.domain.dto.HandoverCarCheckInfoDto;
 import com.gpad.gpadtool.domain.dto.HandoverCarCheckInfoOutBO;
@@ -91,9 +92,9 @@ public class HandoverCarCheckInfoService {
 
     public HandoverCarCheckInfoOutBO queryDeliverCarConfirmInfo(HandoverCarCheckInfoDto handoverCarCheckInfoDto) {
         log.info("method:queryDeliverCarConfirmInfo().开始执行: {}", JSON.toJSONString(handoverCarCheckInfoDto));
-
+        String username = SecurityUtils.getUsername();
         //账号
-        String account = "DGDA010_ADMIN";
+        String account = username;
         Integer flag = 0;
         String bussinessNo = handoverCarCheckInfoDto.getBussinessNo();
 

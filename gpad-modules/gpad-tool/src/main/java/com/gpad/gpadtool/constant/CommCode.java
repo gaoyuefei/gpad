@@ -78,7 +78,7 @@ public enum CommCode {
     UNKNOWN_REAL_NAME(10002007, "comm.data.not.found", "反序列化失败"),
     IDENTITY_CARD_SIGN_WRONG(10002009, "comm.data.not.found", "君子签校验身份信息失败"),
     IDENTITY_WRITEPNG_SIGN_WRONG(100020012, "comm.data.not.found", "君子签签名序列化失败"),
-    IDENTITY_WRITEPNG_SIGN_INFO_WRONG(100020013, "comm.data.not.found", "君子签签名二要素认证失败"),
+    IDENTITY_WRITEPNG_SIGN_INFO_WRONG(100020013, "comm.data.not.found", "君子签签名二要素认证失败，请联系管理人员"),
     UPLOAD_SIGN_PNG_WRONG(10002010, "comm.data.not.found", "上传个人签名失败");
 
 
