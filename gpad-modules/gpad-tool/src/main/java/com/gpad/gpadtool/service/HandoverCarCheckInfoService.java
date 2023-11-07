@@ -127,7 +127,7 @@ public class HandoverCarCheckInfoService {
         if (ObjectUtil.isNotEmpty(handoverCarCheckInfo)){
             handoverCarCheckInfoOutBO.setId(handoverCarCheckInfo.getId());
         }
-
+        handoverCarCheckInfoOutBO.setIsDelivery(handoverCarCheckInfo.getIsDelivery());
         handoverCarCheckInfoOutBO.setId(handoverCarCheckInfo.getId());
         log.info("method:queryDeliverCarConfirmInfo().执行结束: {}", JSON.toJSONString(handoverCarCheckInfoOutBO));
 

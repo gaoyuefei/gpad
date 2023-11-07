@@ -99,6 +99,10 @@ public class HandoverCarCheckInfoOutBO {
     private String  memorySignPath;
     @ApiModelProperty(value = "是否实名 0 ： 1：")
     private Integer realName;
+
+    @ApiModelProperty(value = "0：未完成交车，1：已完成交车")
+    private Integer isDelivery;
+
     private String createBy;
     private Date createTime;
     private String updateBy;

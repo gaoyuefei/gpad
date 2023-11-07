@@ -103,8 +103,11 @@ public class HandoverCarCheckInfoDto {
     @NotBlank
     @ApiModelProperty(value = "文件类型")
     private String  linkType;
-
     private String createBy;
+
+    @ApiModelProperty(value = "是否完成交车")
+    private Integer isDelivery;
+
     private Date createTime;
     private String updateBy;
     private Date updateTime;

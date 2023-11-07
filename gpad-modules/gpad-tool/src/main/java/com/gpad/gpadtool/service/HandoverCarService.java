@@ -13,6 +13,7 @@ import com.gpad.gpadtool.constant.CommCode;
 import com.gpad.gpadtool.constant.FlowNodeNum;
 import com.gpad.gpadtool.domain.dto.*;
 import com.gpad.gpadtool.domain.entity.FileInfo;
+import com.gpad.gpadtool.domain.entity.HandoverCarCheckInfo;
 import com.gpad.gpadtool.repository.*;
 import com.gpad.gpadtool.utils.RedisLockUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +44,8 @@ public class HandoverCarService {
     private HandoverCarPrepareService handoverCarPrepareService;
     @Autowired
     private HandoverCarCheckInfoService handoverCarCheckInfoService;
+    @Autowired
+    private HandoverCarCheckInfoRepository handoverCarCheckInfoRepository;
     @Autowired
     private GRTService grtService;
     @Autowired
@@ -256,12 +259,29 @@ public class HandoverCarService {
                     if(ObjectUtil.isEmpty(handoverCarPrepareDto)){
                         throw new ServiceException("交车完成,获取车牌失败，请重试",CommCode.DATA_IS_WRONG.getCode());
                     }
+                    //修改交车完成状态
+                    HandoverCarCheckInfo handoverCarCheckInfo = handoverCarCheckInfoRepository.queryDeliverCarConfirmInfo(bussinessNo);
+                    if (ObjectUtil.isEmpty(handoverCarCheckInfo.getBussinessNo())){
+                        throw new ServiceException("合同信息已变更，请重试",CommCode.DATA_IS_WRONG.getCode());
+                    }
+
+                    if (null == handoverCarCheckInfo.getId() && handoverCarCheckInfo.getId() == 0){
+                        throw new ServiceException("合同信息已变更，请重试",CommCode.DATA_IS_WRONG.getCode());
+                    }
+
+                    handoverCarCheckInfo.setIsDelivery(1);
+                    boolean b = handoverCarCheckInfoRepository.updateById(handoverCarCheckInfo);
+                    if (!b){
+                        throw new ServiceException("交车信息不一致，请重新核对信息后提交",CommCode.DATA_IS_WRONG.getCode());
+                    }
                     OrderStatusVo orderStatusVo = new OrderStatusVo();
                     orderStatusVo.setLicense(handoverCarPrepareDto.getLicensePlateNum());
                     orderStatusVo.setVin(orderDetailResultDto.getVin());
                     orderStatusVo.setBussinessNo(bussinessNo);
                     orderStatusVo.setIsDelivery("1");
                     log.info("打印调用GRT状态变更入参{}",JSON.toJSONString(orderStatusVo));
+
+
                     R<Void> voidR = grtService.changeOrderStatus2Grt(orderStatusVo);
                     String dataOut = JSON.toJSONString(voidR);
                     if (StringUtils.isNotEmpty(dataOut)){

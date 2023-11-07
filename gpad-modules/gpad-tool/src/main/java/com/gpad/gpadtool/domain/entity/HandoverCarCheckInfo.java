@@ -246,6 +246,11 @@ public class HandoverCarCheckInfo implements Serializable {
     private String updateBy;
 
     /**
+     * update_by
+     */
+    private Integer isDelivery;
+
+    /**
      * update_time
      */
     private Date updateTime;
