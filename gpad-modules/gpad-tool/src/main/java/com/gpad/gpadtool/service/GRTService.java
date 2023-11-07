@@ -151,6 +151,9 @@ public class GRTService {
         } catch (RestClientException e) {
             e.printStackTrace();
         }
+        if (ObjectUtil.isEmpty(response)){
+            return R.ok(null,"查无数据");
+        }
 
         OrderNoListResultDto orderNoListResultDto = response.getBody();
 
