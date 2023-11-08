@@ -187,7 +187,8 @@ public class ScrmController {
         String employeeNo = "";
         if (ObjectUtil.isNotEmpty(scrmWxCropUserInfoOutputDtoR.getData().getData())){
              userId = scrmWxCropUserInfoOutputDtoR.getData().getData().getUserId();
-             scrmWxCropUserInfoOutputDtoR.getData().getData().getEmployeeNo();
+            employeeNo = scrmWxCropUserInfoOutputDtoR.getData().getData().getEmployeeNo();
+            log.info("扫码登录信息结果成功显示userID---》》》{},----employeeNo 》》》{}",userId,employeeNo);
         }
 
         LoginUser loginUser = new LoginUser();
