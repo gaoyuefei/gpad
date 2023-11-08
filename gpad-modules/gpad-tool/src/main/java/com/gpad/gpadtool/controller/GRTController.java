@@ -70,6 +70,7 @@ public class GRTController {
             }
         String userName = JwtUtils.getUserName(token);
         log.info("GRT-获取GRT订单列表接口userName --->>> {}", JSONObject.toJSONString(userName));
+        orderNoListParamVo.setUserCode(username);
         // TODO 登录账号
         log.info("GRT-获取GRT订单列表接口 --->>> {}", JSONObject.toJSONString(orderNoListParamVo));
         return grtService.grtGetOrderNoList(orderNoListParamVo);

@@ -1,5 +1,6 @@
 package com.gpad.gpadtool.controller;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.gpad.common.core.domain.R;
@@ -23,9 +24,9 @@ import com.gpad.system.api.model.LoginUser;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -35,9 +36,7 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import javax.validation.constraints.NotBlank;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -179,15 +178,24 @@ public class ScrmController {
         scrmWxCropUserInfoInputDto.setUserId(userCode);
         R<ScrmWxCropUserInfoOutputDto> scrmWxCropUserInfoOutputDtoR = scrmService.getWxCropUserInfo(scrmWxCropUserInfoInputDto);
         log.info("外部接口调用method:getWxCropUserInfo结束--->>> {}", JSONObject.toJSONString(scrmWxCropUserInfoOutputDtoR));
-        if (!scrmWxCropUserInfoOutputDtoR.getData().getCode().equals("200")) {
+
+        if (!"200".equals(scrmWxCropUserInfoOutputDtoR.getData().getCode())) {
             //TODO redis里存 key = sign; value = 跟前端约定得唯一标记+错误信息
             throw new ServiceException("SCRM扫码获取登录令牌失败",500);
         }
+        String userId = "";
+        String employeeNo = "";
+        if (ObjectUtil.isNotEmpty(scrmWxCropUserInfoOutputDtoR.getData().getData())){
+             userId = scrmWxCropUserInfoOutputDtoR.getData().getData().getUserId();
+             scrmWxCropUserInfoOutputDtoR.getData().getData().getEmployeeNo();
+        }
+
         LoginUser loginUser = new LoginUser();
         SysUser sysUser = new SysUser();
-        sysUser.setUserId(System.currentTimeMillis());
+        sysUser.setUserId(StringUtils.isBlank(userId)?System.currentTimeMillis():Long.parseLong(userId));
 //        ScrmWxCropUserInfoOutputDto data = scrmWxCropUserInfoOutputDtoR.getData();
-        sysUser.setUserName("liufeng");
+        sysUser.setUserName(StringUtils.isBlank(employeeNo)?"补偿用户名":employeeNo);
+        log.info("扫码登录信息结果userID---》》》{},----employeeNo 》》》{}",userId,employeeNo);
         loginUser.setSysUser(sysUser);
         Map<String, Object> tokenMap = tokenService.createToken(loginUser);
         Object access_token = tokenMap.get("access_token");
@@ -200,7 +208,7 @@ public class ScrmController {
         scanCodeTokenInfoVo.setExpressTime("180");
         scanCodeTokenInfoVo.setMsg("回调登录成功");
         scanCodeTokenInfoVo.setToken(access_token.toString());
-        log.info("补偿得对象为{}",JSON.toJSONString(scanCodeTokenInfoVo));
+        log.info("打印最后拼接对象{}",JSON.toJSONString(scanCodeTokenInfoVo));
         redisService.setCacheObject(decodeSign, JSON.toJSONString(scanCodeTokenInfoVo), RedisKey.ACCESS_TOKEN_EXPIRE_TIME, TimeUnit.MINUTES);
         log.info("回调程序执行结束返回登录令牌");
     }
