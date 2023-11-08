@@ -181,19 +181,19 @@ public class ScrmController {
 
         if (!"200".equals(scrmWxCropUserInfoOutputDtoR.getData().getCode())) {
             //TODO redis里存 key = sign; value = 跟前端约定得唯一标记+错误信息
-            throw new ServiceException("SCRM扫码获取登录令牌失败",500);
+            throw new ServiceException("扫码登录查无账号",500);
         }
         String userId = "";
         String employeeNo = "";
         if (ObjectUtil.isNotEmpty(scrmWxCropUserInfoOutputDtoR.getData().getData())){
-             userId = scrmWxCropUserInfoOutputDtoR.getData().getData().getUserId();
+            userId = scrmWxCropUserInfoOutputDtoR.getData().getData().getUserId();
             employeeNo = scrmWxCropUserInfoOutputDtoR.getData().getData().getEmployeeNo();
             log.info("扫码登录信息结果成功显示userID---》》》{},----employeeNo 》》》{}",userId,employeeNo);
         }
-
+        log.info("扫码登录信息结果成功显示userId 》》》{}",userId);
         LoginUser loginUser = new LoginUser();
         SysUser sysUser = new SysUser();
-        sysUser.setUserId(StringUtils.isBlank(userId)?System.currentTimeMillis():Long.parseLong(userId));
+        sysUser.setUserId(System.currentTimeMillis());
 //        ScrmWxCropUserInfoOutputDto data = scrmWxCropUserInfoOutputDtoR.getData();
         sysUser.setUserName(StringUtils.isBlank(employeeNo)?"补偿用户名":employeeNo);
         log.info("扫码登录信息结果userID---》》》{},----employeeNo 》》》{}",userId,employeeNo);
