@@ -268,13 +268,26 @@ public class ScrmService {
         HttpEntity request = new HttpEntity(json, headers);
         log.info("PDI请求头为{}",JSON.toJSONString(request));
         log.info("PDI请求路径为{}",url);
-        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
-        log.info("PDI返回参数为{}",JSON.toJSONString(response.getBody()));
-        ScrmPdiFileListOutputDto scrmPdiFileListOutputDto = JSONObject.parseObject(response.getBody(),ScrmPdiFileListOutputDto.class);
+        ResponseEntity<String> response = null;
+        try {
+            response = restTemplate.postForEntity(url, request, String.class);
+        } catch (RestClientException e) {
+            e.printStackTrace();
+        }
+
         if (ObjectUtil.isEmpty(response)){
             return R.fail(null,"查询PDI任务为null");
 //            if (scrmPdiFileListOutputDto.getResultCode() > 0)
         }
+
+        if (ObjectUtil.isEmpty(response.getBody())){
+            return R.fail(null,"查询PDI任务为null");
+//            if (scrmPdiFileListOutputDto.getResultCode() > 0)
+        }
+        log.info("PDI返回参数为{}",JSON.toJSONString(response.getBody()));
+        ScrmPdiFileListOutputDto scrmPdiFileListOutputDto = JSONObject.parseObject(response.getBody(),ScrmPdiFileListOutputDto.class);
+
+
         log.info(JSONObject.toJSONString(scrmPdiFileListOutputDto));
         if (ObjectUtil.isNotEmpty(scrmPdiFileListOutputDto)){
             if(StringUtils.isNotEmpty(scrmPdiFileListOutputDto.getStatus())){
@@ -283,7 +296,7 @@ public class ScrmService {
             }
         }
         log.info("PDI执行结束");
-        return R.ok(null,scrmPdiFileListOutputDto.getResultMessage());
+        return R.ok(scrmPdiFileListOutputDto,scrmPdiFileListOutputDto.getResultMessage());
     }
 
     public R<ScrmPdiFileListOutputDto> getPdiSchema(ScrmPdiFileListInputDto scrmPdiFileListInputDto){
