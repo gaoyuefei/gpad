@@ -5,10 +5,14 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.gpad.common.core.domain.R;
 import com.gpad.common.core.utils.StringUtils;
+import com.gpad.gpadtool.domain.dto.wxapi.ExhibitionMixPadInputBO;
+import com.gpad.gpadtool.domain.dto.wxapi.WxApiCommentInputBO;
+import com.gpad.gpadtool.domain.dto.wxapi.outBo.WxApiCommentOutBO;
 import com.gpad.gpadtool.domain.vo.LoginResVo;
 import com.gpad.gpadtool.domain.vo.WxTokenVO;
 import com.gpad.gpadtool.service.WxApiSchemaService;
 import com.gpad.gpadtool.utils.UrlSchemaUntils;
+import com.mysql.cj.x.protobuf.MysqlxDatatypes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +23,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Objects;
+
 
 /**
  * @BelongsProject: gpad
@@ -64,6 +69,77 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         return  R.ok(str);
     }
 
+    @Override
+    public R getOrderComment(WxApiCommentInputBO wxApiCommentInputBO) {
+
+        LoginResVo tokenUerName = UrlSchemaUntils.getTokenUerName();
+        log.info("data参数获取成功1:  {}", JSON.toJSONString(tokenUerName));
+
+        WxTokenVO wxTokenVO = getAppToken(tokenUerName);
+        log.info("获取加密后得token2为:  {}", JSON.toJSONString(wxTokenVO));
+
+        WxApiCommentOutBO wxApiCommentOutBO = getOrderCommentStatus(wxTokenVO,wxApiCommentInputBO);
+        if (ObjectUtil.isEmpty(wxApiCommentOutBO)){
+            return R.ok(null,"查无数据");
+        }
+        return R.ok(wxApiCommentOutBO.getData(),wxApiCommentOutBO.getMsg());
+    }
+
+    @Override
+    public R queryExhibitionMixPad(ExhibitionMixPadInputBO exhibitionMixPadInputBO) {
+
+        LoginResVo tokenUerName = UrlSchemaUntils.getTokenUerName();
+        log.info("data参数获取成功1:  {}", JSON.toJSONString(tokenUerName));
+
+        WxTokenVO wxTokenVO = getAppToken(tokenUerName);
+        log.info("获取加密后得token2为:  {}", JSON.toJSONString(wxTokenVO));
+        queryExhibitionMixPadExt(exhibitionMixPadInputBO,wxTokenVO);
+
+        return null;
+    }
+
+    public void queryExhibitionMixPadExt(ExhibitionMixPadInputBO exhibitionMixPadInputBO, WxTokenVO wxTokenVO) {
+        String url = "https://malltest.gacmotor.com/big-screen-bff/fronted/exhibition/content/queryExhibitionMisePad";
+
+        String token = wxTokenVO.getToken();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization",token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("deriveCode", exhibitionMixPadInputBO.getPackageCode());
+        String json = com.alibaba.fastjson.JSONObject.toJSONString(jsonObject);
+        //封装成一个请求对象
+        HttpEntity request = new HttpEntity(json, headers);
+        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        System.out.println(response);
+    }
+
+    public WxApiCommentOutBO getOrderCommentStatus(WxTokenVO wxTokenVO,WxApiCommentInputBO wxApiCommentInputBO) {
+        String url = "https://malltest.gacmotor.com" +"/thirdparty-app/scrm/getOrderComment";
+
+        String token = wxTokenVO.getToken();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization",token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("orderNo", wxApiCommentInputBO.getOrderNo());
+        String json = com.alibaba.fastjson.JSONObject.toJSONString(jsonObject);
+        //封装成一个请求对象
+        HttpEntity request = new HttpEntity(json, headers);
+        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        WxApiCommentOutBO wxApiCommentOutBO = com.alibaba.fastjson.JSONObject.parseObject(response.getBody(), WxApiCommentOutBO.class);
+        if (ObjectUtil.isEmpty(wxApiCommentOutBO)){
+            return null;
+        }
+        if (!"0000".equals(wxApiCommentOutBO.getCode())){
+            return null;
+        }
+        if (!wxApiCommentOutBO.getSuccess()){
+            return null;
+        }
+        return wxApiCommentOutBO;
+    }
+
 
     public String getSkipSchemaUrl(String token,String wxApiSchemaUrl) {
         log.info("进入到连接获取接口:  {},入参为{}", JSONObject.toJSONString(token),wxApiSchemaUrl);
@@ -71,6 +147,8 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         String url = appSchemaUrl;
         String str = "src=";
         String wxApiUrl = "https://pad-test.spgacmotorfm.com/";
+
+       String str1 = "https://malltest.gacmotor.com/detail/post-comment?type=0&id=741093587770&channel=small_channel";
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("appId", "wx86a1eb5a53a6973b");
         jsonObject.put("envVersion", "release");
@@ -78,7 +156,8 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
 
         String encodeUrl = null;
         try {
-            encodeUrl = URLEncoder.encode(wxApiUrl + wxApiSchemaUrl, "UTF-8");
+//            encodeUrl = URLEncoder.encode(wxApiUrl + wxApiSchemaUrl, "UTF-8");
+            encodeUrl = URLEncoder.encode(str1, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }

@@ -1,33 +1,16 @@
 package com.gpad.gpadtool.controller;
 
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
 import com.gpad.common.core.domain.R;
-import com.gpad.gpadtool.domain.dto.BaseGrtResultDto;
-import com.gpad.gpadtool.domain.dto.OrderDeliverDateParamVo;
-import com.gpad.gpadtool.domain.dto.UserInfoDto;
-import com.gpad.gpadtool.domain.vo.LoginReqVo;
-import com.gpad.gpadtool.domain.vo.LoginResVo;
+import com.gpad.gpadtool.domain.dto.wxapi.ExhibitionMixPadInputBO;
+import com.gpad.gpadtool.domain.dto.wxapi.WxApiCommentInputBO;
 import com.gpad.gpadtool.service.WxApiSchemaService;
-import com.gpad.gpadtool.utils.*;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
-import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.bind.annotation.*;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 /**
  * @BelongsProject: gpad-api
@@ -51,11 +34,10 @@ public class WxApiSchemaController {
      */
     @Operation(summary = "获取urlSchema")
     @GetMapping("/thirdparty-app/urlSchema")
-    public R urlSchema(@RequestParam("wxApiSchemaUrl") String wxApiSchemaUrl){
+    public R urlSchema(@RequestParam("wxApiSchemaUrl") String wxApiSchemaUrl,@RequestParam("code")  String status){
         log.info("获取urlSchema --->>> wxApiSchemaUrl = {}", wxApiSchemaUrl);
         return wxApiSchemaService.getgetSkipSchemaUrl(wxApiSchemaUrl);
     }
-
 
 
     /**
@@ -66,6 +48,27 @@ public class WxApiSchemaController {
     public R sitUrlSchema(@RequestParam("wxApiSchemaUrl") String wxApiSchemaUrl){
         log.info("获取urlSchema --->>> wxApiSchemaUrl = {}", wxApiSchemaUrl);
         return wxApiSchemaService.sitUrlSchema(wxApiSchemaUrl);
+    }
+
+    /**
+     * wx获取的是否评论及评论内容
+     */
+    @Operation(summary = "获取urlSchema")
+    @PostMapping("/thirdparty-app/scrm/getOrderComment")
+    public R getOrderComment(@RequestBody WxApiCommentInputBO wxApiCommentInputBO){
+        log.info(" -getOrderComment入参-->>> getOrderComment = {}", JSON.toJSONString(wxApiCommentInputBO));
+        return wxApiSchemaService.getOrderComment(wxApiCommentInputBO);
+    }
+
+
+    /**
+     * 获取素材连接
+     */
+    @Operation(summary = "获取素材连接")
+    @PostMapping("/exhibition/queryExhibitionMixPad")
+    public R queryExhibitionMixPad(@RequestBody ExhibitionMixPadInputBO exhibitionMixPadInputBO){
+        log.info(" -queryExhibitionMixPad入参-->>> queryExhibitionMixPad = {}", JSON.toJSONString(exhibitionMixPadInputBO));
+        return wxApiSchemaService.queryExhibitionMixPad(exhibitionMixPadInputBO);
     }
 
 
