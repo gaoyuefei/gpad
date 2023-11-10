@@ -70,6 +70,10 @@ public class OrderDetailResultDto {
     private String oppgName;
     @ApiModelProperty(value = "销售顾问")
     private String consultant;
+
+    @ApiModelProperty(value = "APP订单号")
+    private String ORIGIN_ORDER_NO;
+
     @ApiModelProperty(value = "销售日期")
     private String sheetCreateDate;
     @ApiModelProperty(value = "PDI单号")

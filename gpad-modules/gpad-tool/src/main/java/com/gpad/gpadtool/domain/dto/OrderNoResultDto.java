@@ -41,6 +41,12 @@ public class OrderNoResultDto {
     @ApiModelProperty(value = "外观色")
     private String color;
     @ApiModelProperty(value = "销售顾问名称")
+    private String salesCounselor;
+    //2023//11/10 新增字段
+    @ApiModelProperty(value = "APP订单号")
+    private String ORIGIN_ORDER_NO;
+
+    @ApiModelProperty(value = "销售顾问名称")
     private String consultant;
     @ApiModelProperty(value = "销售顾问ID")
     private String consultantId;

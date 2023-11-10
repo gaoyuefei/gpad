@@ -1,7 +1,6 @@
 package com.gpad.gpadtool.controller;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.gpad.common.core.domain.R;
@@ -15,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * @author Donald.Lee
@@ -117,8 +115,8 @@ public class HandoverCarController {
         List<OrderDetailResultDto> data = grtOrderDetail.getData();
         if (CollectionUtil.isNotEmpty(data)){
             OrderDetailResultDto invoiceStatus = data.get(0);
-            handoverCarPrepareOutBO.setUnifiedSalesInvoice(Boolean.parseBoolean(invoiceStatus.getInvoiceStatus())?0:1);
-            handoverCarPrepareOutBO.setLoanStatus(Boolean.parseBoolean(invoiceStatus.getPayOffStatus())?0:1);
+            handoverCarPrepareOutBO.setUnifiedSalesInvoice(Boolean.parseBoolean(invoiceStatus.getInvoiceStatus())?1:0);
+            handoverCarPrepareOutBO.setLoanStatus(Boolean.parseBoolean(invoiceStatus.getPayOffStatus())?1:0);
         }
         return R.ok(handoverCarPrepareOutBO);
     }

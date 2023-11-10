@@ -34,14 +34,25 @@ public class WxApiSchemaController {
      */
     @Operation(summary = "获取urlSchema")
     @GetMapping("/thirdparty-app/urlSchema")
-    public R urlSchema(@RequestParam("wxApiSchemaUrl") String wxApiSchemaUrl,@RequestParam("code")  String status){
+    public R urlSchema(@RequestParam("wxApiSchemaUrl") String wxApiSchemaUrl){
         log.info("获取urlSchema --->>> wxApiSchemaUrl = {}", wxApiSchemaUrl);
         return wxApiSchemaService.getgetSkipSchemaUrl(wxApiSchemaUrl);
     }
 
 
     /**
-     * 获取urlSchema
+     * wx获取获取评论跳转连接
+     */
+    @Operation(summary = "wx获取获取评论跳转连接")
+    @PostMapping("/thirdparty-app/scrm/getOrderCommentSkipUrl")
+    public R getOrderCommentUrl(@RequestParam("orderCommentUrl") String orderCommentUrl){
+        log.info(" -getOrderComment入参-->>> getOrderComment = {}", orderCommentUrl);
+        return wxApiSchemaService.getOrderCommentUrl(orderCommentUrl);
+    }
+
+
+    /**
+     * 获取urlSchema （暂时废弃）
      */
     @Operation(summary = "获取urlSchema")
     @GetMapping("/sit/thirdparty-app/urlSchema")
@@ -59,7 +70,6 @@ public class WxApiSchemaController {
         log.info(" -getOrderComment入参-->>> getOrderComment = {}", JSON.toJSONString(wxApiCommentInputBO));
         return wxApiSchemaService.getOrderComment(wxApiCommentInputBO);
     }
-
 
     /**
      * 获取素材连接

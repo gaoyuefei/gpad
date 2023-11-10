@@ -113,7 +113,7 @@ public class OrderNo {
     /**
      * 交车完成日
      */
-    private String finishDate;
+    private String finishTime;
 
     /**
      * create_time

@@ -7,12 +7,12 @@ import com.gpad.common.core.domain.R;
 import com.gpad.common.core.utils.StringUtils;
 import com.gpad.gpadtool.domain.dto.wxapi.ExhibitionMixPadInputBO;
 import com.gpad.gpadtool.domain.dto.wxapi.WxApiCommentInputBO;
+import com.gpad.gpadtool.domain.dto.wxapi.outBo.ExhibitionMixPadOutBO;
 import com.gpad.gpadtool.domain.dto.wxapi.outBo.WxApiCommentOutBO;
 import com.gpad.gpadtool.domain.vo.LoginResVo;
 import com.gpad.gpadtool.domain.vo.WxTokenVO;
 import com.gpad.gpadtool.service.WxApiSchemaService;
 import com.gpad.gpadtool.utils.UrlSchemaUntils;
-import com.mysql.cj.x.protobuf.MysqlxDatatypes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,6 +43,9 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
 
     @Value("${wx.sitApp-schemaUrl}")
     private String sitAppSchemaUrl;
+
+    @Value("${wx.app-commentUrlExt}")
+    private String commentUrlExt;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -93,13 +96,68 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
 
         WxTokenVO wxTokenVO = getAppToken(tokenUerName);
         log.info("获取加密后得token2为:  {}", JSON.toJSONString(wxTokenVO));
-        queryExhibitionMixPadExt(exhibitionMixPadInputBO,wxTokenVO);
-
-        return null;
+        ExhibitionMixPadOutBO exhibitionMixPadOutBO = queryExhibitionMixPadExt(exhibitionMixPadInputBO, wxTokenVO);
+        return R.ok(exhibitionMixPadOutBO.getData(),exhibitionMixPadOutBO.getMsg());
     }
 
-    public void queryExhibitionMixPadExt(ExhibitionMixPadInputBO exhibitionMixPadInputBO, WxTokenVO wxTokenVO) {
-        String url = "https://malltest.gacmotor.com/big-screen-bff/fronted/exhibition/content/queryExhibitionMisePad";
+    @Override
+    public R getOrderCommentUrl(String orderCommentUrl) {
+        //兼容前端跳转路径接口  2023/11/09
+        LoginResVo tokenUerName = UrlSchemaUntils.getTokenUerName();
+        log.info("data参数获取成功1:  {}", JSON.toJSONString(tokenUerName));
+
+        WxTokenVO wxTokenVO = getAppToken(tokenUerName);
+        log.info("获取加密后得token2为:  {}", JSON.toJSONString(wxTokenVO));
+
+        String skipSchemaUrl = getOrderCommentUrlExt(wxTokenVO.getToken(),orderCommentUrl);
+        log.info("skipSchemaUrl加密后的数据3:  {}", skipSchemaUrl);
+        log.info("method:getgetSkipSchemaUrl 执行结束");
+        return R.ok(skipSchemaUrl,"获取成功");
+    }
+
+    public String getOrderCommentUrlExt(String token, String orderCommentUrl) {
+        //  orderCommentUrl = "detail/post-comment?type=0&id=741093587770&channel=small_channel";
+        log.info("进入到连接获取接口:  {},入参为{}", JSONObject.toJSONString(token),orderCommentUrl);
+        String data = "";
+        String str = "src=";
+        String url = commentUrlExt; //https://malltest.gacmotor.com/
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("appId", "wx86a1eb5a53a6973b");
+        jsonObject.put("envVersion", "release");
+        jsonObject.put("path", "pages/web");
+
+        String encodeUrl = null;
+        try {
+            encodeUrl = URLEncoder.encode(commentUrlExt + orderCommentUrl, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        jsonObject.put("query", str + encodeUrl);
+        String json = com.alibaba.fastjson.JSONObject.toJSONString(jsonObject);
+        log.info("加密后的数据:  {}", json);
+//        restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization",token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        //封装成一个请求对象
+        HttpEntity request = new HttpEntity(json, headers);
+        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        log.info("请求对象加密后的数据:  {}", JSONObject.toJSONString(response.getBody()));
+        log.info("到连接获取接口:  {},入参为{}", JSONObject.toJSONString(token),orderCommentUrl);
+        if (ObjectUtil.isNotEmpty(response)){
+            String body = response.getBody();
+            if(StringUtils.isNotEmpty(body)){
+                data = Objects.requireNonNull(JSONObject.parseObject(body)).getString("data");
+            }
+        }
+        return data;
+
+    }
+
+    public ExhibitionMixPadOutBO queryExhibitionMixPadExt(ExhibitionMixPadInputBO exhibitionMixPadInputBO, WxTokenVO wxTokenVO) {
+        // commentUrlExt
+        String url =  "https://malltest.gacmotor.com/big-screen-bff/fronted/exhibition/content/queryExhibitionMisePad";
 
         String token = wxTokenVO.getToken();
         HttpHeaders headers = new HttpHeaders();
@@ -111,7 +169,8 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         //封装成一个请求对象
         HttpEntity request = new HttpEntity(json, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
-        System.out.println(response);
+        ExhibitionMixPadOutBO exhibitionMixPadOutBO = com.alibaba.fastjson.JSONObject.parseObject(response.getBody(), ExhibitionMixPadOutBO.class);
+        return exhibitionMixPadOutBO;
     }
 
     public WxApiCommentOutBO getOrderCommentStatus(WxTokenVO wxTokenVO,WxApiCommentInputBO wxApiCommentInputBO) {
@@ -137,6 +196,7 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         if (!wxApiCommentOutBO.getSuccess()){
             return null;
         }
+        //TODO 转换枚举值
         return wxApiCommentOutBO;
     }
 

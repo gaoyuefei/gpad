@@ -14,4 +14,6 @@ public interface WxApiSchemaService {
 
     R queryExhibitionMixPad(ExhibitionMixPadInputBO exhibitionMixPadInputBO);
 
+    R getOrderCommentUrl(String orderCommentUrl);
+
 }
