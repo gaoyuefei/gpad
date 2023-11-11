@@ -20,6 +20,16 @@ public class OrderNoResultDto {
     private String id;
     @ApiModelProperty(value = "订单号")
     private String bussinessNo;
+
+    @ApiModelProperty(value = "车系代码")
+    private String bigSeriesCode;
+
+    @ApiModelProperty(value = "车系代码名称")
+    private String bigSeriesName;
+
+    @ApiModelProperty(value = "品牌代码")
+    private String brandCode;
+
     @ApiModelProperty(value = "集合订单ID")
     private String mergeOrderId;
     @ApiModelProperty(value = "订单状态")
@@ -36,10 +46,14 @@ public class OrderNoResultDto {
     private String mobilePhone;
     @ApiModelProperty(value = "车型名称")
     private String seriesName;
+    @ApiModelProperty(value = "车型代码")
+    private String seriesCode;
     @ApiModelProperty(value = "内饰色")
     private String trimColor;
     @ApiModelProperty(value = "外观色")
     private String color;
+    @ApiModelProperty(value = "外饰代码")
+    private String colorCode;
     @ApiModelProperty(value = "销售顾问名称")
     private String salesCounselor;
     //2023//11/10 新增字段

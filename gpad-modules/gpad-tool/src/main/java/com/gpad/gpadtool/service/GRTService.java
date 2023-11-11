@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.gpad.common.core.domain.R;
 import com.gpad.common.core.exception.ServiceException;
+import com.gpad.common.core.utils.StringUtils;
 import com.gpad.gpadtool.constant.CommCode;
 import com.gpad.gpadtool.constant.FlowNodeNum;
 import com.gpad.gpadtool.domain.dto.*;
@@ -144,9 +145,11 @@ public class GRTService {
         String url = grtConcatURL(orderNoListParamVo);
         log.info("GRT拼接后URL为 --->>> {}",url);
 
-        ResponseEntity<OrderNoListResultDto> response = null;
+        ResponseEntity<String> response = null;
         try {
-            response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, OrderNoListResultDto.class);
+            response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+
+//            OrderNoListResultDto orderNoListResultDto = JSON.parseObject(JSON.toJSONString(response.getBody()), OrderNoListResultDto.class);
             log.info("GRT返回参数 --->>> response{}", JSONObject.toJSONString(response));
         } catch (RestClientException e) {
             e.printStackTrace();
@@ -154,8 +157,16 @@ public class GRTService {
         if (ObjectUtil.isEmpty(response)){
             return R.ok(null,"查无数据");
         }
-
-        OrderNoListResultDto orderNoListResultDto = response.getBody();
+        if (StringUtils.isEmpty(response.getBody())){
+            return R.ok(null,"查无数据");
+        }
+        OrderNoListResultDto orderNoListResultDto = null;
+        try {
+            orderNoListResultDto = JSONObject.parseObject(response.getBody(), OrderNoListResultDto.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        log.info("转换后参数为try --->>> orderNoListResultDto{}", JSONObject.toJSONString(orderNoListResultDto));
 
         if (null == orderNoListResultDto || orderNoListResultDto.getStatus() == null){
 //            return R.fail("对接GRT获取待交车订单列表出错!  接口返回null! " );
