@@ -30,6 +30,7 @@ public class FileInfoDto {
     private String filePath;
     @ApiModelProperty(value =  "文件名")
     private String fileName;
+    //2023/11/11/15:34  三方定死()
     @ApiModelProperty(value =  "文件类型：1=图片；2=视频；3=PDF")
     private Integer fileType;
     @ApiModelProperty(value =  "适用车型")

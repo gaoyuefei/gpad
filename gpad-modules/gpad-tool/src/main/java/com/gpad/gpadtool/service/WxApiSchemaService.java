@@ -3,6 +3,7 @@ package com.gpad.gpadtool.service;
 import com.gpad.common.core.domain.R;
 import com.gpad.gpadtool.domain.dto.wxapi.ExhibitionMixPadInputBO;
 import com.gpad.gpadtool.domain.dto.wxapi.WxApiCommentInputBO;
+import com.gpad.gpadtool.domain.vo.OrderCommentUrlVo;
 
 public interface WxApiSchemaService {
 
@@ -14,6 +15,6 @@ public interface WxApiSchemaService {
 
     R queryExhibitionMixPad(ExhibitionMixPadInputBO exhibitionMixPadInputBO);
 
-    R getOrderCommentUrl(String orderCommentUrl);
+    R getOrderCommentUrl(OrderCommentUrlVo orderCommentUrlVo);
 
 }

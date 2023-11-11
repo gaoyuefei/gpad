@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.gpad.common.core.domain.R;
 import com.gpad.gpadtool.domain.dto.wxapi.ExhibitionMixPadInputBO;
 import com.gpad.gpadtool.domain.dto.wxapi.WxApiCommentInputBO;
+import com.gpad.gpadtool.domain.vo.OrderCommentUrlVo;
 import com.gpad.gpadtool.service.WxApiSchemaService;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,9 +46,9 @@ public class WxApiSchemaController {
      */
     @Operation(summary = "wx获取获取评论跳转连接")
     @PostMapping("/thirdparty-app/scrm/getOrderCommentSkipUrl")
-    public R getOrderCommentUrl(@RequestParam("orderCommentUrl") String orderCommentUrl){
-        log.info(" -getOrderComment入参-->>> getOrderComment = {}", orderCommentUrl);
-        return wxApiSchemaService.getOrderCommentUrl(orderCommentUrl);
+    public R getOrderCommentUrl(@RequestBody OrderCommentUrlVo OrderCommentUrlVo){
+        log.info(" -getOrderComment入参-->>> getOrderComment = {}", OrderCommentUrlVo);
+        return wxApiSchemaService.getOrderCommentUrl(OrderCommentUrlVo);
     }
 
 

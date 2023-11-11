@@ -10,6 +10,7 @@ import com.gpad.gpadtool.domain.dto.wxapi.WxApiCommentInputBO;
 import com.gpad.gpadtool.domain.dto.wxapi.outBo.ExhibitionMixPadOutBO;
 import com.gpad.gpadtool.domain.dto.wxapi.outBo.WxApiCommentOutBO;
 import com.gpad.gpadtool.domain.vo.LoginResVo;
+import com.gpad.gpadtool.domain.vo.OrderCommentUrlVo;
 import com.gpad.gpadtool.domain.vo.WxTokenVO;
 import com.gpad.gpadtool.service.WxApiSchemaService;
 import com.gpad.gpadtool.utils.UrlSchemaUntils;
@@ -101,7 +102,11 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
     }
 
     @Override
-    public R getOrderCommentUrl(String orderCommentUrl) {
+    public R getOrderCommentUrl(OrderCommentUrlVo orderCommentUrlVo) {
+        if (StringUtils.isNotEmpty(orderCommentUrlVo.getOrderNo()) && StringUtils.isNotEmpty(orderCommentUrlVo.getId())){
+            return R.fail(500,"参数异常，请检查参数");
+        }
+
         //兼容前端跳转路径接口  2023/11/09
         LoginResVo tokenUerName = UrlSchemaUntils.getTokenUerName();
         log.info("data参数获取成功1:  {}", JSON.toJSONString(tokenUerName));
@@ -109,7 +114,16 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         WxTokenVO wxTokenVO = getAppToken(tokenUerName);
         log.info("获取加密后得token2为:  {}", JSON.toJSONString(wxTokenVO));
 
-        String skipSchemaUrl = getOrderCommentUrlExt(wxTokenVO.getToken(),orderCommentUrl);
+        String orderCommentUrl = "type="+ orderCommentUrlVo.getType() +"&";
+        if (StringUtils.isNotEmpty(orderCommentUrlVo.getOrderNo())){
+            orderCommentUrl  =  orderCommentUrl+ "orderNo="+orderCommentUrlVo.getOrderNo()+ "channel=" +orderCommentUrlVo.getChannel();
+        }
+
+        if (StringUtils.isNotEmpty(orderCommentUrlVo.getId())){
+            orderCommentUrl  =  orderCommentUrl+ "id=" + orderCommentUrlVo.getId() +"&"+ "channel=" + orderCommentUrlVo.getChannel();
+        }
+        log.info("拼接完参数：{}",orderCommentUrl);
+       String skipSchemaUrl = getOrderCommentUrlExt(wxTokenVO.getToken(),orderCommentUrl);
         log.info("skipSchemaUrl加密后的数据3:  {}", skipSchemaUrl);
         log.info("method:getgetSkipSchemaUrl 执行结束");
         return R.ok(skipSchemaUrl,"获取成功");
@@ -117,19 +131,22 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
 
     public String getOrderCommentUrlExt(String token, String orderCommentUrl) {
         //  orderCommentUrl = "detail/post-comment?type=0&id=741093587770&channel=small_channel";
+
         log.info("进入到连接获取接口:  {},入参为{}", JSONObject.toJSONString(token),orderCommentUrl);
         String data = "";
+
+        String url1 = appSchemaUrl;
         String str = "src=";
         String url = commentUrlExt; //https://malltest.gacmotor.com/
-
+        String str1 = "detail/post-comment?";
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("appId", "wx86a1eb5a53a6973b");
         jsonObject.put("envVersion", "release");
         jsonObject.put("path", "pages/web");
-
+        String activiveURL =  commentUrlExt + str1 + orderCommentUrl;
         String encodeUrl = null;
         try {
-            encodeUrl = URLEncoder.encode(commentUrlExt + orderCommentUrl, "UTF-8");
+            encodeUrl = URLEncoder.encode(activiveURL, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -142,7 +159,7 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         //封装成一个请求对象
         HttpEntity request = new HttpEntity(json, headers);
-        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(appSchemaUrl, request, String.class);
         log.info("请求对象加密后的数据:  {}", JSONObject.toJSONString(response.getBody()));
         log.info("到连接获取接口:  {},入参为{}", JSONObject.toJSONString(token),orderCommentUrl);
         if (ObjectUtil.isNotEmpty(response)){
