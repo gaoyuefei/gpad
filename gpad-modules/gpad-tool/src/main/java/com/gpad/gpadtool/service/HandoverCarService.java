@@ -252,7 +252,7 @@ public class HandoverCarService {
                     flowInfoDto.setNodeNum(FlowNodeNum.HAND_OVER_CAR_GUIDE.getCode());
                     result = flowInfoRepository.updateDeliverCarReadyToConfirm(flowInfoDto);
                     if (!result){
-                        throw new ServiceException(CommCode.DATA_UPDATE_WRONG.getMessage(), CommCode.DATA_UPDATE_WRONG.getCode());
+                        throw new ServiceException("当前流程状态更新有误,请刷新后重试", CommCode.DATA_UPDATE_WRONG.getCode());
                     }
 
                     R<List<OrderDetailResultDto>> grtOrderDetail = grtService.getGrtOrderDetail(bussinessNo);
@@ -268,11 +268,11 @@ public class HandoverCarService {
                     //修改交车完成状态
                     HandoverCarCheckInfo handoverCarCheckInfo = handoverCarCheckInfoRepository.queryDeliverCarConfirmInfo(bussinessNo);
                     if (ObjectUtil.isEmpty(handoverCarCheckInfo.getBussinessNo())){
-                        throw new ServiceException("合同信息已变更，请重试",CommCode.DATA_IS_WRONG.getCode());
+                        throw new ServiceException("检测有未完成项,请先完成线上或线下签署",CommCode.DATA_IS_WRONG.getCode());
                     }
 
                     if (null == handoverCarCheckInfo.getId() && handoverCarCheckInfo.getId() == 0){
-                        throw new ServiceException("合同信息已变更，请重试",CommCode.DATA_IS_WRONG.getCode());
+                        throw new ServiceException("检测有未完成项,请先完成线上或线下签署",CommCode.DATA_IS_WRONG.getCode());
                     }
 
                     handoverCarCheckInfo.setIsDelivery(1);
