@@ -18,6 +18,7 @@ import com.gpad.gpadtool.domain.dto.FlowInfoDto;
 import com.gpad.gpadtool.domain.entity.GpadIdentityAuthInfo;
 import com.gpad.gpadtool.domain.entity.HandoverCarCheckInfo;
 import com.gpad.gpadtool.domain.vo.JzqDataValidSignatureVo;
+import com.gpad.gpadtool.domain.vo.JzqSignApplyVo;
 import com.gpad.gpadtool.domain.vo.JzqUserValidSignatureVo;
 import com.gpad.gpadtool.repository.FileInfoRepository;
 import com.gpad.gpadtool.repository.FlowInfoRepository;
@@ -151,6 +152,9 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             }
             log.info("发起裙子签证进入6 method：turnOnLineSignature()1--->>>开始发起合同调用");
             R result = turnOnLineSignature(autoSignatureInputBO,gentlemanSaltingVo,file,fileCustomerPng,fileProductPng);
+            if (!"200".equals(result.getCode()+"")){
+                throw new ServiceException(result.getMsg(),500);
+            }
             if (ObjectUtil.isEmpty(result)){
                 return R.fail(null,CommCode.INTFR_OUTTER_INVOKE_ERROR.getCode(),"发起线上签失败");
             }
@@ -164,6 +168,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             String apl = result.getData().toString();
             params.put("applyNo", apl); //TODO *
             ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkAnonyDetail",params);
+            log.info("发起裙子签证进入6.1 method：applyNo()1--->>>{}",JSON.toJSONString(ri));
             if (ObjectUtil.isNotEmpty(ri)){
                 data = ri.getData();
             }
@@ -254,26 +259,40 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 //这里必须用new String，因为使用的是IdentityHashMap（为了多个file的同name上传）
 
                 //开始调用外部接口
-                String str= HttpClientUtils.init().getPost(url,null,params,true);
-//                try {
-//                    JzqSignatureVo jzqSignatureVo = JSON.parseObject(str, JzqSignatureVo.class);
-//                    log.info("返回君子签结果未{}", JSONObject.toJSONString(jzqSignatureVo));
-//                } catch (Exception e) {
-//                    e.printStackTrace();
+                String str= null;
+                try {
+                    str = HttpClientUtils.init().getPost(url,null,params,true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                if (StringUtils.isEmpty(str)){
+                    throw new ServiceException("调用裙子签签名网络繁忙，请稍后重试",500);
+                }
+
+                JzqSignApplyVo jzqSignatureVo = JSON.parseObject(str, JzqSignApplyVo.class);
+                log.info("君子签jzqSignatureVo返回参数为{}", JSONObject.toJSONString(jzqSignatureVo));
+                if (ObjectUtil.isEmpty(jzqSignatureVo)){
+                    throw new ServiceException("调用裙子签签名网络繁忙，请稍后重试",500);
+                }
+
+                if(!jzqSignatureVo.getSuccess()){
+                    throw new ServiceException(jzqSignatureVo.getMsg(),CommCode.IDENTITY_WRITEPNG_SIGN_INFO_FAIL.getCode());
+                }
+                log.info("君子签jzqSignatureVo返回成功为{}", JSONObject.toJSONString(str));
+                apl = jzqSignatureVo.getData();
+
+//                log.info("君子签返回获取得apl为{}", JSONObject.toJSONString(str));
+//                if (!StringUtils.isEmpty(str)){
+//                    apl = JSON.parseObject(str).getString("data");
+//                    System.out.println(apl);
 //                }
-                log.info("封装结束参数为{}", JSONObject.toJSONString(str));
-                if (false){
-                    throw new ServiceException("君子签名发起接口失败",CommCode.INTFR_OUTTER_INVOKE_ERROR.getCode());
-                }
-                if (!StringUtils.isEmpty(str)){
-                    apl = JSON.parseObject(str).getString("data");
-                    System.out.println(apl);
-                }
                 // 数据入库 TODO 是否归档 在数据落库
                 Boolean rel = handoverCarCheckInfoRepository.updatecontractInfoById(apl,null,autoSignatureInputBO);
                 if (!rel){
                     throw new ServiceException("合同信息PDF保存失败",CommCode.DATA_UPDATE_WRONG.getCode());
                 }
+                return R.ok(apl,jzqSignatureVo.getMsg());
             }else {
                 //覆盖之前得签名 TODO //提取参数 默认调用 产品专家
                 if (null != fileCustomerPng){
@@ -304,7 +323,6 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
              localProductPng = null;
             RedisLockUtils.unlock(bussinessNo);
         }
-        return R.ok(apl);
     }
 
     private R continueStartGenManSignatureAddEnd(GentlemanSaltingVo gentlemanSaltingVo, ContinueStartSignatureInputBO continueStartSignatureInputBO) {

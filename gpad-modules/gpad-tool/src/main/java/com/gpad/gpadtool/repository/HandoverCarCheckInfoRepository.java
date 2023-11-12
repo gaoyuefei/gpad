@@ -1,6 +1,6 @@
 package com.gpad.gpadtool.repository;
 
-
+import java.util.Date;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -61,6 +61,7 @@ public class HandoverCarCheckInfoRepository extends ServiceImpl<HandoverCarCheck
                 .set(HandoverCarCheckInfo::getSignType, 0)
                 .set(HandoverCarCheckInfo::getSignStatus, 1)
                 .set(StringUtils.isNotEmpty(data),HandoverCarCheckInfo::getContractLink,data)
+                .set(HandoverCarCheckInfo::getUpdateTime,new Date())
                 .eq(HandoverCarCheckInfo::getDelFlag, "0")
                 .eq(HandoverCarCheckInfo::getBussinessNo, autoSignatureInputBO.getBussinessNo())
                 .eq(StringUtils.isNotEmpty(autoSignatureInputBO.getId()), HandoverCarCheckInfo::getId, autoSignatureInputBO.getId())

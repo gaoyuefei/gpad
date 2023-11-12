@@ -97,10 +97,15 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
 
     public Boolean updateReadyDeliverCarFile(List<FileInfoDto> linkType,String bussinessNo) {
         Boolean result = false;
-        if (CollectionUtil.isEmpty(linkType) || linkType.size() == 0){
-             return this.delFileInfoAll(bussinessNo);
+        result = this.queryFileIsExist(bussinessNo);
+        log.info("查询订单号文件状态为{}，true 查询为空， false查询到了数据，",result);
+        if (!result){
+            result = this.delFileInfoAll(bussinessNo);
         }
-        this.delFileInfoAll(bussinessNo);
+        log.info("逻辑删除结束状态为{}",result);
+        if (CollectionUtil.isEmpty(linkType) || linkType.size() == 0){
+            return true;
+        }
         for (FileInfoDto fileInfoDto : linkType) {
             if (ObjectUtil.isNotEmpty(fileInfoDto)){
                 if (!StringUtils.isBlank(fileInfoDto.getId())){
@@ -111,6 +116,16 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
             }
         }
         return result;
+    }
+
+    private Boolean queryFileIsExist(String bussinessNo) {
+        List<FileInfo> list = this.lambdaQuery().eq(FileInfo::getBussinessNo, bussinessNo)
+                .eq(FileInfo::getDelFlag, 0).list();
+        if (CollectionUtil.isNotEmpty(list)){
+            boolean b = list.size() > 0;
+            return !b;
+        }
+        return true;
     }
 
     public Boolean delFileInfoAll(String bussinessNo) {
