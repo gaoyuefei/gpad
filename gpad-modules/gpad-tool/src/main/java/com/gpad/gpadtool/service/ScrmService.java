@@ -1,5 +1,6 @@
 package com.gpad.gpadtool.service;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -13,6 +14,7 @@ import com.gpad.gpadtool.constant.RedisKey;
 import com.gpad.gpadtool.domain.dto.*;
 import com.gpad.gpadtool.domain.dto.scrm.*;
 import com.gpad.gpadtool.domain.vo.SyncScrmUserInfoParamVo;
+import com.gpad.gpadtool.enums.ScrmToPadFileTypeEnum;
 import com.gpad.gpadtool.repository.DeptInfoRepository;
 import com.gpad.gpadtool.repository.RoleInfoRepository;
 import com.gpad.gpadtool.repository.UserInfoRepository;
@@ -293,6 +295,15 @@ public class ScrmService {
             if(StringUtils.isNotEmpty(scrmPdiFileListOutputDto.getStatus())){
                 String result = "1003".equals(scrmPdiFileListOutputDto.getStatus())? "1":"0";
                 scrmPdiFileListOutputDto.setStatus(result);
+            }
+            List<ScrmPdiFileListDto> fileList = scrmPdiFileListOutputDto.getFileList();
+            if (CollectionUtil.isNotEmpty(fileList)){
+                for (ScrmPdiFileListDto scrmPdiFileListDto : fileList) {
+                    if(StringUtils.isNotEmpty(scrmPdiFileListDto.getFileType())){
+                        scrmPdiFileListDto.setFileType(ScrmToPadFileTypeEnum.getPadValueByScrmType(scrmPdiFileListDto.getFileType()));
+                        log.info("PDI转换后的文件类型{}",JSON.toJSONString(scrmPdiFileListDto.getFileType()));
+                    }
+                }
             }
         }
         log.info("PDI执行结束");

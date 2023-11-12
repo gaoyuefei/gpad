@@ -14,8 +14,8 @@ import lombok.Data;
 public class ScrmPdiFileListDto {
     @ApiModelProperty(value = "文件路径")
     private String fileUrl;
-
-    @ApiModelProperty(value = "文件类型")
+   //2023/11/12 转成 1图片 2视频  3PDF
+    @ApiModelProperty(value = "1：PDF  2：图片  3：视频")
     private String fileType;
 
 }
