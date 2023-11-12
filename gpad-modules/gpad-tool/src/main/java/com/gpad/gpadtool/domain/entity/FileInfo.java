@@ -23,6 +23,7 @@ public class FileInfo {
     private Integer status;
     private Integer orderNum;
     private Integer delFlag;
+    private Integer version;
     private Date createTime;
     private Date updateTime;
 }

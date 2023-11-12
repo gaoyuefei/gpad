@@ -1,17 +1,14 @@
 package com.gpad.gpadtool.repository;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gpad.gpadtool.domain.dto.OrderDetailResultDto;
-import com.gpad.gpadtool.domain.entity.FlowInfo;
 import com.gpad.gpadtool.domain.entity.OrderDetail;
 import com.gpad.gpadtool.mapper.OrderDetailMapper;
-import com.gpad.gpadtool.utils.UuidUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.sql.SQLOutput;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -69,9 +66,11 @@ public class OrderDetailRepository extends ServiceImpl<OrderDetailMapper, OrderD
         return this.lambdaUpdate()
                 .setSql(" version = version + 1 ")
                 .set(OrderDetail::getRemark,handoverCarRemark)
+                .set(OrderDetail::getUpdateTime,new Date())
                 .eq(OrderDetail::getBussinessNo,bussinessNo)
 //                .eq(OrderDetail::getId,flow.getId())
                 .update();
 
     }
+
 }

@@ -91,6 +91,7 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
                 .eq(FileInfo::getBussinessNo,bussinessNo)
                 .eq(!StringUtils.isBlank(fileType),FileInfo::getFileType,fileType)
                 .eq(!StringUtils.isBlank(linkType),FileInfo::getLinkType,linkType)
+                .eq(FileInfo::getDelFlag,0)
                 .list();
     }
 

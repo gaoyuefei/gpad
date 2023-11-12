@@ -35,6 +35,8 @@ public class FileInfoDto {
     private Integer fileType;
     @ApiModelProperty(value =  "适用车型")
     private String suitCarType;
+    @ApiModelProperty(value =  "删除标志")
+    private String delFlag;
     @ApiModelProperty(value =  "状态=1：可用；0：不可用")
     private Integer status;
     @ApiModelProperty(value =  "排序值")

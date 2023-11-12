@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 
 /**
@@ -173,8 +173,8 @@ public class GentlemanSignatureController {
      */
     @Operation(summary = "上传销售人员签名图片")
     @PostMapping("/v2/auth/filtOUTSteam")
-    public R filtOUTSteam(HttpServletRequest res,@RequestParam(value = "fileUrl") String url){
-        return autoSignatureService.filtOUTSteam(url,res);
+    public R filtOUTSteam(HttpServletResponse response, @RequestParam(value = "fileUrl") String url){
+        return autoSignatureService.filtOUTSteam(url,response);
     }
 
 }

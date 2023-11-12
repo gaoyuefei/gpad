@@ -4,7 +4,7 @@ import com.gpad.common.core.bo.input.*;
 import com.gpad.common.core.domain.R;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Donald.Lee
@@ -30,5 +30,5 @@ public interface AutoSignatureService {
 
     Boolean signatureUploadFile(AuthUserSignatureInputBO authUserSignatureInputBO,MultipartFile fileProductPng,String result);
 
-    R filtOUTSteam(String url, HttpServletRequest res);
+    R filtOUTSteam(String url, HttpServletResponse response);
 }

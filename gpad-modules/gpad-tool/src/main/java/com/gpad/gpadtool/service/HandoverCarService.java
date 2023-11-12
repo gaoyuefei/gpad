@@ -110,6 +110,7 @@ public class HandoverCarService {
         return R.ok();
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public R<Boolean> HandOverCarNext(HandoverCarOutBO handoverCarOutBO) {
         Boolean result = false;
         String bussinessNo = handoverCarOutBO.getBussinessNo();
@@ -117,7 +118,10 @@ public class HandoverCarService {
             //幂等处理
             RedisLockUtils.lock(bussinessNo);
             //变更订单 remak 订单实施状态
-            orderDetailRepository.saveOrUpdateNextRemark(handoverCarOutBO.getBussinessNo(),handoverCarOutBO.getHandoverCarRemark());
+             result = orderDetailRepository.saveOrUpdateNextRemark(handoverCarOutBO.getBussinessNo(), handoverCarOutBO.getHandoverCarRemark());
+             if(!result){
+                 throw new ServiceException("修改备注信息失败，请重新保存",500);
+             }
             //变更交车流程信息  handover_car_flow_info 修改流程状态
             FlowInfoDto bybussinessNo = flowInfoRepository.getBybussinessNo(handoverCarOutBO.getBussinessNo());
             Integer nodeNum = bybussinessNo.getNodeNum();
@@ -207,7 +211,6 @@ public class HandoverCarService {
     public R<FileInfoOutBo> getHandOverCarH5File(FileInfoInputBO fileInfoInputBO) {
         FileInfoOutBo fileInfoOutBo = new FileInfoOutBo();
         List<FileInfoDto> list = new ArrayList<>();
-        FileInfoDto fileInfoDto = new FileInfoDto();
         R<List<OrderDetailResultDto>> grtOrderDetail = grtService.getGrtOrderDetail(fileInfoInputBO.getBussinessNo());
         log.info("method:getGrtOrderDetail().详情数据为: {}", JSONObject.toJSONString(grtOrderDetail));
         List<OrderDetailResultDto> data = grtOrderDetail.getData();
@@ -219,8 +222,11 @@ public class HandoverCarService {
         List<FileInfo> fileInfos = fileInfoRepository.getDeliveryCeremonyPath(fileInfoInputBO.getBussinessNo(), fileInfoInputBO.getFileType(),fileInfoInputBO.getLinkType());
         log.info("method:getDeliveryCeremonyPath().文件数据为: {}", JSONObject.toJSONString(grtOrderDetail));
         fileInfos.forEach(fileInfo -> {
+            FileInfoDto fileInfoDto = new FileInfoDto();
             BeanUtil.copyProperties(fileInfo,fileInfoDto);
             list.add(fileInfoDto);
+            //标记GC
+            fileInfoDto = null;
         });
         fileInfoOutBo.setFileInfoDto(list);
         log.info("method:getDeliveryCeremonyPath().交车仪式数据为: {}", JSONObject.toJSONString(fileInfoOutBo));

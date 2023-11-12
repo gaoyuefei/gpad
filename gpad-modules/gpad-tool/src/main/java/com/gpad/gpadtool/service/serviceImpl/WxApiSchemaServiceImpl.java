@@ -121,7 +121,7 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
 
         String orderCommentUrl = "type="+ orderCommentUrlVo.getType() +"&";
         if (StringUtils.isNotEmpty(orderCommentUrlVo.getOrderNo())){
-            orderCommentUrl  =  orderCommentUrl+ "orderNo="+orderCommentUrlVo.getOrderNo()+ "channel=" +orderCommentUrlVo.getChannel();
+            orderCommentUrl  =  orderCommentUrl+ "orderNo="+orderCommentUrlVo.getOrderNo() + "&" + "channel=" +orderCommentUrlVo.getChannel();
         }
 
         if (StringUtils.isNotEmpty(orderCommentUrlVo.getId())){
