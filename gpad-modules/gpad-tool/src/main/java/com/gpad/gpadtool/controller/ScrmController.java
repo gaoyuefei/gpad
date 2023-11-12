@@ -366,6 +366,7 @@ public class ScrmController {
     @Operation(summary = "根据订单编号查询PDI接口")
     @PostMapping("/getPdiFileList")
     public R<ScrmPdiFileListOutputDto> getPdiFileList(@RequestBody ScrmPdiFileListInputDto scrmPdiFileListInputDto) {
+        log.info("PAD端根据订单编号查询PDI接口 开始--->>> {}", JSONObject.toJSONString(scrmPdiFileListInputDto));
         return scrmService.getPdiFileList(scrmPdiFileListInputDto);
     }
 
@@ -373,6 +374,7 @@ public class ScrmController {
     @Operation(summary = "H5端根据订单编号查询PDI接口")
     @PostMapping("/getPdiFileListH5")
     public R<ScrmPdiFileListOutputDto> getPdiFileListH5(@RequestBody ScrmPdiFileListInputDto scrmPdiFileListInputDto) {
+        log.info("H5端根据订单编号查询PDI接口 开始--->>> {}", JSONObject.toJSONString(scrmPdiFileListInputDto));
         return scrmService.getPdiFileList(scrmPdiFileListInputDto);
     }
 

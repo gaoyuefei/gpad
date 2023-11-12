@@ -258,7 +258,7 @@ public class ScrmService {
         }
         jsonObject.put("data", encryptData);
         String json =  jsonObject.toJSONString();
-
+        log.info("-jsonObject-->>> {}", JSONObject.toJSONString(jsonObject));
         restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
