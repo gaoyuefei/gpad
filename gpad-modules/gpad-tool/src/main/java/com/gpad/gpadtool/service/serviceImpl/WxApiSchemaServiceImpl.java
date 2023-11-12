@@ -225,7 +225,6 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         String str = "src=";
         String wxApiUrl = "https://pad-test.spgacmotorfm.com/";
 
-       String str1 = "https://malltest.gacmotor.com/detail/post-comment?type=0&id=741093587770&channel=small_channel";
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("appId", "wx86a1eb5a53a6973b");
         jsonObject.put("envVersion", "release");
@@ -233,8 +232,7 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
 
         String encodeUrl = null;
         try {
-//            encodeUrl = URLEncoder.encode(wxApiUrl + wxApiSchemaUrl, "UTF-8");
-            encodeUrl = URLEncoder.encode(str1, "UTF-8");
+            encodeUrl = URLEncoder.encode(wxApiUrl + wxApiSchemaUrl, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }

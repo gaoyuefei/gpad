@@ -3,7 +3,6 @@ package com.gpad.gpadtool.service.serviceImpl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -14,7 +13,6 @@ import com.gpad.common.core.utils.StringUtils;
 import com.gpad.common.core.vo.GentlemanSaltingVo;
 import com.gpad.common.security.utils.SecurityUtils;
 import com.gpad.gpadtool.constant.CommCode;
-import com.gpad.gpadtool.constant.FlowNodeNum;
 import com.gpad.gpadtool.domain.dto.FileInfoDto;
 import com.gpad.gpadtool.domain.dto.FlowInfoDto;
 import com.gpad.gpadtool.domain.entity.GpadIdentityAuthInfo;
@@ -40,6 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
@@ -709,6 +708,12 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
       return result;
     }
 
+    @Override
+    public R filtOUTSteam(String url, HttpServletRequest res) {
+
+        return null;
+    }
+
     public File transferToFile(MultipartFile multipartFile,String suffix) throws IOException {
         String originalFilename = multipartFile.getOriginalFilename();
         System.out.println(originalFilename);
@@ -723,95 +728,200 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     }
 
 //    public static void main(String[] args) {
-////        long ts = System.currentTimeMillis();
-////        String nonce= DigestUtils.md5Hex(System.currentTimeMillis()+"");
-////        String signSrc="nonce"+nonce+"ts"+ts+"app_key"+APP_KEY+"app_secret"+APP_SECRET;
-////        String sign=DigestUtils.md5Hex(signSrc);
-////        GentlemanSaltingVo build = GentlemanSaltingVo.builder()
-////                .ts(ts)
-////                .sign(sign)
-////                .nonce(nonce)
-////                .build();
-////        String url= SERVICE_URL+"/v2/sign/notify";
-////        System.out.println(ts+"-----"+nonce+"-----"+sign+"");
+//////        long ts = System.currentTimeMillis();
+//////        String nonce= DigestUtils.md5Hex(System.currentTimeMillis()+"");
+//////        String signSrc="nonce"+nonce+"ts"+ts+"app_key"+APP_KEY+"app_secret"+APP_SECRET;
+//////        String sign=DigestUtils.md5Hex(signSrc);
+//////        GentlemanSaltingVo build = GentlemanSaltingVo.builder()
+//////                .ts(ts)
+//////                .sign(sign)
+//////                .nonce(nonce)
+//////                .build();
+//////        String url= SERVICE_URL+"/v2/sign/notify";
+//////        System.out.println(ts+"-----"+nonce+"-----"+sign+"");
+//////
+////////        RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
+////////构建请求参数
+//////        Map<String,Object> params = new HashMap<>();
+//////        params.put("applyNo","APL1706236248945348608"); //TODO +
+////////params.put("bussinessNo","XXX"); //TODO +
+//////        params.put("fullName","LF171625");
+//////        params.put("identityCard","222401198904210332");
+//////        params.put("identityType",1);
+//////        params.put("signNotifyType",1); //默认为1
+//////        params.put("ts",build.getTs());
+//////        params.put("app_key",APP_KEY);
+//////        params.put("encry_method","md5");
+//////        params.put("nonce",build.getNonce());
+//////        params.put("sign",build.getSign());
+//////        String ri= HttpClientUtils.init().getPost(url,null,params,true);
+//////        System.out.println(ri);
+////////        ResultInfo<Void> ri= requestUtils.doPost("/v2/sign/notify",params);
+//////        System.out.println(ri);
+////        RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
+////        //构建请求参数
+////        Map<String,Object> params=new HashMap<>();
+////        params.put("name","张现彬");//
+////        params.put("identityCard","372522198405100972");//
+////        ResultInfo<Void> ri= requestUtils.doPost("/v2/auth/userValid",params);
+////        System.out.println(ri);
+////        if (null != ri.getData()){
+////            String data = ri.getData()+"";
+////            System.out.println(data);
+//
+////            String s = JSONUtil.parseObj(data).get("valid") + "";
+////            String code = JSONUtil.parseObj(data).get("code") + "";
+////            System.out.println(code);
+////            String message = JSONUtil.parseObj(data).get("message") + "";
+////            System.out.println(message);
+////            Boolean aBoolean = Boolean.valueOf(s);
+////            Boolean x = s);
+////            System.out.println(x);
+////            System.out.println(data);
+////       }
+//////
 ////
-//////        RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
-//////构建请求参数
-////        Map<String,Object> params = new HashMap<>();
-////        params.put("applyNo","APL1706236248945348608"); //TODO +
-//////params.put("bussinessNo","XXX"); //TODO +
-////        params.put("fullName","LF171625");
-////        params.put("identityCard","222401198904210332");
-////        params.put("identityType",1);
-////        params.put("signNotifyType",1); //默认为1
-////        params.put("ts",build.getTs());
-////        params.put("app_key",APP_KEY);
-////        params.put("encry_method","md5");
-////        params.put("nonce",build.getNonce());
-////        params.put("sign",build.getSign());
-////        String ri= HttpClientUtils.init().getPost(url,null,params,true);
-////        System.out.println(ri);
-//////        ResultInfo<Void> ri= requestUtils.doPost("/v2/sign/notify",params);
-////        System.out.println(ri);
+////
+////           //上传手写个人签
+//////            RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
+//////            //构建请求参数
+//////            Map<String,Object> params=new HashMap<>();
+//////            params.put("identityCard","222401198904210332");
+//////            params.put("signImgFile",new FileBody(new File("D:\\广汽传祺pad，移动端\\10-07\\微信图片_20231010124505.png")));
+//////            ResultInfo<Void> ri= requestUtils.doPost("/v2/user/uploadPersSign",params);
+//////            ri.setSuccess(false);
+//////        System.out.println(ri);
+//////        String string = JSONObject.toJSONString(ri) ;
+//////        String text = String.valueOf(ri);
+//////        if (!StringUtils.isEmpty(string)){
+//////            JSONObject jsonObject = JSON.parseObject(string);
+//////            String success = jsonObject.getString("success");
+//////            Boolean aBoolean = Boolean.valueOf(success);
+//////            System.out.println(aBoolean);
+//////        }
+////
+//////       获取PDF下载文件
 //        RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
 //        //构建请求参数
-//        Map<String,Object> params=new HashMap<>();
-//        params.put("name","张现彬");//
-//        params.put("identityCard","372522198405100972");//
-//        ResultInfo<Void> ri= requestUtils.doPost("/v2/auth/userValid",params);
-//        System.out.println(ri);
-//        if (null != ri.getData()){
-//            String data = ri.getData()+"";
-//            System.out.println(data);
-
-//            String s = JSONUtil.parseObj(data).get("valid") + "";
-//            String code = JSONUtil.parseObj(data).get("code") + "";
-//            System.out.println(code);
-//            String message = JSONUtil.parseObj(data).get("message") + "";
-//            System.out.println(message);
-//            Boolean aBoolean = Boolean.valueOf(s);
-//            Boolean x = s);
-//            System.out.println(x);
-//            System.out.println(data);
-//       }
-////
-//
-//
-//           //上传手写个人签
-////            RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
-////            //构建请求参数
-////            Map<String,Object> params=new HashMap<>();
-////            params.put("identityCard","222401198904210332");
-////            params.put("signImgFile",new FileBody(new File("D:\\广汽传祺pad，移动端\\10-07\\微信图片_20231010124505.png")));
-////            ResultInfo<Void> ri= requestUtils.doPost("/v2/user/uploadPersSign",params);
-////            ri.setSuccess(false);
-////        System.out.println(ri);
-////        String string = JSONObject.toJSONString(ri) ;
-////        String text = String.valueOf(ri);
-////        if (!StringUtils.isEmpty(string)){
-////            JSONObject jsonObject = JSON.parseObject(string);
-////            String success = jsonObject.getString("success");
-////            Boolean aBoolean = Boolean.valueOf(success);
-////            System.out.println(aBoolean);
-////        }
-//
-////       获取PDF下载文件
-//        RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
-//        //构建请求参数
 //        Map<String,Object> params =new HashMap<>();
-//        params.put("applyNo","APL1720759513336266752"); //TODO *
+//        params.put("applyNo","APL1721906886984880128"); //TODO *
 //        ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkFile",params);
-//        System.out.println(ri);
+//        String data = ri.getData();
+//        InputStream inputStreamFromUrl = getInputStreamFromUrl(data);
 //
+//        try {
+//            HttpServletResponse res;
+//            BufferedInputStream bis = null;
+//            bis = new BufferedInputStream(inputStreamFromUrl);
+//            System.out.println(data);
+//            OutputStream outputStream = null;
+//            outputStream = res.getOutputStream();
+//            byte[] buffer = new byte[1024];
+//            int i = bis.read(buffer);
+//            while (i != -1) {
+//                outputStream.write(buffer, 0, i);
+//                i = bis.read(buffer);
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+////        byte[] bytes = SERVICE_URL.getBytes();
+//
+////
 //        //获取在线查看链接
 ////        RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
 //////构建请求参数
 ////        Map<String,Object> params=new HashMap<>();
-////        params.put("applyNo","APL1717365084781039616"); //TODO *
+////        params.put("applyNo","APL1721906886984880128"); //TODO *
 ////        ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkAnonyDetail",params);
 ////        System.out.println(ri);
 //    }
+//    public static InputStream getInputStreamFromUrl(String urlStr) {
+//       InputStream inputStream=null;
+//       try {
+//        //url解码
+//        URL url = new URL(java.net.URLDecoder.decode(urlStr, "UTF-8"));
+//        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+//        //设置超时间为3秒
+//        conn.setConnectTimeout(3 * 1000);
+//        //防止屏蔽程序抓取而返回403错误
+//        conn.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt)");
+//        //得到输入流
+//        inputStream = conn.getInputStream();
+//         } catch (IOException e) {
+//        System.out.println(1);
+//        }
+//       return inputStream;
+//    }
 //
-
+//
+//    public static void downloadFile(String filePath, String fileName, HttpServletResponse res) {
+//        log.info("下载文件--->>> fileFullPath = {} fileName = {}", filePath, fileName);
+//
+//        if (Strings.isEmpty(filePath) || Strings.isEmpty(fileName)) {
+//            throw new ServiceException("文件路径或文件名不能为空!", StatusCode.PARAMETER_ILLEGAL.getValue());
+//        }
+//
+//        InputStream inputStream = null;
+//        BufferedInputStream bis = null;
+//        OutputStream outputStream = null;
+//
+//        //设置返回文件的名字
+//        try {
+//            inputStream = new FileInputStream(filePath.concat(File.separator).concat(fileName));
+//            res.setHeader("Content-Disposition",
+//                    "inline; filename=" + URLEncoder.encode(fileName, "UTF-8"));
+//            //设置返回值的类型
+//            res.setHeader("content-type", "application/octet-stream");
+//            bis = new BufferedInputStream(inputStream);
+//            outputStream = res.getOutputStream();
+//            byte[] buffer = new byte[1024];
+//            int i = bis.read(buffer);
+//            while (i != -1) {
+//                outputStream.write(buffer, 0, i);
+//                i = bis.read(buffer);
+//            }
+//        } catch (Exception e) {
+//            log.error("下载文件出错! {}", e.getMessage());
+//        } finally {
+//            try {
+//                if (null != outputStream) {
+//                    outputStream.close();
+//                }
+//                if (null != inputStream) {
+//                    inputStream.close();
+//                }
+//                if (null != bis) {
+//                    bis.close();
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//
+//        }
+//
+//    }
+//
+//
+////获取链接地址文件的byte数据
+//public static byte[] getUrlFileData(String fileUrl) throws Exception
+//{
+//URL url = new URL(fileUrl);
+//HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+//httpConn.connect();
+//InputStream cin = httpConn.getInputStream();
+//ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+//byte[] buffer = new byte[1024];
+//int len = 0;
+//while ((len = cin.read(buffer)) != -1) {
+//outStream.write(buffer, 0, len);
+//}
+//cin.close();
+//byte[] fileData = outStream.toByteArray();
+//outStream.close();
+//return fileData;
+//}
+//
+//
 
 }

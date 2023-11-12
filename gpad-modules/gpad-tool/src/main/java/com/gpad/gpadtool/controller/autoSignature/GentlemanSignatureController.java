@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 
 /**
@@ -163,6 +164,17 @@ public class GentlemanSignatureController {
         autoSignatureService.signatureUploadFile(productSignature,fileProductPng,subResult);
         MonitorUtil.finish("uploadFile");
         return R.ok(uploadFileOutputDto);
+    }
+
+
+
+   /**
+     * 获取签约合同文件流
+     */
+    @Operation(summary = "上传销售人员签名图片")
+    @PostMapping("/v2/auth/filtOUTSteam")
+    public R filtOUTSteam(HttpServletRequest res,@RequestParam(value = "fileUrl") String url){
+        return autoSignatureService.filtOUTSteam(url,res);
     }
 
 }
