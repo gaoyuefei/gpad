@@ -22,6 +22,7 @@ public class FileInfo {
     private String suitCarType;
     private Integer status;
     private Integer orderNum;
+    private Integer delFlag;
     private Date createTime;
     private Date updateTime;
 }

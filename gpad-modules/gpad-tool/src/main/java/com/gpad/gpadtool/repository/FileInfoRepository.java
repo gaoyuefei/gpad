@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * @author Donald.Lee
@@ -84,7 +83,7 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
     }
 
     public List<FileInfo> queryFileBybussinessNo(String bussinessNo) {
-        return this.lambdaQuery().eq(FileInfo::getBussinessNo,bussinessNo).list();
+        return this.lambdaQuery().eq(FileInfo::getBussinessNo,bussinessNo).eq(FileInfo::getDelFlag,0).list();
     }
 
     public List<FileInfo> getDeliveryCeremonyPath(String bussinessNo, String fileType,String linkType) {
@@ -95,11 +94,12 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
                 .list();
     }
 
-    public Boolean updateReadyDeliverCarFile(List<FileInfoDto> linkType) {
+    public Boolean updateReadyDeliverCarFile(List<FileInfoDto> linkType,String bussinessNo) {
         Boolean result = false;
         if (CollectionUtil.isEmpty(linkType) || linkType.size() == 0){
-            return true;
+             return this.delFileInfoAll(bussinessNo);
         }
+        this.delFileInfoAll(bussinessNo);
         for (FileInfoDto fileInfoDto : linkType) {
             if (ObjectUtil.isNotEmpty(fileInfoDto)){
                 if (!StringUtils.isBlank(fileInfoDto.getId())){
@@ -112,15 +112,31 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
         return result;
     }
 
+    public Boolean delFileInfoAll(String bussinessNo) {
+        return this.lambdaUpdate().setSql(" version = version + 1 ")
+                .set(FileInfo::getDelFlag,1)
+                .eq(FileInfo::getBussinessNo,bussinessNo)
+                .eq(FileInfo::getDelFlag,0).update();
+    }
+
+    public Boolean delFileInfo(FileInfoDto fileInfoDto) {
+        FileInfo fileInfo = new FileInfo();
+        BeanUtil.copyProperties(fileInfoDto,fileInfo);
+        fileInfo.setDelFlag(1);
+        return saveOrUpdate(fileInfo);
+    }
+
     private Boolean saveReadyDeliverCarFileBnNO(FileInfoDto fileInfoDto) {
             FileInfo fileInfo = new FileInfo();
             BeanUtil.copyProperties(fileInfoDto,fileInfo);
+            fileInfo.setDelFlag(0);
             saveOrUpdate(fileInfo);
         return true;
     }
 
     private Boolean updateFileInfo(FileInfoDto fileInfoDto) {
         FileInfo entity = JSONObject.parseObject(JSONObject.toJSONString(fileInfoDto), FileInfo.class);
+        entity.setDelFlag(0);
         log.info("method:saveReadyDeliverCarFileNo().交车准备内容: {}", JSONObject.toJSONString(entity));
         return this.updateById(entity);
     }

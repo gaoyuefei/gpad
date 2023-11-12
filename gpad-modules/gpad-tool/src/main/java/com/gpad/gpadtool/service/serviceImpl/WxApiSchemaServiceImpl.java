@@ -11,7 +11,9 @@ import com.gpad.gpadtool.domain.dto.wxapi.outBo.ExhibitionMixPadOutBO;
 import com.gpad.gpadtool.domain.dto.wxapi.outBo.WxApiCommentOutBO;
 import com.gpad.gpadtool.domain.vo.LoginResVo;
 import com.gpad.gpadtool.domain.vo.OrderCommentUrlVo;
+import com.gpad.gpadtool.domain.vo.WxApiGetCommentVo;
 import com.gpad.gpadtool.domain.vo.WxTokenVO;
+import com.gpad.gpadtool.enums.WxToPadSchemaUrlTypeEnum;
 import com.gpad.gpadtool.service.WxApiSchemaService;
 import com.gpad.gpadtool.utils.UrlSchemaUntils;
 import lombok.extern.slf4j.Slf4j;
@@ -85,6 +87,9 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         WxApiCommentOutBO wxApiCommentOutBO = getOrderCommentStatus(wxTokenVO,wxApiCommentInputBO);
         if (ObjectUtil.isEmpty(wxApiCommentOutBO)){
             return R.ok(null,"查无数据");
+        }
+        if (!"0000".equals(wxApiCommentOutBO.getCode())){
+            return R.fail(wxApiCommentOutBO.getSuccess(),wxApiCommentOutBO.getMsg());
         }
         return R.ok(wxApiCommentOutBO.getData(),wxApiCommentOutBO.getMsg());
     }
@@ -203,17 +208,20 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         //封装成一个请求对象
         HttpEntity request = new HttpEntity(json, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        log.info("返回JSON数据为:  {}", JSON.toJSONString(response));
         WxApiCommentOutBO wxApiCommentOutBO = com.alibaba.fastjson.JSONObject.parseObject(response.getBody(), WxApiCommentOutBO.class);
         if (ObjectUtil.isEmpty(wxApiCommentOutBO)){
             return null;
         }
         if (!"0000".equals(wxApiCommentOutBO.getCode())){
-            return null;
+            return wxApiCommentOutBO;
         }
         if (!wxApiCommentOutBO.getSuccess()){
-            return null;
+            return wxApiCommentOutBO;
         }
-        //TODO 转换枚举值
+        WxApiGetCommentVo data = wxApiCommentOutBO.getData();
+        data.setOrderType(WxToPadSchemaUrlTypeEnum.getPadValueByWxType(data.getOrderType()));
+        wxApiCommentOutBO.setData(data);
         return wxApiCommentOutBO;
     }
 

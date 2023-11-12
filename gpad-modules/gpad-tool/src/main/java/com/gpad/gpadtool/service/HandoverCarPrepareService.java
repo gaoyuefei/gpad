@@ -113,7 +113,7 @@ public class HandoverCarPrepareService {
                     if (!result) {
                         throw new ServiceException("bussinessNo -> 更新文件服务异常", CommCode.DATA_UPDATE_WRONG.getCode());
                     }
-                    result = fileInfoRepository.updateReadyDeliverCarFile(handoverCarPrepareDto.getLinkType());
+                    result = fileInfoRepository.updateReadyDeliverCarFile(handoverCarPrepareDto.getLinkType(),bussinessNo);
                     //TODO 文件服务器异常
                     if (!result) {
                         throw new ServiceException("bussinessNo -> 更新文件服务异常", R.FAIL);
