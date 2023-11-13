@@ -980,7 +980,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 //}
 //
     public File UrltoFile(String url) throws Exception {
-        HttpURLConnection httpUrl = (HttpURLConnection) new URL(java.net.URLDecoder.decode(url, "UTF-8")).openConnection();
+        HttpURLConnection httpUrl = (HttpURLConnection) new URL(url).openConnection();
         httpUrl.connect();
         InputStream ins=httpUrl.getInputStream();
         ApplicationHome applicationHome = new ApplicationHome(this.getClass());
