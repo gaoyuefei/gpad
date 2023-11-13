@@ -121,7 +121,13 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
 
         String orderCommentUrl = "type="+ orderCommentUrlVo.getType() +"&";
         if (StringUtils.isNotEmpty(orderCommentUrlVo.getOrderNo())){
-            orderCommentUrl  =  orderCommentUrl+ "orderNo="+orderCommentUrlVo.getOrderNo() + "&" + "channel=" +orderCommentUrlVo.getChannel();
+            String orderNo = orderCommentUrlVo.getOrderNo();
+            if (orderNo.contains("-")){
+                orderNo = orderNo.substring(0, orderNo.indexOf("-"));
+                log.info("长订单截取后：{}",orderNo);
+            }
+            log.info("拼接结束后：{}",orderNo);
+            orderCommentUrl  =  orderCommentUrl+ "orderNo="+ orderNo + "&" + "channel=" +orderCommentUrlVo.getChannel();
         }
 
         if (StringUtils.isNotEmpty(orderCommentUrlVo.getId())){
@@ -203,12 +209,18 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         headers.add("Authorization",token);
         headers.setContentType(MediaType.APPLICATION_JSON);
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("orderNo", wxApiCommentInputBO.getOrderNo());
+        String orderNo = wxApiCommentInputBO.getOrderNo();
+        if (orderNo.contains("-")){
+            orderNo = orderNo.substring(0, orderNo.indexOf("-"));
+            log.info("长订单截取后：{}",orderNo);
+        }
+        log.info("截取后订单号为：{}",orderNo);
+        jsonObject.put("orderNo", orderNo);
         String json = com.alibaba.fastjson.JSONObject.toJSONString(jsonObject);
         //封装成一个请求对象
         HttpEntity request = new HttpEntity(json, headers);
         ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
-        log.info("返回JSON数据为:  {}", JSON.toJSONString(response));
+        log.info("method：getOrderCommentStatus 返回JSON数据为:  {}", JSON.toJSONString(response));
         WxApiCommentOutBO wxApiCommentOutBO = com.alibaba.fastjson.JSONObject.parseObject(response.getBody(), WxApiCommentOutBO.class);
         if (ObjectUtil.isEmpty(wxApiCommentOutBO)){
             return null;
@@ -222,6 +234,7 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         WxApiGetCommentVo data = wxApiCommentOutBO.getData();
         data.setOrderType(WxToPadSchemaUrlTypeEnum.getPadValueByWxType(data.getOrderType()));
         wxApiCommentOutBO.setData(data);
+        log.info("打印转换后得返回orderType：{}",orderNo);
         return wxApiCommentOutBO;
     }
 
