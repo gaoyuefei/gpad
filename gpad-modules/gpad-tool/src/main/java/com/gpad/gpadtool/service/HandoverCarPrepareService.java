@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -154,6 +155,7 @@ public class HandoverCarPrepareService {
     public Boolean updateById(HandoverCarPrepareDto handoverCarPrepareDto){
         log.info("method:updateById().交车准备内容: {}", JSON.toJSONString(handoverCarPrepareDto));
         HandoverCarPrepare handoverCarPrepare = JSONObject.parseObject(JSONObject.toJSONString(handoverCarPrepareDto), HandoverCarPrepare.class);
+        handoverCarPrepare.setUpdateTime(new Date());
         String str = handoverCarPrepare.getSupplies();
         if ("[null]".equals(str) || com.gpad.common.core.utils.StringUtils.isEmpty(handoverCarPrepareDto.getSupplies()) || "null".equals(handoverCarPrepareDto.getSupplies())  ){
             handoverCarPrepare.setSupplies("[0]");

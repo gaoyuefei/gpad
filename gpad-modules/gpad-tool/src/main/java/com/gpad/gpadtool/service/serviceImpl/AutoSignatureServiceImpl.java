@@ -35,13 +35,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.entity.mime.content.FileBody;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.system.ApplicationHome;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -727,36 +729,37 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     }
 
     @Override
-    public R filtOUTSteam(String url, HttpServletResponse response) {
-//        String  filename =  "君子签.pdf" ;
-//        response.setHeader("Content-Disposition", "attachment;filename=" + filename);
-//        response.setHeader("Content-Type", "application/pdf");
-//
-//        RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
-//        //构建请求参数
-//        Map<String,Object> params =new HashMap<>();
-//        params.put("applyNo","APL1721906886984880128"); //TODO *
-//        ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkFile",params);
-//        String data = ri.getData();
-//        System.out.println(data);
-//        try {
-//            File file = UrltoFile(data);
-//            FileInputStream fis = new FileInputStream(file);
-//            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-//            byte[] buffer = new byte[1024];
-//            int len;
-//            while ((len = fis.read(buffer)) != -1) {
-//                bos.write(buffer, 0, len);
-//            }
-//            fis.close();
-//            byte[] data1 = bos.toByteArray();
-//            response.getOutputStream().write(data1);
-//            response.getOutputStream().close();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        } finally {
-//
-//        }
+    public R filtOUTSteam(String apl, HttpServletResponse response) {
+        String  filename =  "君子签" ;
+        response.setHeader("Content-Disposition", "attachment;filename*=UTF-8" + filename);
+        response.setHeader("Content-Type", "application/pdf");
+
+        RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
+        //构建请求参数
+        Map<String,Object> params =new HashMap<>();
+        params.put("applyNo","APL1723915757387530240"); //TODO *
+        params.put("applyNo","apl"); //TODO *
+        ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkFile",params);
+        String data = ri.getData();
+        System.out.println(data);
+        try {
+            File file = UrltoFile(data);
+            FileInputStream fis = new FileInputStream(file);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = fis.read(buffer)) != -1) {
+                bos.write(buffer, 0, len);
+            }
+            fis.close();
+            byte[] data1 = bos.toByteArray();
+            response.getOutputStream().write(data1);
+            response.getOutputStream().close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+
+        }
         return null;
     }
 
@@ -976,26 +979,29 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 //return fileData;
 //}
 //
-//    public static File UrltoFile(String url) throws Exception {
-//        HttpURLConnection httpUrl = (HttpURLConnection) new URL(url).openConnection();
-//        httpUrl.connect();
-//        InputStream ins=httpUrl.getInputStream();
-//        File file = new File(System.getProperty("java.io.tmpdir") + File.separator + "xie.PDF");//System.getProperty("java.io.tmpdir")缓存
-//        if (file.exists()) {
-//            file.delete();//如果缓存中存在该文件就删除
-//        }
-//        OutputStream os = new FileOutputStream(file);
-//        int bytesRead;
-//        int len = 8192;
-//        byte[] buffer = new byte[len];
-//        while ((bytesRead = ins.read(buffer, 0, len)) != -1) {
-//            os.write(buffer, 0, bytesRead);
-//        }
-//        os.close();
-//        ins.close();
-//        return file;
-//
-//    }
+    public File UrltoFile(String url) throws Exception {
+        HttpURLConnection httpUrl = (HttpURLConnection) new URL(java.net.URLDecoder.decode(url, "UTF-8")).openConnection();
+        httpUrl.connect();
+        InputStream ins=httpUrl.getInputStream();
+        ApplicationHome applicationHome = new ApplicationHome(this.getClass());
+        // 保存目录位置根据项目需求可
+        String str = applicationHome.getDir().getParentFile().getParentFile().getAbsolutePath() + "\\src\\main\\resources\\static\\"+ System.currentTimeMillis();
+        File file = new File(str);//System.getProperty("java.io.tmpdir")缓存
+        if (file.exists()) {
+            file.delete();//如果缓存中存在该文件就删除
+        }
+        OutputStream os = new FileOutputStream(file);
+        int bytesRead;
+        int len = 8192;
+        byte[] buffer = new byte[len];
+        while ((bytesRead = ins.read(buffer, 0, len)) != -1) {
+            os.write(buffer, 0, bytesRead);
+        }
+        os.close();
+        ins.close();
+        return file;
+
+    }
 //
 //
 
