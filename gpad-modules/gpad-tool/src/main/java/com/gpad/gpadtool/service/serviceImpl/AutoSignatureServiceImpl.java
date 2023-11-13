@@ -42,11 +42,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
  * @author Donald.Lee
@@ -738,7 +738,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         //构建请求参数
         Map<String,Object> params =new HashMap<>();
         params.put("applyNo","APL1723915757387530240"); //TODO *
-        params.put("applyNo","apl"); //TODO *
+//        params.put("applyNo","apl"); //TODO *
         ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkFile",params);
         String data = ri.getData();
         System.out.println(data);
@@ -985,7 +985,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         InputStream ins=httpUrl.getInputStream();
         ApplicationHome applicationHome = new ApplicationHome(this.getClass());
         // 保存目录位置根据项目需求可
-        String str = applicationHome.getDir().getParentFile().getParentFile().getAbsolutePath() + "\\src\\main\\resources\\static\\"+ System.currentTimeMillis();
+        String str = applicationHome.getDir().getParentFile().getParentFile().getAbsolutePath() + "\\src\\main\\resources\\static\\"+ "1212";
         File file = new File(str);//System.getProperty("java.io.tmpdir")缓存
         if (file.exists()) {
             file.delete();//如果缓存中存在该文件就删除
