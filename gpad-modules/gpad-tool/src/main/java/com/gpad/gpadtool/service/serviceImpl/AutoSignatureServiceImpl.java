@@ -985,8 +985,8 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         InputStream ins=httpUrl.getInputStream();
         ApplicationHome applicationHome = new ApplicationHome(this.getClass());
         // 保存目录位置根据项目需求可
-        String str = applicationHome.getDir().getParentFile().getParentFile().getAbsolutePath() + "\\src\\main\\resources\\static\\"+ "1212";
-        File file = new File(str);//System.getProperty("java.io.tmpdir")缓存
+//        String str = applicationHome.getDir().getParentFile().getParentFile().getAbsolutePath() + "\\src\\main\\resources\\static\\"+ System.currentTimeMillis();
+        File file = new File(System.getProperty("java.io.tmpdir") + File.separator + "xie");//System.getProperty("java.io.tmpdir")缓存
         if (file.exists()) {
             file.delete();//如果缓存中存在该文件就删除
         }
