@@ -291,14 +291,17 @@ public class HandoverCarService {
                     R<Void> voidR = grtService.changeOrderStatus2Grt(orderStatusVo);
                     String dataOut = JSON.toJSONString(voidR);
                     if (StringUtils.isNotEmpty(dataOut)){
-                        log.info("返回参数为{}",JSON.toJSONString(dataOut));
+                        log.info("交车完成参数为{}",JSON.toJSONString(dataOut));
                         status = JSONUtil.parseObj(dataOut).get("code") + "";
                         message = JSONUtil.parseObj(dataOut).get("msg") + "";
                         if ("200".equals(status)){
                            return R.ok(true,message);
+                        }else {
+                            throw new ServiceException(CommCode.DATA_UPDATE_WRONG.getMessage(),CommCode.DATA_UPDATE_WRONG.getCode());
                         }
 //                        throw new ServiceException(message,500);
-                        return R.ok(null,"同步交车状态成功");
+                    }else {
+                       throw new ServiceException("调用外部接口网络异常，请重试",500);
                     }
                 }
                 return R.ok(null,200,"当前流程节点已更新,请求重新加载页面");
