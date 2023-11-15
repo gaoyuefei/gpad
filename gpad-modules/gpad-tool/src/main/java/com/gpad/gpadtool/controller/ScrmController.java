@@ -506,8 +506,9 @@ public class ScrmController {
             Map<String, Object> tokenMap = tokenService.createToken(loginUser);
             log.info("H5页面获取token-结束 --->>> {}", JSONObject.toJSONString(tokenMap));
             return R.ok(tokenMap);
+        }else {
+            //查不到不作处理
+            return R.fail("登录状态已失效，请重新登录");
         }
-        //查不到不作处理
-        return R.fail("企业微信扫码回调失败");
     }
 }

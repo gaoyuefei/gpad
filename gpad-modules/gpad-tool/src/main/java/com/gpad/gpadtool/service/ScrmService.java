@@ -10,6 +10,7 @@ import com.gpad.common.core.exception.ServiceException;
 import com.gpad.common.core.utils.StringUtils;
 import com.gpad.common.core.web.domain.AjaxResult;
 import com.gpad.common.redis.service.RedisService;
+import com.gpad.gpadtool.constant.CommCode;
 import com.gpad.gpadtool.constant.RedisKey;
 import com.gpad.gpadtool.domain.dto.*;
 import com.gpad.gpadtool.domain.dto.scrm.*;
@@ -229,17 +230,36 @@ public class ScrmService {
         //封装成一个请求对象
         HttpEntity request = new HttpEntity(json, headers);
         log.info("appUrl + accountOnLineStatus路径为{}，请求头为headers{}", url,headers);
-        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
-        log.info(response.getBody());
-        AccountOnLineStatusOutPutDto accountOnLineStatusOutPutDto = JSONObject.parseObject(response.getBody(), AccountOnLineStatusOutPutDto.class);
-        log.info("请求外部接口结束返回出参{}", JSONObject.toJSONString(accountOnLineStatusOutPutDto));
-        if (null == accountOnLineStatusOutPutDto || "0".equals(accountOnLineStatusOutPutDto.getResultCode())){
-            AccountOnLineStatusOutPutDto accountOnLineStatusOutPutDto1 = new AccountOnLineStatusOutPutDto();
-            accountOnLineStatusOutPutDto1.setResultCode("1");
-            accountOnLineStatusOutPutDto1.setResultMessage("发补偿数据");
-            log.info("请求外部接口异常{}，补偿数据为{}", JSONObject.toJSONString(accountOnLineStatusOutPutDto), JSONObject.toJSONString(accountOnLineStatusOutPutDto1));
-            return R.ok(accountOnLineStatusOutPutDto1);
+        ResponseEntity<String> response = null;
+        try {
+            response = restTemplate.postForEntity(url, request, String.class);
+        } catch (RestClientException e) {
+            e.printStackTrace();
         }
+        if(ObjectUtil.isEmpty(response)){
+            throw  new  ServiceException("网络开小差，请联系管理员", CommCode.INTFR_OUTTER_INVOKE_ERROR.getCode());
+        }
+
+        AccountOnLineStatusOutPutDto accountOnLineStatusOutPutDto = null;
+        try {
+            accountOnLineStatusOutPutDto = JSONObject.parseObject(response.getBody(), AccountOnLineStatusOutPutDto.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (ObjectUtil.isEmpty(accountOnLineStatusOutPutDto)){
+            return R.fail(new AccountOnLineStatusOutPutDto());
+        }
+
+        log.info("外部接口正在返回body为{}",response.getBody());
+        log.info("请求外部接口结束返回转换后出参{}", JSONObject.toJSONString(accountOnLineStatusOutPutDto));
+//        if (null == accountOnLineStatusOutPutDto || "0".equals(accountOnLineStatusOutPutDto.getResultCode())){
+//            AccountOnLineStatusOutPutDto accountOnLineStatusOutPutDto1 = new AccountOnLineStatusOutPutDto();
+//            accountOnLineStatusOutPutDto1.setResultCode("1");
+//            accountOnLineStatusOutPutDto1.setResultMessage("发补偿数据");
+//            log.info("请求外部接口异常{}，补偿数据为{}", JSONObject.toJSONString(accountOnLineStatusOutPutDto), JSONObject.toJSONString(accountOnLineStatusOutPutDto1));
+//            return R.ok(accountOnLineStatusOutPutDto1);
+//        }
         log.info("进入method:accountOnLineStatus 执行结束返参为---->{}",JSON.toJSONString(accountOnLineStatusOutPutDto));
         return R.ok(accountOnLineStatusOutPutDto);
     }
