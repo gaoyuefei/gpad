@@ -409,7 +409,7 @@ public class ScrmController {
     }
 
     @Operation(summary = "H5页面获取token")
-    @PostMapping("/getAccessTokenByH5")
+    @PostMapping("/sit/getAccessTokenByH5")
     public R getAccessTokenByH5(@RequestBody ScrmEncrypeParamVo paramVo) {
         log.info("H5页面获取token 开始--->>> {}", JSONObject.toJSONString(paramVo));
         Map<String, Object> dataMap = new HashMap<>();
@@ -460,7 +460,7 @@ public class ScrmController {
     }
 
     @Operation(summary = "sitH5页面获取token")
-    @PostMapping("/sit/getAccessTokenByH5")
+    @PostMapping("/getAccessTokenByH5")
     public R sitGetAccessTokenByH5(@RequestBody ScrmEncrypeParamVo paramVo) {
         log.info("H5页面获取token 开始--->>> {}", JSONObject.toJSONString(paramVo));
         Map<String, Object> dataMap = new HashMap<>();
