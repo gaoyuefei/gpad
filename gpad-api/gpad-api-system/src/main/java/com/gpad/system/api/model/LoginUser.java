@@ -29,6 +29,11 @@ public class LoginUser implements Serializable
     private String username;
 
     /**
+     * 店代码
+     */
+    private String dealerCode;
+
+    /**
      * 登录时间
      */
     private Long loginTime;
@@ -86,6 +91,14 @@ public class LoginUser implements Serializable
     public void setUsername(String username)
     {
         this.username = username;
+    }
+
+    public String getDealerCode() {
+        return dealerCode;
+    }
+
+    public void setDealerCode(String dealerCode) {
+        this.dealerCode = dealerCode;
     }
 
     public Long getLoginTime()

@@ -67,6 +67,13 @@ public class LoginController {
 //        scanCodeTokenInfoVo.setExpressTime("180");
 //        scanCodeTokenInfoVo.setMsg("nihao");
 //        scanCodeTokenInfoVo.setToken("123");
+        try {
+            Object o = redisTemplate.opsForValue().get(sign);
+            String string = JSONObject.toJSONString(o);
+            System.out.println(string);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         log.info("获取token! sign {}",sign);
         if (Boolean.TRUE.equals(redisTemplate.hasKey(sign.toUpperCase(Locale.ROOT)))){
             //通过sign查redis缓存的token

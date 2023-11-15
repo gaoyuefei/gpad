@@ -18,6 +18,11 @@ public class SecurityConstants
     public static final String DETAILS_USERNAME = "username";
 
     /**
+     * 用户店代码
+     */
+    public static final String DEALER_CODE = "dealerCode";
+
+    /**
      * 授权信息字段
      */
     public static final String AUTHORIZATION_HEADER = "authorization";

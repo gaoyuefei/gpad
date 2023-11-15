@@ -51,7 +51,7 @@ public class OrderDetailOutBO {
     private String customerName;
 
     @ApiModelProperty(value = "APP订单号")
-    private String ORIGIN_ORDER_NO;
+    private String  originOrderNo;
 
     @ApiModelProperty(value = "手机号")
     private String mobilePhone;

@@ -169,7 +169,7 @@ public class ScrmController {
             throw new ServiceException("企业微信扫码回调",500);
         }
         String userCode = userInfoByCode.getData().getUserid();
-        log.info("企业微信扫码回调---getUserInfoByCode --->>>  {}", userCode);
+        log.info("企业微信扫码回调---getData().getUserid() --->>>  {}", userCode);
         sign = state;
         log.info("用户登录! userCode {};sign {}", code, sign);
         //用userCode查SCRM用户表
@@ -177,23 +177,31 @@ public class ScrmController {
         ScrmWxCropUserInfoInputDto scrmWxCropUserInfoInputDto = new ScrmWxCropUserInfoInputDto();
         scrmWxCropUserInfoInputDto.setUserId(userCode);
         R<ScrmWxCropUserInfoOutputDto> scrmWxCropUserInfoOutputDtoR = scrmService.getWxCropUserInfo(scrmWxCropUserInfoInputDto);
-        log.info("外部接口调用method:getWxCropUserInfo结束--->>> {}", JSONObject.toJSONString(scrmWxCropUserInfoOutputDtoR));
-
+        log.info("外部接口调用结束method:scrmService.getWxCropUserInfo--->>> {}", JSONObject.toJSONString(scrmWxCropUserInfoOutputDtoR));
+        String decodeSign = URLDecoder.decode(sign, "UTF-8");
+        ScanCodeTokenInfoVo scanCodeTokenInfoVo = new ScanCodeTokenInfoVo();
         if (!"200".equals(scrmWxCropUserInfoOutputDtoR.getData().getCode())) {
+            scanCodeTokenInfoVo.setMsg(scrmWxCropUserInfoOutputDtoR.getData().getMsg());
+            scanCodeTokenInfoVo.setCode(scrmWxCropUserInfoOutputDtoR.getData().getCode());
+            log.info("URLDecoder.decode异常后接口得KEY--->>> {}", JSONObject.toJSONString(decodeSign));
+            redisService.setCacheObject(decodeSign, JSON.toJSONString(scanCodeTokenInfoVo), RedisKey.ACCESS_TOKEN_EXPIRE_TIME, TimeUnit.MINUTES);
             //TODO redis里存 key = sign; value = 跟前端约定得唯一标记+错误信息
             throw new ServiceException("扫码登录查无账号",500);
         }
         String userId = "";
         String employeeNo = "";
+        String dealerCode = "";
         if (ObjectUtil.isNotEmpty(scrmWxCropUserInfoOutputDtoR.getData().getData())){
             userId = scrmWxCropUserInfoOutputDtoR.getData().getData().getUserId();
             employeeNo = scrmWxCropUserInfoOutputDtoR.getData().getData().getEmployeeNo();
-            log.info("扫码登录信息结果成功显示userID---》》》{},----employeeNo 》》》{}",userId,employeeNo);
+            dealerCode = scrmWxCropUserInfoOutputDtoR.getData().getData().getDeptCode();
+            log.info("扫码登录信息结果成功显示userID---》》》{},----employeeNo 》》》{},dealerCode 》》》 {}",userId,employeeNo,dealerCode);
         }
         log.info("扫码登录信息结果成功显示userId 》》》{}",userId);
         LoginUser loginUser = new LoginUser();
         SysUser sysUser = new SysUser();
         sysUser.setUserId(System.currentTimeMillis());
+        loginUser.setDealerCode(dealerCode);
 //        ScrmWxCropUserInfoOutputDto data = scrmWxCropUserInfoOutputDtoR.getData();
         sysUser.setUserName(StringUtils.isBlank(employeeNo)?"补偿用户名":employeeNo);
         log.info("扫码登录信息结果userID---》》》{},----employeeNo 》》》{}",userId,employeeNo);
@@ -202,9 +210,7 @@ public class ScrmController {
         Object access_token = tokenMap.get("access_token");
         log.info("token为{}",tokenMap);
         log.info("打印key为{}",sign);
-        String decodeSign = URLDecoder.decode(sign, "UTF-8");
         log.info("解密后key为{}",decodeSign);
-        ScanCodeTokenInfoVo scanCodeTokenInfoVo = new ScanCodeTokenInfoVo();
         scanCodeTokenInfoVo.setCode("200");
         scanCodeTokenInfoVo.setExpressTime("180");
         scanCodeTokenInfoVo.setMsg("回调登录成功");
@@ -442,6 +448,7 @@ public class ScrmController {
                 SysUser sysUser = new SysUser();
                 sysUser.setUserId(System.currentTimeMillis());
                 sysUser.setUserName(employeeNo);
+//                loginUser.setDealerCode("");
                 loginUser.setSysUser(sysUser);
                 Map<String, Object> tokenMap = tokenService.createToken(loginUser);
                 log.info("H5页面获取token-结束 --->>> {}", JSONObject.toJSONString(tokenMap));
@@ -471,18 +478,30 @@ public class ScrmController {
         accountOnLineStatusInputDto.setEmployeeNo(employeeNo);
         R<AccountOnLineStatusOutPutDto> accountOnLineStatusOutPutDtoR = scrmService.accountOnLineStatus(accountOnLineStatusInputDto);
         if (accountOnLineStatusOutPutDtoR.getData().getResultCode().equals("1")) {
-            //用userCode查SCRM用户表
-            ScrmWxCropUserInfoInputDto scrmWxCropUserInfoInputDto = new ScrmWxCropUserInfoInputDto();
-            scrmWxCropUserInfoInputDto.setUserId(employeeNo);
-            R<ScrmWxCropUserInfoOutputDto> scrmWxCropUserInfoOutputDtoR = scrmService.getWxCropUserInfo(scrmWxCropUserInfoInputDto);;
-            log.info("外部接口返回结果 --->>> {}", JSONObject.toJSONString(scrmWxCropUserInfoOutputDtoR));
-            if (!scrmWxCropUserInfoOutputDtoR.getData().getCode().equals("200")) {
-                return R.fail("企业微信扫码登录获取企微成员信失败");
+            ScrmUserInfoInputDto scrmUserInfoInputDto = new ScrmUserInfoInputDto();
+            scrmUserInfoInputDto.setAccount(employeeNo);
+            R<ScrmUserInfoToInstrumentOutputDto> infoByAccount = scrmService.getUserInfoByAccount(scrmUserInfoInputDto);
+            ScrmUserInfoToInstrumentOutputDto data = infoByAccount.getData();
+            String dealerCode = "";
+            if (ObjectUtil.isNotEmpty(data)){
+                if ("200".equals(data.getCode())){
+                    dealerCode = data.getData().getDealerCode();
+                }
             }
+//            //用userCode查SCRM用户表
+//            ScrmWxCropUserInfoInputDto scrmWxCropUserInfoInputDto = new ScrmWxCropUserInfoInputDto();
+//            scrmWxCropUserInfoInputDto.setUserId(employeeNo);
+//            R<ScrmWxCropUserInfoOutputDto> scrmWxCropUserInfoOutputDtoR = scrmService.getWxCropUserInfo(scrmWxCropUserInfoInputDto);;
+//            log.info("外部接口返回结果 --->>> {}", JSONObject.toJSONString(scrmWxCropUserInfoOutputDtoR));
+//            if (!scrmWxCropUserInfoOutputDtoR.getData().getCode().equals("200")) {
+//                return R.fail("企业微信扫码登录获取企微成员信失败");
+//            }
             LoginUser loginUser = new LoginUser();
             SysUser sysUser = new SysUser();
             sysUser.setUserId(System.currentTimeMillis());
+            loginUser.setDealerCode(dealerCode);
             sysUser.setUserName(employeeNo);
+//            sysUser.setUserName(dealerCode);
             loginUser.setSysUser(sysUser);
             Map<String, Object> tokenMap = tokenService.createToken(loginUser);
             log.info("H5页面获取token-结束 --->>> {}", JSONObject.toJSONString(tokenMap));

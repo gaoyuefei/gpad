@@ -52,6 +52,11 @@ public class SysUser extends BaseEntity
     /** 用户头像 */
     private String avatar;
 
+    /**
+     * 用户名id
+     */
+    private String dealerCode;
+
     /** 密码 */
     private String password;
 

@@ -171,7 +171,7 @@ public class GRTService {
         if (null == orderNoListResultDto || orderNoListResultDto.getStatus() == null){
 //            return R.fail("对接GRT获取待交车订单列表出错!  接口返回null! " );
             return R.ok(null,"查无数据");
-        }else if (!orderNoListResultDto.getStatus().equals("200")){
+        }else if (!"200".equals(orderNoListResultDto.getStatus())){
 //            return R.fail("对接GRT获取待交车订单列表出错!  ".concat(orderNoListResultDto.getMessage() == null ? "接口返回null! " : orderNoListResultDto.getMessage()));
             return R.ok(null,"查无数据");
         }
@@ -276,6 +276,12 @@ public class GRTService {
             url = url.contains("?") ?
                     url.concat("&salesDateE=").concat(orderNoListParamVo.getSheetCreateDateEnd())
                     : url.concat("salesDateE=").concat(orderNoListParamVo.getSheetCreateDateEnd());
+        }
+        //销售店代码
+        if (Strings.isNotEmpty(orderNoListParamVo.getDealerCode())){
+            url = url.contains("?") ?
+                    url.concat("&dealerCode=").concat(orderNoListParamVo.getDealerCode())
+                    : url.concat("dealerCode=").concat(orderNoListParamVo.getDealerCode());
         }
         //分页
         url = url.contains("?") ?

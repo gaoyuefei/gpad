@@ -100,6 +100,18 @@ public class JwtUtils
     }
 
     /**
+     * 根据令牌获取店代码
+     *
+     * @param token 令牌
+     * @return 用户名
+     */
+    public static String getDealerCode(String token)
+    {
+        Claims claims = parseToken(token);
+        return getValue(claims, SecurityConstants.DEALER_CODE);
+    }
+
+    /**
      * 根据身份信息获取用户名
      * 
      * @param claims 身份信息

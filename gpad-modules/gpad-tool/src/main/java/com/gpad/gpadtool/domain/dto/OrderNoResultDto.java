@@ -58,7 +58,7 @@ public class OrderNoResultDto {
     private String salesCounselor;
     //2023//11/10 新增字段
     @ApiModelProperty(value = "APP订单号")
-    private String ORIGIN_ORDER_NO;
+    private String originOrderNo;
 
     @ApiModelProperty(value = "销售顾问名称")
     private String consultant;
