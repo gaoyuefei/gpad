@@ -187,7 +187,6 @@ public class HandoverCarService {
     public R<FileInfoOutBo> getDeliveryCeremonyPath(DeliveryCeremonyInputBO deliveryCeremonyInputBO) {
         FileInfoOutBo fileInfoOutBo = new FileInfoOutBo();
         List<FileInfoDto> list = new ArrayList<>();
-        FileInfoDto fileInfoDto = new FileInfoDto();
         R<List<OrderDetailResultDto>> grtOrderDetail = grtService.getGrtOrderDetail(deliveryCeremonyInputBO.getBussinessNo());
         log.info("method:getGrtOrderDetail().详情数据为: {}", JSONObject.toJSONString(grtOrderDetail));
         List<OrderDetailResultDto> data = grtOrderDetail.getData();
@@ -198,13 +197,15 @@ public class HandoverCarService {
                 fileInfoOutBo.setSuitCarType(orderDetailResultDto.getSeriesName());
             }
         }
-        List<FileInfo> fileInfos = fileInfoRepository.getDeliveryCeremonyPath(deliveryCeremonyInputBO.getBussinessNo(), "22",deliveryCeremonyInputBO.getLinkType());
+        List<FileInfo> fileInfos = fileInfoRepository.getDeliveryCeremonyPath(deliveryCeremonyInputBO.getBussinessNo(), deliveryCeremonyInputBO.getFileType(),"22");
         if(CollectionUtils.isNotEmpty(fileInfos)){
             if (fileInfos.size() > 0){
                 log.info("method:getDeliveryCeremonyPath().文件数据为: {}", JSONObject.toJSONString(grtOrderDetail));
                 fileInfos.forEach(fileInfo -> {
+                    FileInfoDto fileInfoDto = new FileInfoDto();
                     BeanUtil.copyProperties(fileInfo,fileInfoDto);
                     list.add(fileInfoDto);
+                    fileInfoDto = null;
                 });
                 fileInfoOutBo.setFileInfoDto(list);
                 log.info("method:getDeliveryCeremonyPath().交车仪式数据为: {}", JSONObject.toJSONString(fileInfoOutBo));

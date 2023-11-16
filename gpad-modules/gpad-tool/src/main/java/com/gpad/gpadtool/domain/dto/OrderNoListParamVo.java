@@ -60,6 +60,13 @@ public class OrderNoListParamVo {
     @ApiModelProperty(value = "销售日期结束时间")
     private String sheetCreateDateEnd;
 
+    @ApiModelProperty(value = "订单号")
+    private String bussinessNo;
+
+    @ApiModelProperty(value = "app订单号")
+    private String originOrderNo;
+
+
     @NotBlank
     @ApiModelProperty(value =  "当前页码")
     private Integer pageNum;

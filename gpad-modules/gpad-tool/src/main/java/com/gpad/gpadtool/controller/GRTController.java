@@ -71,9 +71,9 @@ public class GRTController {
         String userName = JwtUtils.getUserName(token);
         String dealerCode = JwtUtils.getDealerCode(token);
         log.info("店代码为 --->>> {}", JSONObject.toJSONString(dealerCode));
-//        if (StringUtils.isEmpty(dealerCode)){
-//           return R.fail(200,"当前账号未分配店信息，请联系账号管理员");
-//        }
+        if (StringUtils.isEmpty(dealerCode)){
+           return R.fail("","当前账号未分配店信息，请联系账号管理员");
+        }
         log.info("GRT-获取GRT订单列表接口userName --->>> {}", JSONObject.toJSONString(userName));
         orderNoListParamVo.setUserCode(username);
         orderNoListParamVo.setDealerCode(dealerCode);

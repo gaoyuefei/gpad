@@ -150,14 +150,11 @@ public class GRTService {
         ResponseEntity<String> response = null;
         try {
             response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
-
-//            OrderNoListResultDto orderNoListResultDto = JSON.parseObject(JSON.toJSONString(response.getBody()), OrderNoListResultDto.class);
             log.info("GRT返回参数 --->>> response{}", JSONObject.toJSONString(response));
         } catch (RestClientException e) {
             e.printStackTrace();
         }
         stopWatch.stop();
-        log.info("GRT接口列表耗时{}",stopWatch.prettyPrint());
 
         if (ObjectUtil.isEmpty(response)){
             return R.ok(null,"查无数据");
@@ -194,8 +191,7 @@ public class GRTService {
         orderNoListResultOutBo.setPageSize(orderNoListResultDto.getPageSize());
         orderNoListResultOutBo.setTotal(orderNoListResultDto.getTotal());
         stopWatch.stop();
-        log.info("PAD转换耗时{}",stopWatch.prettyPrint());
-//        log.info("grtGetOrderNoList{}",JSON.toJSONString(data));
+        log.info("统计耗时{}",stopWatch.prettyPrint());
         return R.ok(orderNoListResultOutBo);
     }
 
@@ -207,11 +203,7 @@ public class GRTService {
                     url.concat("&userCode=").concat(orderNoListParamVo.getUserCode())
                     : url.concat("?userCode=").concat(orderNoListParamVo.getUserCode());
         }
-        if (Strings.isNotEmpty(orderNoListParamVo.getDealerCode())){
-            url = url.contains("?") ?
-                    url.concat("&dealerCode=").concat(orderNoListParamVo.getDealerCode())
-                    : url.concat("?dealerCode=").concat(orderNoListParamVo.getDealerCode());
-        }
+
         if (Strings.isNotEmpty(orderNoListParamVo.getUpdatedStart())){
             url = url.contains("?") ?
                     url.concat("&updatedStart=").concat(orderNoListParamVo.getUpdatedStart())
@@ -258,37 +250,49 @@ public class GRTService {
         if (Strings.isNotEmpty(orderNoListParamVo.getIsOverTime())){
             url = url.contains("?") ?
                     url.concat("&isTimedOut=").concat(orderNoListParamVo.getIsOverTime())
-                    : url.concat("isTimedOut=").concat(orderNoListParamVo.getIsOverTime());
+                    : url.concat("?isTimedOut=").concat(orderNoListParamVo.getIsOverTime());
         }
         //销售开始结束-> 下定日期
         if (Strings.isNotEmpty(orderNoListParamVo.getSheetCreateDateStart())){
             url = url.contains("?") ?
                     url.concat("&salesDateS=").concat(orderNoListParamVo.getSheetCreateDateStart())
-                    : url.concat("salesDateS=").concat(orderNoListParamVo.getSheetCreateDateStart());
+                    : url.concat("?salesDateS=").concat(orderNoListParamVo.getSheetCreateDateStart());
         }
         //完成交车日期-> 下定日期
         if (Strings.isNotEmpty(orderNoListParamVo.getFinishHandoverDateStart())){
             url = url.contains("?") ?
                     url.concat("&finishTimeS=").concat(orderNoListParamVo.getFinishHandoverDateStart())
-                    : url.concat("finishTimeS=").concat(orderNoListParamVo.getFinishHandoverDateStart());
+                    : url.concat("?finishTimeS=").concat(orderNoListParamVo.getFinishHandoverDateStart());
         }
 
         if (Strings.isNotEmpty(orderNoListParamVo.getFinishHandoverDateEnd())){
             url = url.contains("?") ?
                     url.concat("&finishTimeE=").concat(orderNoListParamVo.getFinishHandoverDateEnd())
-                    : url.concat("finishTimeE=").concat(orderNoListParamVo.getFinishHandoverDateEnd());
+                    : url.concat("?finishTimeE=").concat(orderNoListParamVo.getFinishHandoverDateEnd());
         }
 
         if (Strings.isNotEmpty(orderNoListParamVo.getSheetCreateDateEnd())){
             url = url.contains("?") ?
                     url.concat("&salesDateE=").concat(orderNoListParamVo.getSheetCreateDateEnd())
-                    : url.concat("salesDateE=").concat(orderNoListParamVo.getSheetCreateDateEnd());
+                    : url.concat("?salesDateE=").concat(orderNoListParamVo.getSheetCreateDateEnd());
         }
         //销售店代码
         if (Strings.isNotEmpty(orderNoListParamVo.getDealerCode())){
             url = url.contains("?") ?
                     url.concat("&dealerCode=").concat(orderNoListParamVo.getDealerCode())
-                    : url.concat("dealerCode=").concat(orderNoListParamVo.getDealerCode());
+                    : url.concat("?dealerCode=").concat(orderNoListParamVo.getDealerCode());
+        }
+        //销售店代码
+        if (Strings.isNotEmpty(orderNoListParamVo.getBussinessNo())){
+            url = url.contains("?") ?
+                    url.concat("&bussinessNo=").concat(orderNoListParamVo.getBussinessNo())
+                    : url.concat("?bussinessNo=").concat(orderNoListParamVo.getBussinessNo());
+        }
+        //销售店代码
+        if (Strings.isNotEmpty(orderNoListParamVo.getOriginOrderNo())){
+            url = url.contains("?") ?
+                    url.concat("&originOrderNo=").concat(orderNoListParamVo.getOriginOrderNo())
+                    : url.concat("?originOrderNo=").concat(orderNoListParamVo.getOriginOrderNo());
         }
         //分页
         url = url.contains("?") ?
