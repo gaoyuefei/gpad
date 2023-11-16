@@ -1,5 +1,6 @@
 package com.gpad.gpadtool.service;
 
+import cn.hutool.core.date.StopWatch;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -144,7 +145,8 @@ public class GRTService {
 
         String url = grtConcatURL(orderNoListParamVo);
         log.info("GRT拼接后URL为 --->>> {}",url);
-
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
         ResponseEntity<String> response = null;
         try {
             response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
@@ -154,6 +156,9 @@ public class GRTService {
         } catch (RestClientException e) {
             e.printStackTrace();
         }
+        stopWatch.stop();
+        log.info("GRT接口列表耗时{}",stopWatch.prettyPrint());
+
         if (ObjectUtil.isEmpty(response)){
             return R.ok(null,"查无数据");
         }
@@ -175,20 +180,22 @@ public class GRTService {
 //            return R.fail("对接GRT获取待交车订单列表出错!  ".concat(orderNoListResultDto.getMessage() == null ? "接口返回null! " : orderNoListResultDto.getMessage()));
             return R.ok(null,"查无数据");
         }
-
+        stopWatch.start();
         List<OrderNoResultDto> data = orderNoListResultDto.getData();
         data.forEach(s-> {
             log.info("打印转换参数为code码{},VIN{},BindStatus{}",s.getOrderStatus(), s.getVin(),s.getBindStatus());
             s.setOrderStatus(GrtToPadEnums.getValueByVin(s.getOrderStatus(), s.getVin(), s.getBindStatus()));
         });
 //        data.sort((o1, o2) -> o2.getDeliveringDate().compareTo(o1.getDeliveringDate()));
-        log.info("GRT订单列表返回数据为{}",JSON.toJSONString(data));
+//        log.info("GRT订单列表返回数据为{}",JSON.toJSONString(data));
         OrderNoListResultOutBo orderNoListResultOutBo = new OrderNoListResultOutBo();
         orderNoListResultOutBo.setData(data);
         orderNoListResultOutBo.setPageNum(orderNoListResultDto.getPageNum());
         orderNoListResultOutBo.setPageSize(orderNoListResultDto.getPageSize());
         orderNoListResultOutBo.setTotal(orderNoListResultDto.getTotal());
-        log.info("grtGetOrderNoList{}",JSON.toJSONString(data));
+        stopWatch.stop();
+        log.info("PAD转换耗时{}",stopWatch.prettyPrint());
+//        log.info("grtGetOrderNoList{}",JSON.toJSONString(data));
         return R.ok(orderNoListResultOutBo);
     }
 
@@ -313,12 +320,16 @@ public class GRTService {
         log.info("url1 --->>> {}", JSONObject.toJSONString(url1));
         log.info("url --->>> {}", JSONObject.toJSONString(url));
 
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
         ResponseEntity<String> response = null;
         try {
             response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
         } catch (RestClientException e) {
             e.printStackTrace();
         }
+        stopWatch.stop();
+        log.info("GRT详情接口耗时{}",stopWatch.prettyPrint());
         if (ObjectUtil.isEmpty(response)){
             return R.fail(null,"查无数据");
         }
