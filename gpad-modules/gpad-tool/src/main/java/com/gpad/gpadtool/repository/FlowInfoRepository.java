@@ -74,6 +74,7 @@ public class FlowInfoRepository extends ServiceImpl<FlowInfoMapper, FlowInfo> {
         return this.lambdaUpdate()
                 .setSql(" version = version + 1 ")
                 .set(FlowInfo::getNodeNum,flow.getNodeNum())
+                .set(FlowInfo::getUpdateTime,flow.getUpdateTime())
                 .eq(FlowInfo::getBussinessNo,flow.getBussinessNo())
                 .eq(ObjectUtil.isNotEmpty(flow.getId()),FlowInfo::getId,flow.getId())
                 .update();

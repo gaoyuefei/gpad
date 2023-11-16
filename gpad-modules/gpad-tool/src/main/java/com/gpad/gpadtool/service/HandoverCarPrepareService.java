@@ -96,6 +96,7 @@ public class HandoverCarPrepareService {
             try {
                 RedisLockUtils.lock(bussinessNo);
                 //TODO 前端有ID 一定要传ID
+                //自己拿ID
                 if (Strings.isBlank(handoverCarPrepareDto.getId()) && !checkedbussinessNo(bussinessNo)) {
                     log.info("进入保存方法 --->>> method:saveOrUpdateHandoverCarPrepareDto{},{}", bussinessNo,handoverCarPrepareDto.getId());
                     //幂等处理
@@ -136,6 +137,7 @@ public class HandoverCarPrepareService {
                     FlowInfoDto flow = new FlowInfoDto();
                     flow.setBussinessNo(handoverCarPrepareDto.getBussinessNo());
                     flow.setNodeNum(FlowNodeNum.HAND_OVER_CAR_CONFIRM.getCode());
+                    flow.setUpdateTime(new Date());
                     result = flowInfoRepository.updateDeliverCarReadyToConfirm(flow);
                     if (!result){
                         throw new ServiceException("流程节点分离", R.FAIL);

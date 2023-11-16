@@ -42,9 +42,7 @@ public class HandoverCarCheckInfoRepository extends ServiceImpl<HandoverCarCheck
         HandoverCarCheckInfo handoverCarCheckInfo = new HandoverCarCheckInfo();
         BeanUtil.copyProperties(handoverCarCheckInfoDto,handoverCarCheckInfo);
         if (ObjectUtil.isNotEmpty(handoverCarCheckInfoDto)){
-            if (null == handoverCarCheckInfoDto.getId() &&
-                    StringUtils.isEmpty(handoverCarCheckInfoDto.getId()+"")
-                    && handoverCarCheckInfoDto.getId() == 0){
+            if (null == handoverCarCheckInfoDto.getId() || StringUtils.isEmpty(handoverCarCheckInfoDto.getId()+"") || handoverCarCheckInfoDto.getId() == 0){
                 handoverCarCheckInfo.setId(handoverCarCheckInfoDto.getId().toString().length()<=9?null:handoverCarCheckInfoDto.getId());
             }
         }

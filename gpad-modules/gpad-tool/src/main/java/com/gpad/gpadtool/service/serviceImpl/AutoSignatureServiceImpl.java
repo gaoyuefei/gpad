@@ -717,9 +717,9 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             autoSignature.setIdentityType1(1);
             autoSignature.setProductMobile(gpadIdentityAuthInfo.getProductMobile());
             autoSignature.setProductName(gpadIdentityAuthInfo.getProductName())     ;
-            autoSignature.setId(authUserSignatureInputBO.getAccountId());
+            autoSignature.setId(gpadIdentityAuthInfo.getId()+"");
             log.info("上传身份信息 identityCard1{}",JSON.toJSONString(autoSignature));
-            result = gpadIdentityAuthInfoRepository.updateAuthUserSignature(autoSignature);
+            result = gpadIdentityAuthInfoRepository.updateAuthProductSignaturePath(autoSignature,gpadIdentityAuthInfo);
             if (!result){
                 throw  new ServiceException(CommCode.UPLOAD_SIGN_PNG_WRONG.getMessage(),CommCode.UPLOAD_SIGN_PNG_WRONG.getCode());
             }

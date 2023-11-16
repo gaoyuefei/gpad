@@ -199,4 +199,14 @@ public class HandoverCarController {
     public R<Boolean> deliveryCompletedNext(@RequestBody DeliveryCompletedInputBO deliveryCompletedInputBO){
         return handoverCarService.deliveryCompletedNext(deliveryCompletedInputBO);
     }
+
+    /**
+     * 查询合同连接查询
+     */
+    @Operation(summary = "查询合同连接查询")
+    @PostMapping("/handOverCar/getContractLinkByBussinessNo")
+    public R<String> getContractLinkByBussinessNo(@RequestBody DeliveryContractLinkInputBO deliveryContractLinkInputBO){
+        return handoverCarService.getContractLinkByBussinessNo(deliveryContractLinkInputBO);
+    }
+
 }

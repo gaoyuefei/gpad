@@ -1,10 +1,10 @@
 package com.gpad.gpadtool.repository;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gpad.common.core.bo.input.AuthUserSignatureInputBO;
-import com.gpad.common.core.bo.input.AutoSignatureInputBO;
 import com.gpad.common.core.utils.StringUtils;
 import com.gpad.gpadtool.domain.entity.GpadIdentityAuthInfo;
 import com.gpad.gpadtool.mapper.GpadIdentityAuthInfoMapper;
@@ -39,7 +39,7 @@ public class GpadIdentityAuthInfoRepository extends ServiceImpl<GpadIdentityAuth
     public Boolean saveAuthUserSignatureValid(AuthUserSignatureInputBO authUserSignatureInputBO) {
         log.info("method:saveAuthUserSignatureValid{}，保存修改入参{}",authUserSignatureInputBO.getId(), JSON.toJSONString(authUserSignatureInputBO));
         String id = authUserSignatureInputBO.getId();
-        // TODO 账号用户名
+        // TODO 账号用户名 临时应对
         GpadIdentityAuthInfo build = GpadIdentityAuthInfo.builder()
                 .id(StringUtils.isEmpty(id)?null:Long.valueOf(id))
                 .identityCard(authUserSignatureInputBO.getIdentityCard1())
@@ -50,7 +50,8 @@ public class GpadIdentityAuthInfoRepository extends ServiceImpl<GpadIdentityAuth
                 .account(authUserSignatureInputBO.getAccount())
                 .version(0)
                 .delFlag(0)
-                .createTime(new Date())
+                .createTime(StringUtils.isEmpty(id)?new Date():null)
+                .updateTime(StringUtils.isEmpty(id)?null:new Date())
                 .build();
         log.info("method:saveAuthUserSignatureValid，封装完后参数为build{}", JSON.toJSONString(build));
         boolean b = this.saveOrUpdate(build);
@@ -66,6 +67,7 @@ public class GpadIdentityAuthInfoRepository extends ServiceImpl<GpadIdentityAuth
     public GpadIdentityAuthInfo selectByAccount(String account) {
         GpadIdentityAuthInfo gpadIdentityAuthInfo = null;
         List<GpadIdentityAuthInfo> list = this.lambdaQuery().eq(GpadIdentityAuthInfo::getAccount, account)
+                .orderByDesc(GpadIdentityAuthInfo::getCreateTime)
                 .list();
         log.info("查询返回：{}",JSON.toJSONString(list));
         if (CollectionUtil.isNotEmpty(list)){
@@ -75,5 +77,19 @@ public class GpadIdentityAuthInfoRepository extends ServiceImpl<GpadIdentityAuth
         }
         log.info("返回实体为：{}",JSON.toJSONString(gpadIdentityAuthInfo));
         return gpadIdentityAuthInfo;
+    }
+
+    public Boolean updateAuthProductSignaturePath(AuthUserSignatureInputBO autoSignature, GpadIdentityAuthInfo gpadIdentityAuthInfo) {
+        GpadIdentityAuthInfo entry = GpadIdentityAuthInfo.builder().build();
+        BeanUtil.copyProperties(gpadIdentityAuthInfo,entry);
+        entry.setUpdateTime(new Date());
+        entry.setFilePath(autoSignature.getMemorySignPath());
+        return  this.lambdaUpdate()
+                .setSql(" version = version + 1 ")
+                .set(GpadIdentityAuthInfo::getFilePath,autoSignature.getMemorySignPath())
+                .set(GpadIdentityAuthInfo::getUpdateTime,new Date())
+                .eq(GpadIdentityAuthInfo::getAccount,autoSignature.getAccount())
+                .eq(GpadIdentityAuthInfo::getId,autoSignature.getId())
+                .update();
     }
 }

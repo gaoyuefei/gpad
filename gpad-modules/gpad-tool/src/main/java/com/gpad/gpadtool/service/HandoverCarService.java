@@ -150,6 +150,11 @@ public class HandoverCarService {
         try {
             //幂等处理
             RedisLockUtils.lock(bussinessNo);
+            HandoverCarCheckInfo handoverCarCheckInfo = handoverCarCheckInfoService.getListBybussinessNo(bussinessNo);
+            log.info("查询返回实体为: {}", JSONObject.toJSONString(handoverCarCheckInfo));
+            Long handoverCarCheckInfoId = handoverCarCheckInfo.getId();
+            log.info("查询返回实体为ID: {}", handoverCarCheckInfoId);
+            handoverCarCheckInfoDto.setId(handoverCarCheckInfoId);
             //交车确认信息入库
             result = handoverCarCheckInfoService.saveDeliverCarConfirmInfo(handoverCarCheckInfoDto);
             if (!result){
@@ -286,18 +291,19 @@ public class HandoverCarService {
                     orderStatusVo.setBussinessNo(bussinessNo);
                     orderStatusVo.setIsDelivery("1");
                     log.info("打印调用GRT状态变更入参{}",JSON.toJSONString(orderStatusVo));
+                    R r = grtService.changeOrderStatus2Grt(orderStatusVo);
+                    String dataOut = JSON.toJSONString(r);
 
-
-                    R<Void> voidR = grtService.changeOrderStatus2Grt(orderStatusVo);
-                    String dataOut = JSON.toJSONString(voidR);
                     if (StringUtils.isNotEmpty(dataOut)){
                         log.info("交车完成参数为{}",JSON.toJSONString(dataOut));
-                        status = JSONUtil.parseObj(dataOut).get("code") + "";
-                        message = JSONUtil.parseObj(dataOut).get("msg") + "";
-                        if ("200".equals(status)){
-                           return R.ok(true,message);
+                        int code = r.getCode();
+                        String msg = r.getMsg();
+//                        status = JSONUtil.parseObj(dataOut).get("code") + "";
+//                        message = JSONUtil.parseObj(dataOut).get("msg") + "";
+                        if ("200".equals(code+"")){
+                           return R.ok(true,msg);
                         }else {
-                            throw new ServiceException(CommCode.DATA_UPDATE_WRONG.getMessage(),CommCode.DATA_UPDATE_WRONG.getCode());
+                            throw new ServiceException(msg ,CommCode.DATA_UPDATE_WRONG.getCode());
                         }
 //                        throw new ServiceException(message,500);
                     }else {
@@ -310,5 +316,12 @@ public class HandoverCarService {
         } finally {
             RedisLockUtils.unlock(bussinessNo);
         }
+    }
+
+    public R<String> getContractLinkByBussinessNo(DeliveryContractLinkInputBO deliveryContractLinkInputBO) {
+        String bussinessNo = deliveryContractLinkInputBO.getBussinessNo();
+        HandoverCarCheckInfo handoverCarCheckInfo = handoverCarCheckInfoService.getListBybussinessNo(bussinessNo);
+        log.info("查询合同连接为{}",JSON.toJSONString(handoverCarCheckInfo));
+        return R.ok(handoverCarCheckInfo.getContractLink());
     }
 }

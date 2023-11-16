@@ -137,4 +137,10 @@ public class HandoverCarCheckInfoService {
     public Boolean saveDeliverCarConfirmInfo(HandoverCarCheckInfoDto handoverCarCheckInfoDto) {
         return handoverCarCheckInfoRepository.saveDeliverCarConfirmInfo(handoverCarCheckInfoDto);
     }
+
+    public HandoverCarCheckInfo getListBybussinessNo(String bussinessNo) {
+        HandoverCarCheckInfo handoverCarCheckInfo = handoverCarCheckInfoRepository.queryDeliverCarConfirmInfo(bussinessNo);
+        log.info("查询订单返回列表为：{}",JSON.toJSONString(handoverCarCheckInfo));
+        return handoverCarCheckInfo;
+    }
 }

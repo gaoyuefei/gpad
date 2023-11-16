@@ -355,8 +355,8 @@ public class GRTService {
         return R.ok(orderDetailListResultDto.getData());
     }
 
-    public R<Void> changeOrderStatus2Grt(OrderStatusVo orderStatusVo){
-        log.info("method:changeOrderStatus2Grt() --->>> url为{}", changeOrderStatus2GrtUrl);
+    public R changeOrderStatus2Grt(OrderStatusVo orderStatusVo){
+        log.info("method:changeOrderStatus2Grt() --->>>打印GRT入参为 url为{}", changeOrderStatus2GrtUrl);
         long timestamp = System.currentTimeMillis();
         String sign = GRTSignUtil.sign(GRTSignUtil.APP_KEY_GRT, timestamp, GRTSignUtil.SECRET_KEY_GRT);
 
@@ -378,20 +378,21 @@ public class GRTService {
             e.printStackTrace();
         }
         if (ObjectUtil.isEmpty(response)){
-            return R.fail(null, "状态更新失败，请求检查交车流程是否完成");
+            return R.fail(null, "状态更新失败，请检查交车流程是否已完成");
         }
-//        if (response.getStatusCode() != HttpStatus.OK){
-//            return R.fail(response.getBody() == null?"null" : response.getBody().getMessage());
-//        }
-//        if (response.getBody()==null || response.getBody().getStatus().equals("500")){
-//            return R.fail("调用GRT推送订单状态变更失败!  错误信息: "+(response.getBody()==null?"null":response.getBody().getMessage()));
-//        }
-        log.info("method:changeOrderStatus2Grt() --->>> 方法执行结束{}",response.getBody());
+        if (response.getStatusCode() != HttpStatus.OK){
+            return R.fail(null,"网络波动异常,请联系管理");
+        }
+        if (response.getBody()==null || response.getBody().getStatus().equals("500")){
+            return R.fail(null ,"网络波动异常,请联系管理");
+        }
+        log.info("method:changeOrderStatus2Grt() --->>> 方法执行结束{}",JSONObject.toJSONString(response.getBody()));
         String message = response.getBody().getMessage();
+        log.info("method:changeOrderStatus2Grt() --->>> 打印GRT真实报错{}",JSONObject.toJSONString(message));
         return R.ok(null, "状态更新成功");
     }
 
-    public R<Void> orderReserveInfo(OrderReserveVo orderReserveVo){
+    public R orderReserveInfo(OrderReserveVo orderReserveVo){
 
         ResponseEntity<BaseGrtResultDto> response = restTemplate.exchange(orderReserveInfoUrl, HttpMethod.POST, new HttpEntity<>(orderReserveVo), BaseGrtResultDto.class);
         if (response.getStatusCode() != HttpStatus.OK){
