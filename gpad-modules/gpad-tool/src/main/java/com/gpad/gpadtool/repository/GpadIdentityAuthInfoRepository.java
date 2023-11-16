@@ -84,12 +84,14 @@ public class GpadIdentityAuthInfoRepository extends ServiceImpl<GpadIdentityAuth
         BeanUtil.copyProperties(gpadIdentityAuthInfo,entry);
         entry.setUpdateTime(new Date());
         entry.setFilePath(autoSignature.getMemorySignPath());
-        return  this.lambdaUpdate()
+        boolean update = this.lambdaUpdate()
                 .setSql(" version = version + 1 ")
-                .set(GpadIdentityAuthInfo::getFilePath,autoSignature.getMemorySignPath())
-                .set(GpadIdentityAuthInfo::getUpdateTime,new Date())
-                .eq(GpadIdentityAuthInfo::getAccount,autoSignature.getAccount())
-                .eq(GpadIdentityAuthInfo::getId,autoSignature.getId())
+                .set(GpadIdentityAuthInfo::getFilePath, entry.getFilePath())
+                .set(GpadIdentityAuthInfo::getUpdateTime, new Date())
+                .eq(StringUtils.isNotEmpty(autoSignature.getAccount()),GpadIdentityAuthInfo::getAccount, entry.getAccount())
+                .eq(StringUtils.isNotEmpty(autoSignature.getId()),GpadIdentityAuthInfo::getId, autoSignature.getId())
                 .update();
+        log.info("sql修改状态{}",update);
+        return update;
     }
 }
