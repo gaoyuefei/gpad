@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.gpad.common.core.domain.R;
 import com.gpad.gpadtool.domain.dto.*;
+import com.gpad.gpadtool.enums.PayMethodToCodeEnum;
 import com.gpad.gpadtool.service.*;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
@@ -117,6 +118,7 @@ public class HandoverCarController {
             OrderDetailResultDto invoiceStatus = data.get(0);
             handoverCarPrepareOutBO.setUnifiedSalesInvoice(Boolean.parseBoolean(invoiceStatus.getInvoiceStatus())?1:0);
             handoverCarPrepareOutBO.setLoanStatus(Boolean.parseBoolean(invoiceStatus.getPayOffStatus())?1:0);
+            handoverCarPrepareOutBO.setPaymentMethod(PayMethodToCodeEnum.getPadValueByType(invoiceStatus.getPaymentMethod()));
         }
         return R.ok(handoverCarPrepareOutBO);
     }

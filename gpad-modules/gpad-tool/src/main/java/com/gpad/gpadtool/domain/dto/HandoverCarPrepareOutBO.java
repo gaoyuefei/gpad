@@ -27,6 +27,9 @@ public class HandoverCarPrepareOutBO {
     @ApiModelProperty(value = "放款状态()")
     private Integer loanStatus;
 
+    @ApiModelProperty(value = "支付方式：0：默认：1一次性付清，2：分期付款 ，3：其他：4:无")
+    private String paymentMethod;
+
     @ApiModelProperty(value = "销售统一发票")
     private Integer unifiedSalesInvoice;
 
