@@ -18,6 +18,7 @@ import java.util.List;
 @ApiModel(value = "OrderDetailResultDto", description = "GRT待交车订单详情Dto")
 public class OrderDetailResultDto {
 
+
     @ApiModelProperty(value = "id")
     private String id;
     @ApiModelProperty(value = "订单号")

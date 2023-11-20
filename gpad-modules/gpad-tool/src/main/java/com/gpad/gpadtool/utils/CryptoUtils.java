@@ -22,6 +22,26 @@ public class CryptoUtils {
     private static final String PUBLIC_KEY="publicKey";
     private static final String PRIVATE_KEY="privateKey";
 
+////    public static void main(String[] args) {
+////        try {
+////            Map<String, String> stringStringMap = CryptoUtils.genKeyPair();
+////            System.out.println(stringStringMap.toString());
+////        } catch (NoSuchAlgorithmException e) {
+////            e.printStackTrace();
+////        }
+////    }
+//public static void main(String[] args) {
+//    String str = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCA9qXKKnGqYu4Qmb5i0YN+8iWd927Yj0+451++PpoLiH0xiNPI3OOIRMvFTXXP+aouffEu/x/LFJ8xacOCFCRX9yRxde1SNlTQ5fwLPk/E3FA7DOiYIxa8luY4ky/DO5897nyw0GaxUMp1ITgslSDy1+ynP0H4ll5nN1wzxemGOwIDAQAB";
+//    String pra = "MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAID2pcoqcapi7hCZvmLRg37yJZ33btiPT7jnX74+mguIfTGI08jc44hEy8VNdc/5qi598S7/H8sUnzFpw4IUJFf3JHF17VI2VNDl/As+T8TcUDsM6JgjFryW5jiTL8M7nz3ufLDQZrFQynUhOCyVIPLX7Kc/QfiWXmc3XDPF6YY7AgMBAAECgYB1sKFb/Z/9fosDW0sDo2/9Sb5KiqP9vctjUsNtOnQaUlTt/5BGnk6G7UGIrUf2pEFKbGTOHsVE72zYC00ASKFg0agy7tBlG9LQ97Y9PE8IEMpOLDVK/hTB6j74k8CZzBT4jYgI/Ko5/A1PihVYI4tr7L8WWheMybbNWiaZVN7JAQJBAOL7mvsvXv1XQS8Q5q/soanR6qvV36jTtW5yfBeH7FtfFveWggqGaF/WnOikYUyoGmTgksueZUh6TvONO2R3ot0CQQCRczGapGNZn9FqdR7caJj+XZUK5zOIO+fLt++hWh5SJdV0ovhgBiEOO7SCHDVUX5OWEJYxbBKLplvbNrYbEz/3AkEA1n9GWhDOB0KpirzCA4Xuz/hbd79I+NX4IkN2GRaNuVsG7ToB8chKYicBaKfOew5wwtumXV12ASPz8ByK/8o+0QJASlCuHpIxhOBocllHHFyBFy4fccOxi8D37Rmc4TcXWOelyYNfHkjjaM9Oqk/ZW7O9x6XP546NZzbnpfitUOYj/wJBALR9KJtKm5jxAdXaryV6vAMQUEwRzoM9sE3yecqqBaciQGXtkTX8EN8lHOuUO/IUxsIeQQiIgV7lB3vKEg2+aqI=";
+//    try {
+//        String s = CryptoUtils.publicKeyEncrypt("楚华", str);
+//        System.out.println("加密后"+ s);
+//        String s1 = CryptoUtils.privateKeyDecrypt(s, pra);
+//        System.out.println("解密后"+ s1);
+//    } catch (Exception e) {
+//        e.printStackTrace();
+//    }
+//}
     /**
      * 	获取公私钥
      * @return

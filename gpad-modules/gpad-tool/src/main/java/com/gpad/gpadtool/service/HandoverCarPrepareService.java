@@ -183,7 +183,15 @@ public class HandoverCarPrepareService {
         readyDeliverCarOutBO.setBussinessNo(bussinessNo);
         BeanUtil.copyProperties(handoverCarPrepare,readyDeliverCarOutBO);
         String supplies = handoverCarPrepare.getSupplies();
+        readyDeliverCarOutBO.setUnifiedSalesInvoice(handoverCarPrepare.getUnifiedSalesInvoice());
+        readyDeliverCarOutBO.setLoanStatus(handoverCarPrepare.getLoanStatus());
         readyDeliverCarOutBO.setSupplies(supplies);
+        if (null == handoverCarPrepare.getLoanStatus()){
+            readyDeliverCarOutBO.setLoanStatus(0);
+        }
+        if (null == handoverCarPrepare.getLoanStatus()){
+            readyDeliverCarOutBO.setUnifiedSalesInvoice(0);
+        }
         //兼容传值
 //        if (null != supplies && !"".equals(supplies) && !"null".equals(supplies)){
 //            if(!org.apache.commons.lang3.StringUtils.isBlank(supplies)){

@@ -24,14 +24,20 @@ public class HandoverCarPrepareOutBO {
     @ApiModelProperty(value = "订单号")
     private String bussinessNo;
 
-    @ApiModelProperty(value = "放款状态()")
+    @ApiModelProperty(value = "PAD放款状态()")
     private Integer loanStatus;
 
     @ApiModelProperty(value = "支付方式：0：默认：1一次性付清，2：分期付款 ，3：其他：4:无")
     private String paymentMethod;
 
-    @ApiModelProperty(value = "销售统一发票")
+    @ApiModelProperty(value = "PAD 销售统一发票")
     private Integer unifiedSalesInvoice;
+
+    @ApiModelProperty(value = "GRT 是否已结清")
+    private String payOffStatus;
+
+    @ApiModelProperty(value = " GRT   开票状态")
+    private String invoiceStatus;
 
     @ApiModelProperty(value = "车辆保险")
     private Integer carInsure;

@@ -96,6 +96,38 @@ public class FileUtil {
         }
     }
 
+
+    /**
+     * 写出文件到磁盘
+     *
+     * @param path 文件存储路径
+     */
+    public static void uploadJzqPngFile(InputStream ins, String path, String fileName) {
+        log.info("写出文件  {}", System.currentTimeMillis());
+        log.info("写出文件--->>> path={}", path);
+
+        File savedFile = null;
+        try  {
+            File pathDir = new File(path);
+            if (!pathDir.exists()) {
+                pathDir.mkdirs();
+            }
+            log.info("上传文件文件名 = {}", fileName);
+            log.info("开始上传文件到服务器  {}", System.currentTimeMillis());
+            savedFile = new File(path.concat(File.separator).concat(fileName));
+            inputStreamToFile(ins, savedFile);
+            log.info("上传文件到服务器完成  {}", System.currentTimeMillis());
+            ins.close();
+        } catch (Exception e) {
+            log.warn("上传文件到服务器出错! Exception message:{}", e.getMessage(), e);
+            throw new ServiceException("上传文件出错! ".concat(e.getMessage()), StatusCode.SYS_ERR.getValue());
+        }
+        finally {
+//            savedFile.delete();
+
+        }
+    }
+
     /**
      * 获取文件流转base64方法
      **/
