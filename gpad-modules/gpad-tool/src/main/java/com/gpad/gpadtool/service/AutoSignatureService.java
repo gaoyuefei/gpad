@@ -30,5 +30,5 @@ public interface AutoSignatureService {
 
     Boolean signatureUploadFile(AuthUserSignatureInputBO authUserSignatureInputBO,MultipartFile fileProductPng,String result);
 
-    R filtOUTSteam(String url, HttpServletResponse response);
+    R filtOUTSteam(String url,String bussinessNo);
 }

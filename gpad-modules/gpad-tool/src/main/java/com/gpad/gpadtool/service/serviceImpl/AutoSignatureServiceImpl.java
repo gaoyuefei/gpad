@@ -16,6 +16,7 @@ import com.gpad.gpadtool.constant.CommCode;
 import com.gpad.gpadtool.domain.dto.FileInfoDto;
 import com.gpad.gpadtool.domain.dto.FlowInfoDto;
 import com.gpad.gpadtool.domain.dto.UploadFileOutputDto;
+import com.gpad.gpadtool.domain.entity.FileInfo;
 import com.gpad.gpadtool.domain.entity.GpadIdentityAuthInfo;
 import com.gpad.gpadtool.domain.entity.HandoverCarCheckInfo;
 import com.gpad.gpadtool.domain.vo.JzqDataValidSignatureVo;
@@ -63,6 +64,7 @@ import java.net.URL;
 @Slf4j
 @Service
 public class AutoSignatureServiceImpl  implements AutoSignatureService {
+
     @Value("${config.file.path}")
     private String FILE_PATH;
 
@@ -184,6 +186,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
             autoSignatureInputBO.setAccountId(gpadIdentityAuthInfo.getId());
             Boolean res = handoverCarCheckInfoRepository.updatecontractInfoById(apl, data, autoSignatureInputBO);
+            filtOUTSteam(apl,bussinessNo);
             if (!res){
                 throw new ServiceException("合同连接保存失败",CommCode.DATA_UPDATE_WRONG.getCode());
             }
@@ -736,74 +739,83 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     }
 
     @Override
-    public R filtOUTSteam(String apl, HttpServletResponse response) {
-        String  filename =  "君子签" ;
-        response.setHeader("Content-Disposition", "attachment;filename*=UTF-8" + filename);
-        response.setHeader("Content-Type", "application/pdf");
+    public R filtOUTSteam(String apl,String bussinessNo) {
         List<UploadFileOutputDto> list = new ArrayList<>();
         RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
         //构建请求参数
         Map<String,Object> params =new HashMap<>();
-        params.put("applyNo","APL1723915757387530240"); //TODO *
+        params.put("applyNo",apl); //TODO *
 //        params.put("applyNo","apl"); //TODO *
         ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkFile",params);
         String data = ri.getData();
         System.out.println(data);
-
-        try {
+        HandoverCarCheckInfo handoverCarCheckInfo = handoverCarCheckInfoRepository.queryDeliverCarConfirmInfo(bussinessNo);
+        if (StringUtils.isNotEmpty(handoverCarCheckInfo.getContractLink())){
+            try {
 //            File file = UrltoFile(data);
-            HttpURLConnection httpUrl = (HttpURLConnection) new URL(data).openConnection();
-            httpUrl.connect();
-            InputStream ins = httpUrl.getInputStream();
-            //文件存储路径
-            String filePath = FILE_PATH.concat(File.separator).concat(DateUtil.generateDateTimeStr()).concat(File.separator);
-            log.info("文件上传!当前文件存储路径=== {}", filePath);
-            String newFilename = UuidUtil.generateUuidWithDate() + "." + "pdf";
-            FileUtil.uploadJzqPngFile(ins, filePath, newFilename);
+                HttpURLConnection httpUrl = (HttpURLConnection) new URL(data).openConnection();
+                httpUrl.connect();
+                InputStream ins = httpUrl.getInputStream();
+                //文件存储路径
+                String filePath = FILE_PATH.concat(File.separator).concat(DateUtil.generateDateTimeStr()).concat(File.separator);
+                log.info("文件上传!当前文件存储路径=== {}", filePath);
+                String newFilename = UuidUtil.generateUuidWithDate() + "." + "pdf";
+                FileUtil.uploadJzqPngFile(ins, filePath, newFilename);
 
-            String result = filePath.concat(newFilename).replaceAll("\\\\", "/");
-            String subResult = result.substring(4);
-            UploadFileOutputDto uploadFileOutputDto = new UploadFileOutputDto();
-            uploadFileOutputDto.setFileName(newFilename);
-            uploadFileOutputDto.setFilePath(subResult);
-            log.info("文件上传!结束返回接口参数为 {}", JSON.toJSONString(uploadFileOutputDto));
+                String result = filePath.concat(newFilename).replaceAll("\\\\", "/");
+                String subResult = result.substring(4);
+                UploadFileOutputDto uploadFileOutputDto = new UploadFileOutputDto();
+                uploadFileOutputDto.setFileName(newFilename);
+                uploadFileOutputDto.setFilePath(subResult);
 
-            String fileName = UuidUtil.generateUuidWithDate() + "." + "png";
-//输入路径，输出路径
-            String pngPath = FILE_PATH.concat(File.separator).concat(DateUtil.generateDateTimeStr()).concat(File.separator);
+                FileInfo fileInfo = new FileInfo();
+                fileInfo.setDelFlag(0);
+                fileInfo.setBussinessNo(bussinessNo);
+                fileInfo.setCreateTime(new Date());
+                fileInfo.setFileType(3);
+                fileInfo.setLinkType(33);
+                fileInfo.setFileName(newFilename);
+                fileInfo.setFilePath(subResult);
+                fileInfo.setOrderNum(0);
+                fileInfo.setVersion(0);
+                fileInfoRepository.save(fileInfo);
+                log.info("文件上传!结束返回接口参数为 {}", JSON.toJSONString(uploadFileOutputDto));
 
-            File pathDir = new File(pngPath);
-            if (!pathDir.exists()) {
-                pathDir.mkdirs();
-            }
-            File savedFile = new File(pngPath.concat(File.separator).concat(fileName));
+                String fileName = UuidUtil.generateUuidWithDate() + "." + "png";
+                //输入路径，输出路径
+                String pngPath = FILE_PATH.concat(File.separator).concat(DateUtil.generateDateTimeStr()).concat(File.separator);
+
+                File pathDir = new File(pngPath);
+                if (!pathDir.exists()) {
+                    pathDir.mkdirs();
+                }
+                File savedFile = new File(pngPath.concat(File.separator).concat(fileName));
 //            File file = new File("D:\\usr\\gpadfilepath\\20231120.png");
 //            System.out.println(file.getAbsolutePath());
-            pdf2multiImage(result, savedFile.getAbsolutePath());
+                pdf2multiImage(result, savedFile.getAbsolutePath());
 
-            list.add(uploadFileOutputDto);
-            pngPath = filePath.concat(fileName).replaceAll("\\\\", "/");
-            UploadFileOutputDto uploadFileOutputDto1 = new UploadFileOutputDto();
-            String subPngPath = pngPath.substring(4);
-            uploadFileOutputDto1.setFileName(fileName);
-            uploadFileOutputDto1.setFilePath(subPngPath);
-            list.add(uploadFileOutputDto1);
+                list.add(uploadFileOutputDto);
+                pngPath = filePath.concat(fileName).replaceAll("\\\\", "/");
+                UploadFileOutputDto uploadFileOutputDto1 = new UploadFileOutputDto();
+                String subPngPath = pngPath.substring(4);
+                uploadFileOutputDto1.setFileName(fileName);
+                uploadFileOutputDto1.setFilePath(subPngPath);
+                list.add(uploadFileOutputDto1);
 
-//            FileInputStream fis = new FileInputStream(file);
-//            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-//            byte[] buffer = new byte[1024];
-//            int len;
-//            while ((len = fis.read(buffer)) != -1) {
-//                bos.write(buffer, 0, len);
-//            }
-//            fis.close();
-//            byte[] data1 = bos.toByteArray();
-//            response.getOutputStream().write(data1);
-//            response.getOutputStream().close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-
+                FileInfo fileInfo1 = new FileInfo();
+                fileInfo1.setDelFlag(0);
+                fileInfo1.setBussinessNo(bussinessNo);
+                fileInfo1.setCreateTime(new Date());
+                fileInfo1.setFileType(1);
+                fileInfo1.setLinkType(33);
+                fileInfo1.setFileName(newFilename);
+                fileInfo1.setFilePath(subResult);
+                fileInfo1.setOrderNum(0);
+                fileInfo1.setVersion(0);
+                fileInfoRepository.save(fileInfo1);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return R.ok(list);
     }

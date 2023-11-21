@@ -173,8 +173,8 @@ public class GentlemanSignatureController {
      */
     @Operation(summary = "上传销售人员签名图片")
     @GetMapping("/v2/auth/filtOUTSteam")
-    public R filtOUTSteam(HttpServletResponse response, @RequestParam(value = "apl") String apl){
-        return autoSignatureService.filtOUTSteam(apl,response);
+    public R filtOUTSteam(@RequestParam(value = "apl") String apl ,@RequestParam(value = "bussinessNo")String bussinessNo){
+        return autoSignatureService.filtOUTSteam(apl,bussinessNo);
     }
 
 }
