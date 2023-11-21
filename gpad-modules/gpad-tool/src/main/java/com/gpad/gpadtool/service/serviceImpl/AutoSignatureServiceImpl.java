@@ -186,10 +186,12 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
             autoSignatureInputBO.setAccountId(gpadIdentityAuthInfo.getId());
             Boolean res = handoverCarCheckInfoRepository.updatecontractInfoById(apl, data, autoSignatureInputBO);
-            filtOUTSteam(apl,bussinessNo);
             if (!res){
                 throw new ServiceException("合同连接保存失败",CommCode.DATA_UPDATE_WRONG.getCode());
             }
+            log.info("保存合同成功 执行method：filtOUTSteam()1--->>{}->>>{}",apl,bussinessNo);
+            filtOUTSteam(apl,bussinessNo);
+
             log.info("发起裙子签证进入7 method：updatecontractInfoById()1--->>>保存合同连接结束{}",res);
             log.info("发起裙子签证进入8 method：updatecontractInfoById()1--->>>结束发起合同");
 
@@ -744,14 +746,17 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
         //构建请求参数
         Map<String,Object> params =new HashMap<>();
-        params.put("applyNo",apl); //TODO *
+        params.put("applyNo","APL1726867660194988032"); //TODO *
 //        params.put("applyNo","apl"); //TODO *
         ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkFile",params);
         String data = ri.getData();
-        System.out.println(data);
+        log.info("打印当前地址PDF 生成地址== {}", data);
         HandoverCarCheckInfo handoverCarCheckInfo = handoverCarCheckInfoRepository.queryDeliverCarConfirmInfo(bussinessNo);
+        log.info("handoverCarCheckInfo1--->>->>>{}",JSON.toJSONString(handoverCarCheckInfo));
         if (StringUtils.isNotEmpty(handoverCarCheckInfo.getContractLink())){
+            log.info("进入PDF 转图片方法--->>->>>{}",handoverCarCheckInfo.getContractLink());
             try {
+
 //            File file = UrltoFile(data);
                 HttpURLConnection httpUrl = (HttpURLConnection) new URL(data).openConnection();
                 httpUrl.connect();
@@ -778,6 +783,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 fileInfo.setFilePath(subResult);
                 fileInfo.setOrderNum(0);
                 fileInfo.setVersion(0);
+                log.info("保存PDF--->>->>>{}",JSON.toJSONString(fileInfo));
                 fileInfoRepository.save(fileInfo);
                 log.info("文件上传!结束返回接口参数为 {}", JSON.toJSONString(uploadFileOutputDto));
 
@@ -808,15 +814,17 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 fileInfo1.setCreateTime(new Date());
                 fileInfo1.setFileType(1);
                 fileInfo1.setLinkType(33);
-                fileInfo1.setFileName(newFilename);
-                fileInfo1.setFilePath(subResult);
+                fileInfo1.setFileName(fileName);
+                fileInfo1.setFilePath(subPngPath);
                 fileInfo1.setOrderNum(0);
                 fileInfo1.setVersion(0);
+                log.info("保存png--->>->>>{}",JSON.toJSONString(fileInfo1));
                 fileInfoRepository.save(fileInfo1);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+        log.info("PDF转图片结束 --->>->>>{}",JSON.toJSONString(list));
         return R.ok(list);
     }
 
