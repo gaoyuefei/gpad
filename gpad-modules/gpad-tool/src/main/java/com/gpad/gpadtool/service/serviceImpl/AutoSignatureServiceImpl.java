@@ -746,7 +746,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
         //构建请求参数
         Map<String,Object> params =new HashMap<>();
-        params.put("applyNo","APL1726867660194988032"); //TODO *
+        params.put("applyNo",apl); //TODO *
 //        params.put("applyNo","apl"); //TODO *
         ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkFile",params);
         String data = ri.getData();
