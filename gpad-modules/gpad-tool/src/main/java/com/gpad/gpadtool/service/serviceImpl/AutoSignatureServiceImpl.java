@@ -742,14 +742,26 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
     @Override
     public R filtOUTSteam(String apl,String bussinessNo) {
+        int i = 0;
         List<UploadFileOutputDto> list = new ArrayList<>();
         RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
         //构建请求参数
         Map<String,Object> params =new HashMap<>();
         params.put("applyNo",apl); //TODO *
 //        params.put("applyNo","apl"); //TODO *
-        ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkFile",params);
-        String data = ri.getData();
+        String data;
+        do {
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkFile",params);
+            log.info("打印返回地址== {}", ri);
+            data = ri.getData();
+            i++;
+        } while (StringUtils.isEmpty(data) && i <=10);
+
         log.info("打印当前地址PDF 生成地址== {}", data);
         HandoverCarCheckInfo handoverCarCheckInfo = handoverCarCheckInfoRepository.queryDeliverCarConfirmInfo(bussinessNo);
         log.info("handoverCarCheckInfo1--->>->>>{}",JSON.toJSONString(handoverCarCheckInfo));
@@ -1021,7 +1033,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 //        RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
 //        //构建请求参数
 //        Map<String,Object> params =new HashMap<>();
-//        params.put("applyNo","APL1726511327084040192"); //TODO *
+//        params.put("applyNo","APL1726926248741453824"); //TODO *
 //        ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkFile",params);
 //        String data = ri.getData();
 //        System.out.println(data);
