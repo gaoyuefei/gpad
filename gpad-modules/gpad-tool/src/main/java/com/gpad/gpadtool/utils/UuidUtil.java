@@ -35,10 +35,10 @@ public class UuidUtil {
         return Base64Util.encode(generateUuidWithDate().concat("_").concat(key));
     }
 
-    public static void main(String[] args) {
-        for (int i = 0;i < 100; i++) {
-            System.out.println(UuidUtil.generateUuidWithDate());
-        }
-    }
+//    public static void main(String[] args) {
+//        for (int i = 0;i < 100; i++) {
+//            System.out.println(UuidUtil.generateUuidWithDate());
+//        }
+//    }
 
 }

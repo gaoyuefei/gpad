@@ -79,15 +79,15 @@ public class  GRTSignUtil {
         return true;
     }
 
-    public static void main(String[] args) throws Exception {
-            long timestamp = System.currentTimeMillis();
-            System.out.println(timestamp);
-            String sign = GRTSignUtil.sign(APP_KEY_GRT, timestamp, SECRET_KEY_GRT);
-            System.out.println(sign);
-
-            // appKey 提供给客户端
-            String appKey = "YONYOU_GRTXyt4onS9pNFfgOqAAjeYNL";
-            System.out.println(checkSign(sign, appKey, timestamp));
-    }
+//    public static void main(String[] args) throws Exception {
+//            long timestamp = System.currentTimeMillis();
+//            System.out.println(timestamp);
+//            String sign = GRTSignUtil.sign(APP_KEY_GRT, timestamp, SECRET_KEY_GRT);
+//            System.out.println(sign);
+//
+//            // appKey 提供给客户端
+//            String appKey = "YONYOU_GRTXyt4onS9pNFfgOqAAjeYNL";
+//            System.out.println(checkSign(sign, appKey, timestamp));
+//    }
 }
 

@@ -810,14 +810,6 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
       return result;
     }
 
-    public static void main(String[] args) {
-//        RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
-////构建请求参数
-//        Map<String,Object> params=new HashMap<>();
-//        params.put("emailOrMobile","gqcq2@bccto.me");
-//        ResultInfo<JSONObject> ri= requestUtils.doPost("/v2/user/organizationAuditStatus",params);
-//        log.info("请求结果:"+ JSONObject.toJSONString(ri));
-    }
     @Override
     public R filtOUTSteam(String apl,String bussinessNo) {
         int i = 0;
