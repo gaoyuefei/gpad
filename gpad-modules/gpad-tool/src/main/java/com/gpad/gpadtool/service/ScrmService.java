@@ -473,5 +473,29 @@ public class ScrmService {
         log.info("method:getWxCropUserInfo() 执行结束");
         return R.ok(scrmWxCropUserInfoOutputDto);
     }
+
+    public R getProductQRcode(ScrmEncrypeParamVo paramVo) {
+        JSONObject jsonObject = new JSONObject();
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.put("account", paramVo.getData());
+        jsonObject.put("data", dataMap);
+        String json =  jsonObject.toJSONString();
+        restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("reqId", UuidUtils.generateUuid());
+        headers.add("reqFrom", "PAD");
+        headers.add("reqTime", DateUtil.getNowDateStr());
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity request = new HttpEntity(json, headers);
+        String url = "https://test-gacscrmapp.gacmotor.com/gac-data-sync/interface/external/common/getConsultantDynamicCode";
+        ResponseEntity<String> response = null;
+        try {
+            response = restTemplate.postForEntity(url, request, String.class);
+        } catch (RestClientException e) {
+            e.printStackTrace();
+        }
+        System.out.println(response);
+        return null;
+    }
 }
 

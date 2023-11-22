@@ -125,6 +125,50 @@ public class GentlemanSignatureController {
         return autoSignatureService.authUserValid(autoSignatureUserInputBO);
     }
 
+    /**
+     * 白名单接口H5
+     */
+    @Operation(summary = "二要数认证接口")
+    @PostMapping("/v2/auth/H5/userValid")
+    public R authUserSignatureValidH5(@RequestBody AutoSignatureUserInputBO autoSignatureUserInputBO){
+        return autoSignatureService.authUserValid(autoSignatureUserInputBO);
+    }
+
+
+    /**
+     * 发起裙子签证
+     */
+    @Operation(summary = "发起裙子签证")
+    @PostMapping("/v2/H5/sign/applySign")
+    public R<String> startGentlemanSignatureH5(@RequestParam(value = "autoSignatureInputBOForm",required = false) String autoSignatureInputBOForm,
+                                             @RequestParam(value = "file",required = false) MultipartFile file,
+                                             @RequestParam(value = "fileCustomerPng",required = false) MultipartFile fileCustomerPng,
+                                             @RequestParam(value = "fileProductPng",required = false) MultipartFile fileProductPng, HttpServletRequest request
+    ){
+
+        //TODO  校验 直接返回避免资源消耗
+        if (null == fileProductPng && null == fileCustomerPng){
+            return R.ok(null,"专家签名成功,等待用户签名");
+        }
+
+        log.info("发起裙子签证进入1 method：startGentlemanSignature--->>> {}",JSON.toJSONString(autoSignatureInputBOForm));
+        AutoSignatureInputBO autoSignatureInputBO = JSON.parseObject(autoSignatureInputBOForm, AutoSignatureInputBO.class);
+        // TODO 客户测试临时应对
+        if (ObjectUtil.isEmpty(autoSignatureInputBO)){
+            throw new ServiceException("客户信息有误，请检查客户信息", CommCode.DATA_UPDATE_WRONG.getCode());
+        }
+        if (StringUtils.isEmpty(autoSignatureInputBO.getIdentityCard())){
+            throw new ServiceException("客户身份信息有误，请检查身份信息", CommCode.DATA_UPDATE_WRONG.getCode());
+        }
+        if (StringUtils.isEmpty(autoSignatureInputBO.getFullName())){
+            throw new ServiceException("客户姓名有误，请检查姓名信息", CommCode.DATA_UPDATE_WRONG.getCode());
+        }
+//        if (StringUtils.isEmpty(autoSignatureInputBO.getMobile())){
+//            throw new ServiceException("客户手机号码有误，请检查手机号码信息", CommCode.DATA_UPDATE_WRONG.getCode());
+//        }
+        return autoSignatureService.startGentlemanSignature(autoSignatureInputBO,file,fileCustomerPng,fileProductPng);
+    }
+
 //    /**
 //     * 上传销售人员签名图片
 //     */

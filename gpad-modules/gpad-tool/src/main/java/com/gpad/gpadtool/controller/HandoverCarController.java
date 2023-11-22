@@ -100,6 +100,31 @@ public class HandoverCarController {
         return R.ok(handoverCarCheckInfoOutBO);
     }
 
+    /**
+     * 白名单：H5
+     */
+    @Operation(summary = "查询交车白名单确认信息")
+    @PostMapping("/H5/getHandoverCarCheckInfo")
+    public R<HandoverCarCheckInfoOutBO> getHandoverCarCheckInfoH5(@RequestBody HandoverCarCheckInfoDto handoverCarCheckInfoDto){
+        log.info("查询交车确认白名单信息 --->>> {}", JSONObject.toJSONString(handoverCarCheckInfoDto));
+        if (Strings.isEmpty(handoverCarCheckInfoDto.getBussinessNo())){
+            return R.fail("bussinessNo必传，请检查参数! ");
+        }
+
+        //客户信息
+        R<List<OrderDetailResultDto>> grtOrderDetail = grtService.getGrtOrderDetail(handoverCarCheckInfoDto.getBussinessNo());
+
+        //合同信息
+        HandoverCarCheckInfoOutBO handoverCarCheckInfoOutBO = handoverCarCheckInfoService.queryDeliverCarConfirmInfo(handoverCarCheckInfoDto);
+
+        List<OrderDetailResultDto> data = grtOrderDetail.getData();
+        if (!CollectionUtil.isEmpty(data)){
+            handoverCarCheckInfoOutBO.setOrderDetailResultDto(grtOrderDetail.getData().get(0));
+        }
+
+        return R.ok(handoverCarCheckInfoOutBO);
+    }
+
 
     /**
      * 查询交车准备信息

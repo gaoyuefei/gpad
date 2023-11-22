@@ -90,6 +90,15 @@ public class ScrmController {
     }
 
     /**
+     * 获取客户二维码接口
+     */
+    @Operation(summary = "获取accessToken")
+    @PostMapping("/WX/getProductQRcode")
+    public R getProductQRcode(@RequestBody ScrmEncrypeParamVo paramVo) {
+        return scrmService.getProductQRcode(paramVo);
+    }
+
+    /**
      * 生成企业微信登录二维码
      */
     @Operation(summary = "生成企业微信登录二维码")
