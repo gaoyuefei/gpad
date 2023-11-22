@@ -3,8 +3,10 @@ package com.gpad.gpadtool.controller.autoSignature;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.gpad.common.core.bo.input.*;
+import com.gpad.common.core.constant.TokenConstants;
 import com.gpad.common.core.domain.R;
 import com.gpad.common.core.exception.ServiceException;
+import com.gpad.common.core.utils.JwtUtils;
 import com.gpad.common.core.utils.StringUtils;
 import com.gpad.common.security.utils.SecurityUtils;
 import com.gpad.gpadtool.constant.CommCode;
@@ -21,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 
 /**
@@ -51,7 +53,7 @@ public class GentlemanSignatureController {
     public R<String> startGentlemanSignature(@RequestParam(value = "autoSignatureInputBOForm",required = false) String autoSignatureInputBOForm,
                                              @RequestParam(value = "file",required = false) MultipartFile file,
                                              @RequestParam(value = "fileCustomerPng",required = false) MultipartFile fileCustomerPng,
-                                             @RequestParam(value = "fileProductPng",required = false) MultipartFile fileProductPng
+                                             @RequestParam(value = "fileProductPng",required = false) MultipartFile fileProductPng, HttpServletRequest request
     ){
 
         //TODO  校验 直接返回避免资源消耗
@@ -76,6 +78,13 @@ public class GentlemanSignatureController {
 //        }
         String username = SecurityUtils.getUsername();
         autoSignatureInputBO.setAccount(username);
+
+        String token = request.getHeader("Authorization");
+        // 如果前端设置了令牌前缀，则裁剪掉前缀
+        if (StringUtils.isNotEmpty(token) && token.startsWith(TokenConstants.PREFIX)) {
+            token = token.replaceFirst(TokenConstants.PREFIX, StringUtils.EMPTY);
+        }
+        autoSignatureInputBO.setDealerCode(JwtUtils.getDealerCode(token));
         return autoSignatureService.startGentlemanSignature(autoSignatureInputBO,file,fileCustomerPng,fileProductPng);
     }
 

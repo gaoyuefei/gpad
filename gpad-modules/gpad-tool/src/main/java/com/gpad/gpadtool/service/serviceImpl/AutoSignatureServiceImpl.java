@@ -17,18 +17,20 @@ import com.gpad.gpadtool.domain.dto.FileInfoDto;
 import com.gpad.gpadtool.domain.dto.FlowInfoDto;
 import com.gpad.gpadtool.domain.dto.UploadFileOutputDto;
 import com.gpad.gpadtool.domain.entity.FileInfo;
+import com.gpad.gpadtool.domain.entity.GpadDlrAuthenticationEmailInfo;
 import com.gpad.gpadtool.domain.entity.GpadIdentityAuthInfo;
 import com.gpad.gpadtool.domain.entity.HandoverCarCheckInfo;
 import com.gpad.gpadtool.domain.vo.JzqDataValidSignatureVo;
+import com.gpad.gpadtool.domain.vo.JzqOrganizationAuditStatusVo;
 import com.gpad.gpadtool.domain.vo.JzqSignApplyVo;
 import com.gpad.gpadtool.domain.vo.JzqUserValidSignatureVo;
-import com.gpad.gpadtool.repository.FileInfoRepository;
-import com.gpad.gpadtool.repository.FlowInfoRepository;
-import com.gpad.gpadtool.repository.GpadIdentityAuthInfoRepository;
-import com.gpad.gpadtool.repository.HandoverCarCheckInfoRepository;
+import com.gpad.gpadtool.repository.*;
 import com.gpad.gpadtool.service.AutoSignatureService;
 import com.gpad.gpadtool.service.GRTService;
-import com.gpad.gpadtool.utils.*;
+import com.gpad.gpadtool.utils.DateUtil;
+import com.gpad.gpadtool.utils.FileUtil;
+import com.gpad.gpadtool.utils.RedisLockUtils;
+import com.gpad.gpadtool.utils.UuidUtil;
 import com.junziqian.sdk.bean.ResultInfo;
 import com.junziqian.sdk.bean.req.sign.ext.SignatoryReq;
 import com.junziqian.sdk.util.RequestUtils;
@@ -47,12 +49,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.*;
 
 /**
  * @author Donald.Lee
@@ -67,6 +68,9 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
     @Value("${config.file.path}")
     private String FILE_PATH;
+
+    @Value("${environment.config}")
+    private String environment;
 
     private static final String SERVICE_URL = "https://api.sandbox.junziqian.com";
     private static final String APP_SECRET = "70adae25924410c408aea504181c7f80";
@@ -85,15 +89,39 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     private HandoverCarCheckInfoRepository handoverCarCheckInfoRepository;
 
     @Autowired
+    private GpadDlrAuthenticationEmailInfoRepository gpadDlrAuthenticationEmailInfoRepository;
+
+    @Autowired
     private GRTService grtSservice;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public R<String> startGentlemanSignature(AutoSignatureInputBO autoSignatureInputBO, MultipartFile file,MultipartFile fileCustomerPng,MultipartFile fileProductPng) {
-//        autoSignatureInputBO.setAccount("DGDA010_ADMIN");
+
+        GpadDlrAuthenticationEmailInfo gpadDlrAuthenticationEmailInfo = gpadDlrAuthenticationEmailInfoRepository.queryEmail(autoSignatureInputBO.getDealerCode());
+        if ("test".equals(environment)){
+            if (!ObjectUtil.isNotEmpty(gpadDlrAuthenticationEmailInfo)){
+                gpadDlrAuthenticationEmailInfo = new GpadDlrAuthenticationEmailInfo();
+                gpadDlrAuthenticationEmailInfo.setCompanyName("广汽传祺汽车销售有限公司");
+                gpadDlrAuthenticationEmailInfo.setUscc("914401013275898060");
+                gpadDlrAuthenticationEmailInfo.setEmail("gqcq2@bccto.me");
+            }
+        }
+
+        if (!ObjectUtil.isNotEmpty(gpadDlrAuthenticationEmailInfo)){
+          return   R.fail(null,CommCode.DATA_IS_WRONG.getCode(),"检测"+autoSignatureInputBO.getDealerCode()+"店未进行企业实名认证，请联系管理员申请企业认证");
+        }
+        log.info("快速校验1 method：queryEmail()1--->>> {}",JSON.toJSONString(gpadDlrAuthenticationEmailInfo));
+
+        JzqOrganizationAuditStatusVo jzqOrganizationAuditStatusVo = checkOrganizationStatus(gpadDlrAuthenticationEmailInfo);
+        if (!jzqOrganizationAuditStatusVo.getSuccess()){
+          return   R.fail(null,CommCode.DATA_IS_WRONG.getCode(),jzqOrganizationAuditStatusVo.getMsg());
+        }
+        log.info("快速校验2 method：checkOrganizationStatus()1--->>> {}",JSON.toJSONString(jzqOrganizationAuditStatusVo));
+
         String data = "";
         String bussinessNo = autoSignatureInputBO.getBussinessNo();
-        log.info("发起裙子签证进入1 method：startGentlemanSignature()1--->>> {}",bussinessNo);
+        log.info("快速通过校验后：发起裙子签证进入1 method：startGentlemanSignature()1--->>> {}",bussinessNo);
 
         try {
             RedisLockUtils.lock(bussinessNo);
@@ -162,7 +190,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 }
             }
             log.info("发起裙子签证进入6 method：turnOnLineSignature()1--->>>开始发起合同调用");
-            R result = turnOnLineSignature(autoSignatureInputBO,gentlemanSaltingVo,file,fileCustomerPng,fileProductPng);
+            R result = turnOnLineSignature(autoSignatureInputBO,gentlemanSaltingVo,file,fileCustomerPng,fileProductPng,gpadDlrAuthenticationEmailInfo);
             if (!"200".equals(result.getCode()+"")){
                 throw new ServiceException(result.getMsg(),500);
             }
@@ -201,7 +229,19 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         return R.ok(data,"合同发起成功");
     }
 
-    public R turnOnLineSignature(AutoSignatureInputBO autoSignatureInputBO,GentlemanSaltingVo gentlemanSaltingVo, MultipartFile file, MultipartFile fileCustomerPng,MultipartFile fileProductPng) {
+    private JzqOrganizationAuditStatusVo checkOrganizationStatus(GpadDlrAuthenticationEmailInfo gpadDlrAuthenticationEmailInfo) {
+        RequestUtils re =RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
+//构建请求参数
+        Map<String,Object> params=new HashMap<>();
+        params.put("emailOrMobile",gpadDlrAuthenticationEmailInfo.getEmail());
+        ResultInfo<JSONObject> ri= re.doPost("/v2/user/organizationAuditStatus",params);
+        log.info("请求君子签结果:"+ JSONObject.toJSONString(ri));
+        JzqOrganizationAuditStatusVo jzqOrganizationAuditStatusVo = JSONObject.parseObject(JSON.toJSONString(ri), JzqOrganizationAuditStatusVo.class);
+        log.info("请求转换结果:"+ JSONObject.toJSONString(jzqOrganizationAuditStatusVo));
+        return jzqOrganizationAuditStatusVo;
+    }
+
+    public R turnOnLineSignature(AutoSignatureInputBO autoSignatureInputBO,GentlemanSaltingVo gentlemanSaltingVo, MultipartFile file, MultipartFile fileCustomerPng,MultipartFile fileProductPng,GpadDlrAuthenticationEmailInfo gpadDlrAuthenticationEmailInfo) {
         File localCustomerPng = null;
         //查询合同编号 是否存在
         String bussinessNo = autoSignatureInputBO.getBussinessNo();
@@ -268,7 +308,12 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 params.put("isArchive",isArchive);
                 params.put("file",localFile);
                 params.put("contractName",autoSignatureInputBO.getContractName());
+                String chapteJsonFirst = autoSignatureInputBO.getChapteJsonFirst();
+                signatories.add(jointEnterprise(chapteJsonFirst,gpadDlrAuthenticationEmailInfo));
                 params.put("signatories",signatories.toJSONString());
+
+
+
                 log.info("封住结束参数为{}", JSONObject.toJSONString(signatories));
                 //这里必须用new String，因为使用的是IdentityHashMap（为了多个file的同name上传）
 
@@ -337,6 +382,24 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
              localProductPng = null;
             RedisLockUtils.unlock(bussinessNo);
         }
+    }
+
+    private SignatoryReq jointEnterprise(String chapteJsonFirst,GpadDlrAuthenticationEmailInfo gpadDlrAuthenticationEmailInfo) {
+        log.info("打印企业信息入参{}》》》》{}",chapteJsonFirst,JSON.toJSONString(gpadDlrAuthenticationEmailInfo));
+        //拼接企业参数
+        SignatoryReq sReq3 =new SignatoryReq();
+        sReq3.setFullName(gpadDlrAuthenticationEmailInfo.getCompanyName()); //企业姓名
+        sReq3.setIdentityType(11); //证件类型
+        sReq3.setIdentityCard(gpadDlrAuthenticationEmailInfo.getUscc());//营业执照号
+        sReq3.setEmail(gpadDlrAuthenticationEmailInfo.getEmail()); //在君子签注册认证的邮箱
+        sReq3.setChapteJson(chapteJsonFirst);//坐标（X Y）定位签字位置
+        // sReq.setSearchKey("服务组件");//关键字定位签字位置
+        sReq3.setSignLevel(0);
+        sReq3.setNoNeedVerify(1);
+        sReq3.setServerCaAuto(1);//当前签约方自动签署
+        sReq3.setOrderNum(3);
+        log.info("打印企业信息转换结束{}",JSON.toJSONString(sReq3));
+        return sReq3;
     }
 
     private R continueStartGenManSignatureAddEnd(GentlemanSaltingVo gentlemanSaltingVo, ContinueStartSignatureInputBO continueStartSignatureInputBO) {
@@ -740,6 +803,14 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
       return result;
     }
 
+    public static void main(String[] args) {
+//        RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
+////构建请求参数
+//        Map<String,Object> params=new HashMap<>();
+//        params.put("emailOrMobile","gqcq2@bccto.me");
+//        ResultInfo<JSONObject> ri= requestUtils.doPost("/v2/user/organizationAuditStatus",params);
+//        log.info("请求结果:"+ JSONObject.toJSONString(ri));
+    }
     @Override
     public R filtOUTSteam(String apl,String bussinessNo) {
         int i = 0;
@@ -759,6 +830,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkFile",params);
             log.info("打印返回地址== {}", ri);
             data = ri.getData();
+            log.info("打印调了多少次== {}", i);
             i++;
         } while (StringUtils.isEmpty(data) && i <=10);
 
@@ -832,8 +904,11 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 fileInfo1.setVersion(0);
                 log.info("保存png--->>->>>{}",JSON.toJSONString(fileInfo1));
                 fileInfoRepository.save(fileInfo1);
+
             } catch (Exception e) {
                 e.printStackTrace();
+            }finally {
+
             }
         }
         log.info("PDF转图片结束 --->>->>>{}",JSON.toJSONString(list));
