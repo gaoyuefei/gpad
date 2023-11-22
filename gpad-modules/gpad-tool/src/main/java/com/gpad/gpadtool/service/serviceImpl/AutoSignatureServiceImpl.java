@@ -98,26 +98,26 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     @Transactional(rollbackFor = Exception.class)
     public R<String> startGentlemanSignature(AutoSignatureInputBO autoSignatureInputBO, MultipartFile file,MultipartFile fileCustomerPng,MultipartFile fileProductPng) {
 
-        GpadDlrAuthenticationEmailInfo gpadDlrAuthenticationEmailInfo = gpadDlrAuthenticationEmailInfoRepository.queryEmail(autoSignatureInputBO.getDealerCode());
-        if ("test".equals(environment)){
-            if (!ObjectUtil.isNotEmpty(gpadDlrAuthenticationEmailInfo)){
-                gpadDlrAuthenticationEmailInfo = new GpadDlrAuthenticationEmailInfo();
-                gpadDlrAuthenticationEmailInfo.setCompanyName("广汽传祺汽车销售有限公司");
-                gpadDlrAuthenticationEmailInfo.setUscc("914401013275898060");
-                gpadDlrAuthenticationEmailInfo.setEmail("gqcq2@bccto.me");
-            }
-        }
-
-        if (!ObjectUtil.isNotEmpty(gpadDlrAuthenticationEmailInfo)){
-          return   R.fail(null,CommCode.DATA_IS_WRONG.getCode(),"检测"+autoSignatureInputBO.getDealerCode()+"店未进行企业实名认证，请联系管理员申请企业认证");
-        }
-        log.info("快速校验1 method：queryEmail()1--->>> {}",JSON.toJSONString(gpadDlrAuthenticationEmailInfo));
-
-        JzqOrganizationAuditStatusVo jzqOrganizationAuditStatusVo = checkOrganizationStatus(gpadDlrAuthenticationEmailInfo);
-        if (!jzqOrganizationAuditStatusVo.getSuccess()){
-          return   R.fail(null,CommCode.DATA_IS_WRONG.getCode(),jzqOrganizationAuditStatusVo.getMsg());
-        }
-        log.info("快速校验2 method：checkOrganizationStatus()1--->>> {}",JSON.toJSONString(jzqOrganizationAuditStatusVo));
+//        GpadDlrAuthenticationEmailInfo gpadDlrAuthenticationEmailInfo = gpadDlrAuthenticationEmailInfoRepository.queryEmail(autoSignatureInputBO.getDealerCode());
+//        if ("test".equals(environment)){
+//            if (!ObjectUtil.isNotEmpty(gpadDlrAuthenticationEmailInfo)){
+//                gpadDlrAuthenticationEmailInfo = new GpadDlrAuthenticationEmailInfo();
+//                gpadDlrAuthenticationEmailInfo.setCompanyName("广汽传祺汽车销售有限公司");
+//                gpadDlrAuthenticationEmailInfo.setUscc("914401013275898060");
+//                gpadDlrAuthenticationEmailInfo.setEmail("gqcq2@bccto.me");
+//            }
+//        }
+//
+//        if (!ObjectUtil.isNotEmpty(gpadDlrAuthenticationEmailInfo)){
+//          return   R.fail(null,CommCode.DATA_IS_WRONG.getCode(),"检测"+autoSignatureInputBO.getDealerCode()+"店未进行企业实名认证，请联系管理员申请企业认证");
+//        }
+//        log.info("快速校验1 method：queryEmail()1--->>> {}",JSON.toJSONString(gpadDlrAuthenticationEmailInfo));
+//
+//        JzqOrganizationAuditStatusVo jzqOrganizationAuditStatusVo = checkOrganizationStatus(gpadDlrAuthenticationEmailInfo);
+//        if (!jzqOrganizationAuditStatusVo.getSuccess()){
+//          return   R.fail(null,CommCode.DATA_IS_WRONG.getCode(),jzqOrganizationAuditStatusVo.getMsg());
+//        }
+//        log.info("快速校验2 method：checkOrganizationStatus()1--->>> {}",JSON.toJSONString(jzqOrganizationAuditStatusVo));
 
         String data = "";
         String bussinessNo = autoSignatureInputBO.getBussinessNo();
@@ -190,6 +190,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 }
             }
             log.info("发起裙子签证进入6 method：turnOnLineSignature()1--->>>开始发起合同调用");
+            GpadDlrAuthenticationEmailInfo gpadDlrAuthenticationEmailInfo = new GpadDlrAuthenticationEmailInfo();
             R result = turnOnLineSignature(autoSignatureInputBO,gentlemanSaltingVo,file,fileCustomerPng,fileProductPng,gpadDlrAuthenticationEmailInfo);
             if (!"200".equals(result.getCode()+"")){
                 throw new ServiceException(result.getMsg(),500);
@@ -308,8 +309,9 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 params.put("isArchive",isArchive);
                 params.put("file",localFile);
                 params.put("contractName",autoSignatureInputBO.getContractName());
-                String chapteJsonFirst = autoSignatureInputBO.getChapteJsonFirst();
-                signatories.add(jointEnterprise(chapteJsonFirst,gpadDlrAuthenticationEmailInfo));
+//                String chapteJsonFirst = autoSignatureInputBO.getChapteJsonFirst();
+                //2023/1122/2348  去掉企业签名
+//                signatories.add(jointEnterprise(chapteJsonFirst,gpadDlrAuthenticationEmailInfo));
                 params.put("signatories",signatories.toJSONString());
 
 
