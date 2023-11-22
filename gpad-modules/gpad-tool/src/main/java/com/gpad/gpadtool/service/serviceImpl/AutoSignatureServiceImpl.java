@@ -830,7 +830,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         String data;
         do {
             try {
-                Thread.sleep(300);
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -846,10 +846,11 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         log.info("handoverCarCheckInfo1--->>->>>{}",JSON.toJSONString(handoverCarCheckInfo));
         if (StringUtils.isNotEmpty(handoverCarCheckInfo.getContractLink())){
             log.info("进入PDF 转图片方法--->>->>>{}",handoverCarCheckInfo.getContractLink());
+            HttpURLConnection httpUrl = null;
             try {
 
 //            File file = UrltoFile(data);
-                HttpURLConnection httpUrl = (HttpURLConnection) new URL(data).openConnection();
+                httpUrl = (HttpURLConnection) new URL(data).openConnection();
                 httpUrl.connect();
                 InputStream ins = httpUrl.getInputStream();
                 //文件存储路径
@@ -857,7 +858,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 log.info("文件上传!当前文件存储路径=== {}", filePath);
                 String newFilename = UuidUtil.generateUuidWithDate() + "." + "pdf";
                 FileUtil.uploadJzqPngFile(ins, filePath, newFilename);
-
+                httpUrl.disconnect();
                 String result = filePath.concat(newFilename).replaceAll("\\\\", "/");
                 String subResult = result.substring(4);
                 UploadFileOutputDto uploadFileOutputDto = new UploadFileOutputDto();
@@ -915,6 +916,9 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             } catch (Exception e) {
                 e.printStackTrace();
             }finally {
+                if (null != httpUrl){
+                    httpUrl.disconnect();
+                }
 
             }
         }
@@ -976,9 +980,12 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
      * @param outpath
      */
     private static void pdf2multiImage(String pdfFile, String outpath) {
+
+        PDDocument pdf = null;
+        InputStream is = null;
         try {
-            InputStream is = new FileInputStream(pdfFile);
-            PDDocument pdf = PDDocument.load(is);
+            is = new FileInputStream(pdfFile);
+            pdf = PDDocument.load(is);
             int actSize  = pdf.getNumberOfPages();
             List<BufferedImage> piclist = new ArrayList<BufferedImage>();
             for (int i = 0; i < actSize; i++) {
@@ -989,6 +996,23 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             is.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }finally {
+            if (null != is){
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    log.info("InputStream---》》》》》未正常关闭");
+                    e.printStackTrace();
+                }
+            }
+            if (null != pdf){
+                try {
+                    pdf.close();
+                } catch (IOException e) {
+                    log.info("pdf---------》》》》未正常关闭");
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -1245,7 +1269,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         HttpURLConnection httpUrl = (HttpURLConnection) new URL(url).openConnection();
         httpUrl.connect();
         InputStream ins=httpUrl.getInputStream();
-        ApplicationHome applicationHome = new ApplicationHome(this.getClass());
+//        ApplicationHome applicationHome = new ApplicationHome(this.getClass());
         // 保存目录位置根据项目需求可
 //        String str = applicationHome.getDir().getParentFile().getParentFile().getAbsolutePath() + "\\src\\main\\resources\\static\\"+ System.currentTimeMillis();
         File file = new File(System.getProperty("java.io.tmpdir") + File.separator + "xie");//System.getProperty("java.io.tmpdir")缓存
