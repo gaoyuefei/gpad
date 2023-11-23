@@ -72,9 +72,20 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     @Value("${environment.config}")
     private String environment;
 
-    private static final String SERVICE_URL = "https://api.sandbox.junziqian.com";
-    private static final String APP_SECRET = "70adae25924410c408aea504181c7f80";
-    private static final String APP_KEY = "924410c408aea504";
+    @Value("${jzq.service-url}")
+    private String SERVICE_URL;
+
+    @Value("${jzq.app-secret}")
+    private String APP_SECRET;
+
+    @Value("${jzq.app-key}")
+    private String APP_KEY;
+
+//    private static final String SERVICE_URL = "https://api.sandbox.junziqian.com";
+//
+//    private static final String APP_SECRET = "70adae25924410c408aea504181c7f80";
+//
+//    private static final String APP_KEY = "924410c408aea504";
 
     @Autowired
     private FlowInfoRepository flowInfoRepository;
@@ -465,10 +476,6 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     }
 
     public boolean personValid(GentlemanSaltingVo gentlemanSaltingVo,String name,String identityCard) {
-
-        if (true){
-            return true;
-        }
 
         log.info("开始校验 method:personValid{},身份证号    {}",name,identityCard);
         Boolean result = false;

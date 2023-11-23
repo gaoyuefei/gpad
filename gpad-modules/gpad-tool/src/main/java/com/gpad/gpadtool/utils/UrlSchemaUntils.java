@@ -4,27 +4,28 @@ import com.alibaba.fastjson2.JSON;
 import com.gpad.gpadtool.domain.vo.LoginReqVo;
 import com.gpad.gpadtool.domain.vo.LoginResVo;
 import org.apache.commons.codec.binary.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
-import javax.crypto.*;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Random;
 
 public class UrlSchemaUntils {
+
+    @Value("${account.appTokenUsername}")
+    private static String appUsername;
+
+    @Value("${account.appTokenPassword}")
+    private static String appPassword;
 
 
     public static LoginResVo getTokenUerName(){
         LoginResVo loginResVo = new LoginResVo();
         try {
-            // 测试用账号密码
-            String username = "ceshi01";
-            String password = "Gac@2020";
+//            // 测试用账号密码
+            String username = appUsername;
+            String password = appPassword;
 
             // RSA加密
             byte[] usernameEncrytype = RsaUtils.publicEncrytype(username.getBytes(),RsaUtils.string2PublicKey(RsaUtils.getPublicKey()));

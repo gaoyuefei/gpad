@@ -50,6 +50,12 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
     @Value("${wx.app-commentUrlExt}")
     private String commentUrlExt;
 
+    @Value("${wx.app-getWxToken}")
+    private String app_getWxToken;
+
+    @Value("${pad.use_h5_url}")
+    private String h5Url;
+
     @Autowired
     private RestTemplate restTemplate;
 
@@ -185,7 +191,7 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
 
     public ExhibitionMixPadOutBO queryExhibitionMixPadExt(ExhibitionMixPadInputBO exhibitionMixPadInputBO, WxTokenVO wxTokenVO) {
         // commentUrlExt
-        String url =  "https://malltest.gacmotor.com/big-screen-bff/fronted/exhibition/content/queryExhibitionMisePad";
+        String url = commentUrlExt+"big-screen-bff/fronted/exhibition/content/queryExhibitionMisePad";
 
         String token = wxTokenVO.getToken();
         HttpHeaders headers = new HttpHeaders();
@@ -202,7 +208,7 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
     }
 
     public WxApiCommentOutBO getOrderCommentStatus(WxTokenVO wxTokenVO,WxApiCommentInputBO wxApiCommentInputBO) {
-        String url = "https://malltest.gacmotor.com" +"/thirdparty-app/scrm/getOrderComment";
+        String url = commentUrlExt +"/thirdparty-app/scrm/getOrderComment";
 
         String token = wxTokenVO.getToken();
         HttpHeaders headers = new HttpHeaders();
@@ -244,7 +250,7 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         String data = "";
         String url = appSchemaUrl;
         String str = "src=";
-        String wxApiUrl = "https://pad-test.spgacmotorfm.com/";
+        String wxApiUrl = h5Url; //"https://pad-test.spgacmotorfm.com/";
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("appId", "wx86a1eb5a53a6973b");
@@ -293,9 +299,10 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
 
     public WxTokenVO getAppToken(LoginResVo tokenUerName) {
         log.info("进入获取小程序token接口->>>>>{}",JSONObject.toJSONString(tokenUerName));
-        String url = "https://malltest.gacmotor.com/boss-admin-app/getToken";
+//        String url = "https://malltest.gacmotor.com/boss-admin-app/getToken";
+        log.info("进入获取小程序token接口->>>>>{}",JSONObject.toJSONString(app_getWxToken));
         HttpEntity<LoginResVo> loginResVoHttpEntity = new HttpEntity<>(tokenUerName);
-        ResponseEntity<String> exchange = restTemplate.exchange(url, HttpMethod.POST, loginResVoHttpEntity, String.class);
+        ResponseEntity<String> exchange = restTemplate.exchange(app_getWxToken, HttpMethod.POST, loginResVoHttpEntity, String.class);
         String data = JSONObject.parseObject(exchange.getBody()).getString("data");
         String token = JSONObject.parseObject(data).getString("token");
         String expirationTime = JSONObject.parseObject(data).getString("expirationTime");
