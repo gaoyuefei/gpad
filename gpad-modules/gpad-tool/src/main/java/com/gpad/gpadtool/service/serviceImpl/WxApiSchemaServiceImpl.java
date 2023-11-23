@@ -56,6 +56,13 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
     @Value("${pad.use_h5_url}")
     private String h5Url;
 
+
+    @Value("${account.appTokenUsername}")
+    private String appUsername;
+
+    @Value("${account.appTokenPassword}")
+    private String appPassword;
+
     @Autowired
     private RestTemplate restTemplate;
 

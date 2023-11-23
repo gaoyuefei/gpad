@@ -5,20 +5,28 @@ import com.gpad.gpadtool.domain.vo.LoginReqVo;
 import com.gpad.gpadtool.domain.vo.LoginResVo;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-
+@Component
 public class UrlSchemaUntils {
 
-    @Value("${account.appTokenUsername}")
     private static String appUsername;
 
-    @Value("${account.appTokenPassword}")
     private static String appPassword;
 
+    @Value("${account.appTokenUsername}")
+    public void setAppUsername(String param){
+        appUsername = param;
+    }
+
+    @Value("${account.appTokenPassword}")
+    public void setAppPassword(String param){
+        appPassword = param;
+    }
 
     public static LoginResVo getTokenUerName(){
         LoginResVo loginResVo = new LoginResVo();
