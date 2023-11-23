@@ -407,6 +407,9 @@ public class ScrmService {
 
         restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
         HttpHeaders headers = new HttpHeaders();
+        headers.set("reqId",UuidUtils.generateUuid());
+        headers.set("reqFrom","PAD");
+        headers.set("reqTime",DateUtil.getNowDateStr());
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         //封装成一个请求对象
@@ -437,6 +440,9 @@ public class ScrmService {
 
         restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
         HttpHeaders headers = new HttpHeaders();
+        headers.set("reqId",UuidUtils.generateUuid());
+        headers.set("reqFrom","PAD");
+        headers.set("reqTime",DateUtil.getNowDateStr());
         headers.setContentType(MediaType.APPLICATION_JSON);
         //封装成一个请求对象
         HttpEntity request = new HttpEntity(json, headers);
@@ -445,6 +451,7 @@ public class ScrmService {
         ResponseEntity<String> response = null;
         try {
             response = restTemplate.postForEntity(url, request, String.class);
+            log.info("response = restTemplate.postForEntity 返回信息》》》{}",JSONObject.toJSONString(response));
         } catch (RestClientException e) {
             log.info("restTemplate.postForEntity调用接口异常--->>> request{}",JSONObject.toJSONString(response));
             e.printStackTrace();
