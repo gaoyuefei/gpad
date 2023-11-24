@@ -71,6 +71,29 @@ public class FileController {
         return R.ok(uploadFileOutputDto);
     }
 
+
+    /**
+     * 文件上传
+     */
+    @Operation(summary = "文件上传")
+    @PostMapping("/test/uploadFile")
+    public R testUploadFile(@RequestParam("file") MultipartFile file) {
+        log.info("文件上传!配置的存储路径=== {}", FILE_PATH);
+        if (!FileUtil.checkFileType(file)) {
+            return R.fail("上传附件失败,请输入正确的文件类型");
+        }
+//        String filename = file.getOriginalFilename();
+//        if (Strings.isEmpty(filename)) {
+//            return R.fail("文件名不能为空!");
+//        }
+
+        String fileType = FileUtil.getFileType(file);
+        if (fileType == null) {
+            return R.fail("文件类型为空!");
+        }
+        return R.ok(fileType);
+    }
+
     /**
      * 文件下载
      */

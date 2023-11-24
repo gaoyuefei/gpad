@@ -49,6 +49,7 @@ public class OrderDetailRepository extends ServiceImpl<OrderDetailMapper, OrderD
                 .consultant(orderDetailResultDto.getConsultant())
                 .sheetCreateDate(orderDetailResultDto.getSheetCreateDate())
                 .remark(orderDetailResultDto.getRemark())
+                .createTime(new Date())
                 .build();
         return this.save(orderDetail);
     }
