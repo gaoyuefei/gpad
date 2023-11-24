@@ -1,5 +1,6 @@
 package com.gpad.gpadtool.domain.dto.scrm;
 
+import com.gpad.gpadtool.domain.vo.ScrmConsultantCodeVo;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -21,18 +22,7 @@ public class ScrmConsultantCodeOutBO {
     private String message;
 
     @ApiModelProperty(value = "data")
-    private String data;
+    private ScrmConsultantCodeVo data;
 
-    @ApiModelProperty(value = "员工姓名")
-    private String name;
-
-    @ApiModelProperty(value = "企微头像")
-    private String avatar;
-
-    @ApiModelProperty(value = "门店名称")
-    private String storeName;
-
-    @ApiModelProperty(value = "员工活码")
-    private String qrcodeUrl;
 }
 

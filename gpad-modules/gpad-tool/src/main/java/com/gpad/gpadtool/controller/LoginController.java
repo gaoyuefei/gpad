@@ -4,7 +4,9 @@ package com.gpad.gpadtool.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.gpad.common.core.domain.R;
+import com.gpad.common.core.utils.StringUtils;
 import com.gpad.common.core.web.domain.AjaxResult;
+import com.gpad.common.security.utils.SecurityUtils;
 import com.gpad.gpadtool.constant.RedisKey;
 import com.gpad.gpadtool.domain.vo.ScanCodeTokenInfoVo;
 import com.gpad.gpadtool.service.ScrmService;
@@ -46,6 +48,20 @@ public class LoginController {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+
+    /**
+     * 获取当前账号 account
+     */
+    @Operation(summary = "生成二维码")
+    @GetMapping("/getCurrentTokenAcount")
+    public R getQrCode(HttpServletRequest request) {
+        String username = SecurityUtils.getUsername();
+        if (StringUtils.isEmpty(username)){
+            R.fail(1000009,"当前令牌信息异常");
+        }
+        return R.ok(username);
+    }
 
     /**
      * 生成二维码

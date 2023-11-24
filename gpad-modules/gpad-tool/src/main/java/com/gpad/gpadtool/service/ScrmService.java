@@ -14,6 +14,7 @@ import com.gpad.gpadtool.constant.CommCode;
 import com.gpad.gpadtool.constant.RedisKey;
 import com.gpad.gpadtool.domain.dto.*;
 import com.gpad.gpadtool.domain.dto.scrm.*;
+import com.gpad.gpadtool.domain.vo.ScrmConsultantCodeVo;
 import com.gpad.gpadtool.domain.vo.SyncScrmUserInfoParamVo;
 import com.gpad.gpadtool.enums.ScrmToPadFileTypeEnum;
 import com.gpad.gpadtool.repository.DeptInfoRepository;
@@ -97,6 +98,9 @@ public class ScrmService {
 
     @Value("${scrm.getProductQRcode}")
     private String getProductQRcode;
+
+    @Value("${scrm.qcodeAuth}")
+    private String qcodeAuth;
 
     private static final Logger log = LoggerFactory.getLogger(ScrmService.class);
 
@@ -488,13 +492,21 @@ public class ScrmService {
         JSONObject jsonObject = new JSONObject();
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("account", paramVo.getData());
-        jsonObject.put("data", dataMap);
+        String encryptData = "";
+        try {
+            encryptData = CryptoUtils.publicKeyEncrypt(JSON.toJSONString(dataMap), publicInterfaceKey);
+        } catch (Exception e) {
+            log.info("加密数据报错");
+        }
+
+        jsonObject.put("data", encryptData);
         String json =  jsonObject.toJSONString();
         restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
         HttpHeaders headers = new HttpHeaders();
         headers.add("reqId", UuidUtils.generateUuid());
         headers.add("reqFrom", "PAD");
         headers.add("reqTime", DateUtil.getNowDateStr());
+        headers.add("Authorization", qcodeAuth);
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity request = new HttpEntity(json, headers);
 //        String getProductQRcode = "https://test-gacscrmapp.gacmotor.com/gac-data-sync/interface/external/common/getConsultantDynamicCode";
@@ -503,16 +515,22 @@ public class ScrmService {
             response = restTemplate.postForEntity(getProductQRcode, request, String.class);
         } catch (RestClientException e) {
             e.printStackTrace();
+            log.info("捕获异常打印getProductQRcode{}",JSON.toJSONString(response));
         }
-        ScrmConsultantCodeOutBO scrmConsultantCodeOutBO1 = JSONObject.parseObject(response.getBody(), ScrmConsultantCodeOutBO.class);
-        log.info(" scrmConsultantCodeOutBO1{}",JSON.toJSONString(scrmConsultantCodeOutBO1));
-        System.out.println(response);
-        ScrmConsultantCodeOutBO scrmConsultantCodeOutBO = new ScrmConsultantCodeOutBO();
-        scrmConsultantCodeOutBO.setCode("200");
-        scrmConsultantCodeOutBO.setQrcodeUrl("https://api/scrm/getProductQRcode");
-        scrmConsultantCodeOutBO.setAvatar("企微头像");
-        scrmConsultantCodeOutBO.setData("account");
-        return R.ok(scrmConsultantCodeOutBO.getQrcodeUrl(),200,scrmConsultantCodeOutBO.getMessage());
+        if (ObjectUtil.isEmpty(response)){
+            return R.fail(null,"账号信息异常，请联系账号管理员");
+        }
+        ScrmConsultantCodeOutBO scrmConsultantCodeOutBO = JSONObject.parseObject(response.getBody(), ScrmConsultantCodeOutBO.class);
+        log.info(" scrmConsultantCodeOutBO1{}",JSON.toJSONString(scrmConsultantCodeOutBO));
+        if (ObjectUtil.isEmpty(scrmConsultantCodeOutBO)){
+           return R.fail(null,"账号数据异常，请联系账号管理员");
+        }
+        if (!"200".equals(scrmConsultantCodeOutBO.getCode())){
+            return R.fail(null,"非法信息,请检查信息");
+        }
+        ScrmConsultantCodeVo data = scrmConsultantCodeOutBO.getData();
+        log.info("打印成功信息{}",JSON.toJSONString(data));
+        return R.ok(data.getQrcodeUrl(),"200".equals(scrmConsultantCodeOutBO.getCode())?"活码调用成功":scrmConsultantCodeOutBO.getMessage());
     }
 
     public R<ScrmConsultantCodeOutBO> getConsultantDynamicCode(ScrmConsultantCodeInputBO scrmConsultantCodeInputBO) {
