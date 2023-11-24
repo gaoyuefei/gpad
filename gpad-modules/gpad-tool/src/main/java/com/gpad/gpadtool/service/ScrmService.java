@@ -95,6 +95,9 @@ public class ScrmService {
     @Value("${scrm.getWxCropUserInfo}")
     private String getWxCropUserInfo;
 
+    @Value("${scrm.getProductQRcode}")
+    private String getProductQRcode;
+
     private static final Logger log = LoggerFactory.getLogger(ScrmService.class);
 
     @Autowired
@@ -494,15 +497,33 @@ public class ScrmService {
         headers.add("reqTime", DateUtil.getNowDateStr());
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity request = new HttpEntity(json, headers);
-        String url = "https://test-gacscrmapp.gacmotor.com/gac-data-sync/interface/external/common/getConsultantDynamicCode";
+//        String getProductQRcode = "https://test-gacscrmapp.gacmotor.com/gac-data-sync/interface/external/common/getConsultantDynamicCode";
         ResponseEntity<String> response = null;
         try {
-            response = restTemplate.postForEntity(url, request, String.class);
+            response = restTemplate.postForEntity(getProductQRcode, request, String.class);
         } catch (RestClientException e) {
             e.printStackTrace();
         }
+        ScrmConsultantCodeOutBO scrmConsultantCodeOutBO1 = JSONObject.parseObject(response.getBody(), ScrmConsultantCodeOutBO.class);
+        log.info(" scrmConsultantCodeOutBO1{}",JSON.toJSONString(scrmConsultantCodeOutBO1));
         System.out.println(response);
+        ScrmConsultantCodeOutBO scrmConsultantCodeOutBO = new ScrmConsultantCodeOutBO();
+        scrmConsultantCodeOutBO.setCode("200");
+        scrmConsultantCodeOutBO.setQrcodeUrl("https://api/scrm/getProductQRcode");
+        scrmConsultantCodeOutBO.setAvatar("企微头像");
+        scrmConsultantCodeOutBO.setData("account");
+        return R.ok(scrmConsultantCodeOutBO.getQrcodeUrl(),200,scrmConsultantCodeOutBO.getMessage());
+    }
+
+    public R<ScrmConsultantCodeOutBO> getConsultantDynamicCode(ScrmConsultantCodeInputBO scrmConsultantCodeInputBO) {
+
         return null;
     }
+
+    public static void main(String[] args) {
+        System.out.println(UuidUtils.generateUuid());
+        System.out.println(DateUtil.getNowDateStr());
+    }
+
 }
 

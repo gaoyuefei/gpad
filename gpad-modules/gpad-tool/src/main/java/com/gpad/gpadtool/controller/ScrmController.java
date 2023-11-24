@@ -8,6 +8,7 @@ import com.gpad.common.core.exception.ServiceException;
 import com.gpad.common.core.web.domain.AjaxResult;
 import com.gpad.common.redis.service.RedisService;
 import com.gpad.common.security.service.TokenService;
+import com.gpad.common.security.utils.SecurityUtils;
 import com.gpad.gpadtool.constant.RedisKey;
 import com.gpad.gpadtool.domain.dto.ScrmEncrypeParamVo;
 import com.gpad.gpadtool.domain.dto.SyncScrmDeptInfoParamVo;
@@ -36,6 +37,7 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import javax.servlet.http.HttpServletRequest;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -519,5 +521,13 @@ public class ScrmController {
             //查不到不作处理
             return R.fail("登录状态已失效，请重新登录");
         }
+    }
+
+    @Operation(summary = "获取顾问首页活码")
+    @PostMapping("/getConsultantDynamicCode")
+    public R<ScrmConsultantCodeOutBO> getConsultantDynamicCode(HttpServletRequest request, @RequestBody ScrmConsultantCodeInputBO scrmConsultantCodeInputBO) {
+        String username = SecurityUtils.getUsername();
+        scrmConsultantCodeInputBO.setUsername(username);
+        return scrmService.getConsultantDynamicCode(scrmConsultantCodeInputBO);
     }
 }
