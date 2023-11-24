@@ -214,7 +214,7 @@ public class FileUtil {
         log.info("文件名为{}",filename);
         assert filename != null;
         String[] split = filename.split("\\.");
-        String fileType = "png";
+        String fileType = split[split.length - 1];
 
         //先判断后缀名
         for (FileTypeConstant constant : FileTypeConstant.values()) {

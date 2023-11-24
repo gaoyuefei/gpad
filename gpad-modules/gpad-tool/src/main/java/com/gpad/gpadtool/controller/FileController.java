@@ -88,6 +88,7 @@ public class FileController {
 //        }
 
         String fileType = FileUtil.getFileType(file);
+        log.info("文件名为{}",fileType);
         if (fileType == null) {
             return R.fail("文件类型为空!");
         }
