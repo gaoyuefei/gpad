@@ -19,6 +19,7 @@ import com.gpad.gpadtool.utils.UrlSchemaUntils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -38,6 +39,7 @@ import java.util.Objects;
  */
 @Slf4j
 @Service
+@RefreshScope
 public class WxApiSchemaServiceImpl implements WxApiSchemaService {
 
 
