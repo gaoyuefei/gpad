@@ -2,6 +2,7 @@ package com.gpad.gpadtool.controller;
 
 import com.alibaba.fastjson2.JSON;
 import com.gpad.common.core.domain.R;
+import com.gpad.common.core.utils.StringUtils;
 import com.gpad.gpadtool.domain.dto.wxapi.ExhibitionMixPadInputBO;
 import com.gpad.gpadtool.domain.dto.wxapi.WxApiCommentInputBO;
 import com.gpad.gpadtool.domain.vo.OrderCommentUrlVo;
@@ -11,6 +12,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 
 
 /**
@@ -37,7 +41,16 @@ public class WxApiSchemaController {
     @GetMapping("/thirdparty-app/urlSchema")
     public R urlSchema(@RequestParam("wxApiSchemaUrl") String wxApiSchemaUrl){
         log.info("获取urlSchema --->>> wxApiSchemaUrl = {}", wxApiSchemaUrl);
-        return wxApiSchemaService.getgetSkipSchemaUrl(wxApiSchemaUrl);
+        String decodeSign = null;
+        try {
+             decodeSign = URLDecoder.decode(wxApiSchemaUrl, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        if (StringUtils.isEmpty(decodeSign)){
+            return R.fail("非法参数");
+        }
+        return wxApiSchemaService.getgetSkipSchemaUrl(decodeSign);
     }
 
 
@@ -47,7 +60,7 @@ public class WxApiSchemaController {
     @Operation(summary = "wx获取获取评论跳转连接")
     @PostMapping("/thirdparty-app/scrm/getOrderCommentSkipUrl")
     public R getOrderCommentUrl(@RequestBody OrderCommentUrlVo OrderCommentUrlVo){
-        log.info(" -getOrderComment入参-->>> getOrderComment = {}", OrderCommentUrlVo);
+        log.info("-getOrderComment入参-->>> getOrderComment = {}", OrderCommentUrlVo);
         return wxApiSchemaService.getOrderCommentUrl(OrderCommentUrlVo);
     }
 
