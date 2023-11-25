@@ -49,7 +49,7 @@ import static com.gpad.common.core.web.domain.AjaxResult.*;
  * @version 1.0.0
  * @ClassName ScrmService.java
  * @Description Scrm逻辑代码
- * @createTime 2023年09月21日 16:56:00
+ * @createTime 2023年09月21日 16:56:01
  */
 @Service
 @RefreshScope
