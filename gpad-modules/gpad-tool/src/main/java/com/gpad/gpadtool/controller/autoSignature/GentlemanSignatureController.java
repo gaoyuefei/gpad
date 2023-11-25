@@ -73,9 +73,7 @@ public class GentlemanSignatureController {
         if (StringUtils.isEmpty(autoSignatureInputBO.getFullName())){
             throw new ServiceException("客户姓名有误，请检查姓名信息", CommCode.DATA_UPDATE_WRONG.getCode());
         }
-//        if (StringUtils.isEmpty(autoSignatureInputBO.getMobile())){
-//            throw new ServiceException("客户手机号码有误，请检查手机号码信息", CommCode.DATA_UPDATE_WRONG.getCode());
-//        }
+
         String username = SecurityUtils.getUsername();
         autoSignatureInputBO.setAccount(username);
 

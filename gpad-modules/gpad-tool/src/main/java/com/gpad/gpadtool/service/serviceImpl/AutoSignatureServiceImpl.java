@@ -2,6 +2,7 @@ package com.gpad.gpadtool.service.serviceImpl;
 
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.StopWatch;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -81,12 +82,6 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     @Value("${jzq.app-key}")
     private String APP_KEY;
 
-//    private static final String SERVICE_URL = "https://api.sandbox.junziqian.com";
-//
-//    private static final String APP_SECRET = "70adae25924410c408aea504181c7f80";
-//
-//    private static final String APP_KEY = "924410c408aea504";
-
     @Autowired
     private FlowInfoRepository flowInfoRepository;
 
@@ -129,7 +124,8 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 //          return   R.fail(null,CommCode.DATA_IS_WRONG.getCode(),jzqOrganizationAuditStatusVo.getMsg());
 //        }
 //        log.info("快速校验2 method：checkOrganizationStatus()1--->>> {}",JSON.toJSONString(jzqOrganizationAuditStatusVo));
-
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
         String data = "";
         String bussinessNo = autoSignatureInputBO.getBussinessNo();
         log.info("快速通过校验后：发起裙子签证进入1 method：startGentlemanSignature()1--->>> {}",bussinessNo);
@@ -230,7 +226,9 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 throw new ServiceException("合同连接保存失败",CommCode.DATA_UPDATE_WRONG.getCode());
             }
             log.info("保存合同成功 执行method：filtOUTSteam()1--->>{}->>>{}",apl,bussinessNo);
-            filtOUTSteam(apl,bussinessNo);
+
+//            filtOUTSteam(apl,bussinessNo);
+            stopWatch.stop();
 
             log.info("发起裙子签证进入7 method：updatecontractInfoById()1--->>>保存合同连接结束{}",res);
             log.info("发起裙子签证进入8 method：updatecontractInfoById()1--->>>结束发起合同");
@@ -243,7 +241,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
     private JzqOrganizationAuditStatusVo checkOrganizationStatus(GpadDlrAuthenticationEmailInfo gpadDlrAuthenticationEmailInfo) {
         RequestUtils re =RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
-//构建请求参数
+        //构建请求参数
         Map<String,Object> params=new HashMap<>();
         params.put("emailOrMobile",gpadDlrAuthenticationEmailInfo.getEmail());
         ResultInfo<JSONObject> ri= re.doPost("/v2/user/organizationAuditStatus",params);
@@ -293,7 +291,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 //发起
                 Integer isArchive = 0;
 
-                //覆盖之前得签名 TODO //提取参数 默认调用 产品专家
+                //上传客户签名图片
                 if (null != localProductPng){
                     String identityCard1 = autoSignatureInputBO.getIdentityCard1();
                      result = uploadMemorySignPath(gentlemanSaltingVo,localProductPng, identityCard1);
@@ -302,11 +300,11 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                     }
                 }
 
-                //覆盖之前得签名 TODO //提取参数 默认调用 客户名字
+                //上传客户签名图片
                 if (null != fileCustomerPng){
                     result = uploadMemorySignPath(gentlemanSaltingVo,localCustomerPng,autoSignatureInputBO.getIdentityCard());
                     if (!result){
-                        throw new ServiceException("君子签名重传失败",500);
+                        throw new ServiceException("上传客户签名失败",500);
                     }
                 }
 
@@ -324,9 +322,6 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 //2023/1122/2348  去掉企业签名
 //                signatories.add(jointEnterprise(chapteJsonFirst,gpadDlrAuthenticationEmailInfo));
                 params.put("signatories",signatories.toJSONString());
-
-
-
                 log.info("封住结束参数为{}", JSONObject.toJSONString(signatories));
                 //这里必须用new String，因为使用的是IdentityHashMap（为了多个file的同name上传）
 
@@ -354,12 +349,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 log.info("君子签jzqSignatureVo返回成功为{}", JSONObject.toJSONString(str));
                 apl = jzqSignatureVo.getData();
 
-//                log.info("君子签返回获取得apl为{}", JSONObject.toJSONString(str));
-//                if (!StringUtils.isEmpty(str)){
-//                    apl = JSON.parseObject(str).getString("data");
-//                    System.out.println(apl);
-//                }
-                // 数据入库 TODO 是否归档 在数据落库
+                // 数据入库
                 Boolean rel = handoverCarCheckInfoRepository.updatecontractInfoById(apl,null,autoSignatureInputBO);
                 if (!rel){
                     throw new ServiceException("合同信息PDF保存失败",CommCode.DATA_UPDATE_WRONG.getCode());
@@ -479,9 +469,6 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
         log.info("开始校验 method:personValid{},身份证号    {}",name,identityCard);
         Boolean result = false;
-        String msg = "";
-        String code = "";
-        String message = "";
         RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
         //构建请求参数
         Map<String,Object> params = getCommonValidPostParams(gentlemanSaltingVo);
@@ -500,27 +487,21 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 }
                  result = data.getValid();
                 if (result){
-//                   R.ok(data.getValid() + "", data.getMessage());
                     result = data.getValid();
-
                     log.info("正常返回:jzqUserValidSignatureVo.getSuccess()为true时 result--->{}",JSONObject.toJSONString(result));
                     return true;
                 }else {
                     log.info("异常返回时:jzqUserValidSignatureVo.getSuccess()为false时 异常结束执行valid--->{}",JSONObject.toJSONString(result));
-//                    R.fail(data.getValid(), Integer.parseInt(data.getCode()), data.getMessage());
                     throw new ServiceException(data.getMessage(),CommCode.IDENTITY_WRITEPNG_SIGN_INFO_WRONG.getCode());
                 }
 
             }else {
-//               R.fail(jzqUserValidSignatureVo.getData() + "", CommCode.IDENTITY_CARD_SIGN_WRONG.getCode(), jzqUserValidSignatureVo.getMsg());
-//                result = jzqUserValidSignatureVo.getSuccess();
                 log.info("jzqUserValidSignatureVo.getSuccess()为false时，--->{}",JSONObject.toJSONString(result));
                 throw new ServiceException(jzqUserValidSignatureVo.getMsg(),CommCode.IDENTITY_WRITEPNG_SIGN_INFO_WRONG.getCode());
-                // TODO 上线时放开
+
             }
         }
-        // TODO 放开校验
-//        result = true;
+
         return result;
     }
 
