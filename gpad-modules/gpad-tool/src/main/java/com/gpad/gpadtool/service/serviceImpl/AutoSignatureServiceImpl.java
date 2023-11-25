@@ -226,10 +226,11 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 throw new ServiceException("合同连接保存失败",CommCode.DATA_UPDATE_WRONG.getCode());
             }
             log.info("保存合同成功 执行method：filtOUTSteam()1--->>{}->>>{}",apl,bussinessNo);
-
-//            filtOUTSteam(apl,bussinessNo);
             stopWatch.stop();
-
+            stopWatch.start();
+            filtOUTSteam(apl,bussinessNo);
+            stopWatch.stop();
+            log.info("统计君子签总耗时{}",stopWatch.prettyPrint());
             log.info("发起裙子签证进入7 method：updatecontractInfoById()1--->>>保存合同连接结束{}",res);
             log.info("发起裙子签证进入8 method：updatecontractInfoById()1--->>>结束发起合同");
 
@@ -800,7 +801,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
     @Override
     public R filtOUTSteam(String apl,String bussinessNo) {
-        int i = 0;
+        int i = 1;
         List<UploadFileOutputDto> list = new ArrayList<>();
         RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
         //构建请求参数
@@ -893,13 +894,14 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 log.info("保存png--->>->>>{}",JSON.toJSONString(fileInfo1));
                 fileInfoRepository.save(fileInfo1);
 
+                fileInfo = null;
+                fileInfo1 =null;
             } catch (Exception e) {
                 e.printStackTrace();
             }finally {
                 if (null != httpUrl){
                     httpUrl.disconnect();
                 }
-
             }
         }
         log.info("PDF转图片结束 --->>->>>{}",JSON.toJSONString(list));
