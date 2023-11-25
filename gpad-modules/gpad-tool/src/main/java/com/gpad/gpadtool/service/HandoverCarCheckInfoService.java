@@ -13,7 +13,6 @@ import com.gpad.gpadtool.domain.dto.HandoverCarCheckInfoOutBO;
 import com.gpad.gpadtool.domain.entity.FileInfo;
 import com.gpad.gpadtool.domain.entity.GpadIdentityAuthInfo;
 import com.gpad.gpadtool.domain.entity.HandoverCarCheckInfo;
-import com.gpad.gpadtool.domain.entity.OrderDetail;
 import com.gpad.gpadtool.repository.FileInfoRepository;
 import com.gpad.gpadtool.repository.GpadIdentityAuthInfoRepository;
 import com.gpad.gpadtool.repository.HandoverCarCheckInfoRepository;
@@ -22,9 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Donald.Lee
@@ -64,19 +60,6 @@ public class HandoverCarCheckInfoService {
         return handoverCarCheckInfoDto;
     }
 
-
-    public void saveHandoverCarCheckInfoDtoList(List<HandoverCarCheckInfoDto> list) {
-        List<HandoverCarCheckInfo> handoverCarCheckInfos = new ArrayList<>();
-        list.forEach(l->handoverCarCheckInfos.add(JSONObject.parseObject(JSONObject.toJSONString(l),HandoverCarCheckInfo.class)));
-        handoverCarCheckInfoRepository.saveBatch(handoverCarCheckInfos);
-    }
-
-
-    public void batchSaveOrUpdateHandoverCarCheckInfoDtoList(List<HandoverCarCheckInfoDto> list) {
-        list.forEach(this::saveOrUpdateHandoverCarCheckInfoDto);
-    }
-
-
     public void saveOrUpdateHandoverCarCheckInfoDto(HandoverCarCheckInfoDto handoverCarCheckInfoDto) {
         if (handoverCarCheckInfoDto.getId() == null || this.getBybussinessNo(handoverCarCheckInfoDto.getBussinessNo()) == null){
             saveHandoverCarCheckInfoDto(handoverCarCheckInfoDto);
@@ -114,7 +97,6 @@ public class HandoverCarCheckInfoService {
         handoverCarCheckInfoOutBO.setRealName(flag);
         //查询收据库交车确认信息
         HandoverCarCheckInfo handoverCarCheckInfo = handoverCarCheckInfoRepository.queryDeliverCarConfirmInfo(bussinessNo);
-        // FIXME  已处理
         BeanUtil.copyProperties(handoverCarCheckInfo,handoverCarCheckInfoOutBO);
         log.info("method:queryDeliverCarConfirmInfo().交车准备内容: {}", JSONObject.toJSONString(handoverCarCheckInfo));
 
@@ -123,7 +105,7 @@ public class HandoverCarCheckInfoService {
         if (!ObjectUtil.isEmpty(fileInfo)){
             handoverCarCheckInfoOutBO.setMemorySignPath(fileInfo.getFilePath());
         }
-        // FIXME  新增账号关联表 记忆图片直接返回
+        //记忆签
         if (ObjectUtil.isNotEmpty(handoverCarCheckInfo)){
             handoverCarCheckInfoOutBO.setId(handoverCarCheckInfo.getId());
         }

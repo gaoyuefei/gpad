@@ -99,18 +99,20 @@ public class HandoverCarCheckInfoOutBO {
     private String  memorySignPath;
     @ApiModelProperty(value = "是否实名 0 ： 1：")
     private Integer realName;
-
     @ApiModelProperty(value = "0：未完成交车，1：已完成交车")
     private Integer isDelivery;
-
+    @ApiModelProperty(value = "合同订单号")
+    private String contractAplNo;
+    @ApiModelProperty(value = "创建人")
     private String createBy;
+    @ApiModelProperty(value = "创建时间")
     private Date createTime;
+    @ApiModelProperty(value = "修改者")
     private String updateBy;
+    @ApiModelProperty(value = "修改时间")
     private Date updateTime;
-
     @ApiModelProperty(value = "订单详情实体返参")
     private OrderDetailResultDto orderDetailResultDto;
-
     @ApiModelProperty(value = "文件类型返参")
     private GpadIdentityAuthInfo gpadIdentityAuthInfo;
 
