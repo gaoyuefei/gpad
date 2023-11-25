@@ -71,8 +71,17 @@ public class WxApiSchemaController {
     @Operation(summary = "获取urlSchema")
     @GetMapping("/sit/thirdparty-app/urlSchema")
     public R sitUrlSchema(@RequestParam("wxApiSchemaUrl") String wxApiSchemaUrl){
-        log.info("获取urlSchema --->>> wxApiSchemaUrl = {}", wxApiSchemaUrl);
-        return wxApiSchemaService.sitUrlSchema(wxApiSchemaUrl);
+        String decodeSign = null;
+        try {
+            decodeSign = URLDecoder.decode(wxApiSchemaUrl, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        if (StringUtils.isEmpty(decodeSign)){
+            return R.fail("非法参数");
+        }
+        log.info("获取urlSchema --->>> wxApiSchemaUrl = {}", decodeSign);
+        return wxApiSchemaService.sitUrlSchema(decodeSign);
     }
 
     /**
