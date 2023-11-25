@@ -97,6 +97,7 @@ public class ScrmController {
     @Operation(summary = "获取accessToken")
     @PostMapping("/WX/getProductQRcode")
     public R getProductQRcode(@RequestBody ScrmEncrypeParamVo paramVo) {
+        log.info("获取客户二维码接口 --->>> paramVo = {}", JSON.toJSONString(paramVo));
         return scrmService.getProductQRcode(paramVo);
     }
 

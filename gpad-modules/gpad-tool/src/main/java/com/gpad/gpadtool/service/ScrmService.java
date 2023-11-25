@@ -498,7 +498,7 @@ public class ScrmService {
         } catch (Exception e) {
             log.info("加密数据报错");
         }
-
+        log.info("encryptData 加密后{}",encryptData);
         jsonObject.put("data", encryptData);
         String json =  jsonObject.toJSONString();
         restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
@@ -509,6 +509,7 @@ public class ScrmService {
         headers.add("Authorization", qcodeAuth);
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity request = new HttpEntity(json, headers);
+        log.info("打印调用SCRM入参request{}",JSON.toJSONString(request));
 //        String getProductQRcode = "https://test-gacscrmapp.gacmotor.com/gac-data-sync/interface/external/common/getConsultantDynamicCode";
         ResponseEntity<String> response = null;
         try {
@@ -538,10 +539,7 @@ public class ScrmService {
         return null;
     }
 
-    public static void main(String[] args) {
-        System.out.println(UuidUtils.generateUuid());
-        System.out.println(DateUtil.getNowDateStr());
-    }
+
 
 }
 
