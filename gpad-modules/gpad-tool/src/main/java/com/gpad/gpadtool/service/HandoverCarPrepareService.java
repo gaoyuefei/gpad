@@ -116,7 +116,6 @@ public class HandoverCarPrepareService {
                         throw new ServiceException("bussinessNo -> 更新文件服务异常", CommCode.DATA_UPDATE_WRONG.getCode());
                     }
                     result = fileInfoRepository.updateReadyDeliverCarFile(handoverCarPrepareDto.getLinkType(),bussinessNo);
-                    //TODO 文件服务器异常
                     if (!result) {
                         throw new ServiceException("bussinessNo -> 更新文件服务异常", R.FAIL);
                     }
@@ -133,7 +132,6 @@ public class HandoverCarPrepareService {
                 }
                 if (2 == nodeNum  && "1".equals(handoverCarPrepareDto.getButton())){
                     //扭转流程订单流程状态
-                    // TODO 这里还要写 流程节点-扭转流程分离 解耦 目前前是强绑
                     FlowInfoDto flow = new FlowInfoDto();
                     flow.setBussinessNo(handoverCarPrepareDto.getBussinessNo());
                     flow.setNodeNum(FlowNodeNum.HAND_OVER_CAR_CONFIRM.getCode());

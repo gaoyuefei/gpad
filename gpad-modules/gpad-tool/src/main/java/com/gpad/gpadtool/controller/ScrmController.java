@@ -137,7 +137,7 @@ public class ScrmController {
 //            scrmWxCropUserInfoOutputDtoR = scrmService.getWxCropUserInfo(scrmWxCropUserInfoInputDto);
 //            log.info("外部接口调用结束--->>> {}", JSONObject.toJSONString(scrmWxCropUserInfoOutputDtoR));
 //            if (!scrmWxCropUserInfoOutputDtoR.getData().getCode().equals("200")) {
-//                //TODO redis里存 key = sign; value = 跟前端约定得唯一标记+错误信息
+//                // redis里存 key = sign; value = 跟前端约定得唯一标记+错误信息
 //                throw new ServiceException("SCRM扫码获取登录令牌",500);
 //            }
 //        } catch (ServiceException e) {
@@ -435,27 +435,6 @@ public class ScrmController {
         }
 
         log.info("用户登录! employeeNo {}", employeeNo);
-//        AccountOnLineStatusInputDto accountOnLineStatusInputDto = new AccountOnLineStatusInputDto();
-//        accountOnLineStatusInputDto.setEmployeeNo(employeeNo);
-//        R<AccountOnLineStatusOutPutDto> accountOnLineStatusOutPutDtoR = scrmService.accountOnLineStatus(accountOnLineStatusInputDto);
-//        if (accountOnLineStatusOutPutDtoR.getData().getResultCode().equals("1")) {
-//            //用userCode查SCRM用户表
-//            ScrmWxCropUserInfoInputDto scrmWxCropUserInfoInputDto = new ScrmWxCropUserInfoInputDto();
-//            scrmWxCropUserInfoInputDto.setUserId(employeeNo);
-//            R<ScrmWxCropUserInfoOutputDto> scrmWxCropUserInfoOutputDtoR =  null;
-//                    scrmService.getWxCropUserInfo(scrmWxCropUserInfoInputDto);
-//            log.info("外部接口返回结果 --->>> {}", JSONObject.toJSONString(scrmWxCropUserInfoOutputDtoR));
-//
-//            if (!scrmWxCropUserInfoOutputDtoR.getData().getCode().equals("200")) {
-//                return R.fail("企业微信扫码登录获取企微成员信失败");
-//            }
-//            ScrmUserInfoInputDto scrmUserInfoInputDto = new ScrmUserInfoInputDto();
-//            scrmUserInfoInputDto.setAccount(scrmWxCropUserInfoOutputDtoR.getData().getData().getEmployeeNo());
-//            R<ScrmUserInfoToInstrumentOutputDto> scrmUserInfoToInstrumentOutputDtoR = scrmService.getUserInfoByAccount(scrmUserInfoInputDto);
-//            if (!scrmUserInfoToInstrumentOutputDtoR.getData().getCode().equals("200")) {
-//                return R.fail("企业微信扫码登录获取SCRM员工信息失败");
-//            }
-//            ScrmUserInfoToInstrumentOutputDto scrmUserInfoToInstrumentOutputDto = scrmUserInfoToInstrumentOutputDtoR.getData();
                 LoginUser loginUser = new LoginUser();
                 SysUser sysUser = new SysUser();
                 sysUser.setUserId(System.currentTimeMillis());
@@ -465,10 +444,7 @@ public class ScrmController {
                 Map<String, Object> tokenMap = tokenService.createToken(loginUser);
                 log.info("H5页面获取token-结束 --->>> {}", JSONObject.toJSONString(tokenMap));
                 return R.ok(tokenMap);
-//
-//            //查不到不作处理
-//            return R.fail("企业微信扫码回调失败");
-//        }
+
     }
 
     @Operation(summary = "sitH5页面获取token")

@@ -33,7 +33,7 @@ public class OrderDetailRepository extends ServiceImpl<OrderDetailMapper, OrderD
                 .invoiceDate(orderDetailResultDto.getInvoiceDate())
                 .invoiceStatus(orderDetailResultDto.getInvoiceStatus())
                 .billingNo(orderDetailResultDto.getBillingNo())
-                //TODO 支付状态 是否已结清
+                // 支付状态 是否已结清
                 .payOffStatus(orderDetailResultDto.getPayOffStatus())
                 .payOffDate(orderDetailResultDto.getPayOffDate())
                 .deliveringDate(orderDetailResultDto.getDeliveringDate())

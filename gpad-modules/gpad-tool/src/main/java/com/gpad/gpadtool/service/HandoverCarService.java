@@ -161,7 +161,6 @@ public class HandoverCarService {
                 throw new ServiceException("合同信息保存失败",CommCode.DATA_UPDATE_WRONG.getCode());
             }
             log.info("method:saveDeliverCarConfirmInfo().合同信息成功: {}", JSONObject.toJSONString(handoverCarCheckInfoDto));
-           //TODO  保存记忆签图片
             //
             //新建交车流程信息并入库 -- 步骤为第一步 //
 //            FlowInfoDto flowInfoDto = new FlowInfoDto();

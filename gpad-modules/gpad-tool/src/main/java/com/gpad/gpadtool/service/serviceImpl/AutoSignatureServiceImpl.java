@@ -14,9 +14,7 @@ import com.gpad.common.core.utils.StringUtils;
 import com.gpad.common.core.vo.GentlemanSaltingVo;
 import com.gpad.common.security.utils.SecurityUtils;
 import com.gpad.gpadtool.constant.CommCode;
-import com.gpad.gpadtool.domain.dto.FileInfoDto;
-import com.gpad.gpadtool.domain.dto.FlowInfoDto;
-import com.gpad.gpadtool.domain.dto.UploadFileOutputDto;
+import com.gpad.gpadtool.domain.dto.*;
 import com.gpad.gpadtool.domain.entity.FileInfo;
 import com.gpad.gpadtool.domain.entity.GpadDlrAuthenticationEmailInfo;
 import com.gpad.gpadtool.domain.entity.GpadIdentityAuthInfo;
@@ -44,14 +42,16 @@ import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.system.ApplicationHome;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
@@ -97,33 +97,30 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     @Autowired
     private GpadDlrAuthenticationEmailInfoRepository gpadDlrAuthenticationEmailInfoRepository;
 
-    @Autowired
-    private GRTService grtSservice;
-
     @Override
     @Transactional(rollbackFor = Exception.class)
     public R<String> startGentlemanSignature(AutoSignatureInputBO autoSignatureInputBO, MultipartFile file,MultipartFile fileCustomerPng,MultipartFile fileProductPng) {
 
 //        GpadDlrAuthenticationEmailInfo gpadDlrAuthenticationEmailInfo = gpadDlrAuthenticationEmailInfoRepository.queryEmail(autoSignatureInputBO.getDealerCode());
-//        if ("test".equals(environment)){
-//            if (!ObjectUtil.isNotEmpty(gpadDlrAuthenticationEmailInfo)){
-//                gpadDlrAuthenticationEmailInfo = new GpadDlrAuthenticationEmailInfo();
-//                gpadDlrAuthenticationEmailInfo.setCompanyName("广汽传祺汽车销售有限公司");
-//                gpadDlrAuthenticationEmailInfo.setUscc("914401013275898060");
-//                gpadDlrAuthenticationEmailInfo.setEmail("gqcq2@bccto.me");
-//            }
-//        }
-//
-//        if (!ObjectUtil.isNotEmpty(gpadDlrAuthenticationEmailInfo)){
-//          return   R.fail(null,CommCode.DATA_IS_WRONG.getCode(),"检测"+autoSignatureInputBO.getDealerCode()+"店未进行企业实名认证，请联系管理员申请企业认证");
-//        }
-//        log.info("快速校验1 method：queryEmail()1--->>> {}",JSON.toJSONString(gpadDlrAuthenticationEmailInfo));
-//
-//        JzqOrganizationAuditStatusVo jzqOrganizationAuditStatusVo = checkOrganizationStatus(gpadDlrAuthenticationEmailInfo);
-//        if (!jzqOrganizationAuditStatusVo.getSuccess()){
-//          return   R.fail(null,CommCode.DATA_IS_WRONG.getCode(),jzqOrganizationAuditStatusVo.getMsg());
-//        }
-//        log.info("快速校验2 method：checkOrganizationStatus()1--->>> {}",JSON.toJSONString(jzqOrganizationAuditStatusVo));
+////        if ("test".equals(environment)){
+////            if (!ObjectUtil.isNotEmpty(gpadDlrAuthenticationEmailInfo)){
+////                gpadDlrAuthenticationEmailInfo = new GpadDlrAuthenticationEmailInfo();
+////                gpadDlrAuthenticationEmailInfo.setCompanyName("广汽传祺汽车销售有限公司");
+////                gpadDlrAuthenticationEmailInfo.setUscc("914401013275898060");
+////                gpadDlrAuthenticationEmailInfo.setEmail("gqcq2@bccto.me");
+////            }
+////        }
+////
+////        if (!ObjectUtil.isNotEmpty(gpadDlrAuthenticationEmailInfo)){
+////          return   R.fail(null,CommCode.DATA_IS_WRONG.getCode(),"检测"+autoSignatureInputBO.getDealerCode()+"店未进行企业实名认证，请联系管理员申请企业认证");
+////        }
+////        log.info("快速校验1 method：queryEmail()1--->>> {}",JSON.toJSONString(gpadDlrAuthenticationEmailInfo));
+////
+////        JzqOrganizationAuditStatusVo jzqOrganizationAuditStatusVo = checkOrganizationStatus(gpadDlrAuthenticationEmailInfo);
+////        if (!jzqOrganizationAuditStatusVo.getSuccess()){
+////          return   R.fail(null,CommCode.DATA_IS_WRONG.getCode(),jzqOrganizationAuditStatusVo.getMsg());
+////        }
+////        log.info("快速校验2 method：checkOrganizationStatus()1--->>> {}",JSON.toJSONString(jzqOrganizationAuditStatusVo));
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         String data = "";
@@ -133,7 +130,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         try {
             RedisLockUtils.lock(bussinessNo);
 
-            //TODO 查询数据
+            // 查询数据
             String account = autoSignatureInputBO.getAccount();
             log.info("发起裙子签证进入2 method：startGentlemanSignature()1--->>> {}", JSON.toJSONString(account));
 
@@ -209,7 +206,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 return R.fail(null,CommCode.INTFR_OUTTER_INVOKE_ERROR.getCode(),"发起线上签失败");
             }
             log.info("发起裙子签证进入6 method：turnOnLineSignature()1--->>>发起合同结果{}",result);
-            RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
+            RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);
             //构建请求参数
             Map<String,Object> params=new HashMap<>();
             String apl = result.getData().toString();
@@ -227,8 +224,13 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             }
             log.info("保存合同成功 执行method：filtOUTSteam()1--->>{}->>>{}",apl,bussinessNo);
             stopWatch.stop();
+
             stopWatch.start();
-            filtOUTSteam(apl,bussinessNo);
+            JzqContractFileStreamInputBO jzqContractFileStreamInputBO = new JzqContractFileStreamInputBO();
+            jzqContractFileStreamInputBO.setBussinessNo(bussinessNo);
+            jzqContractFileStreamInputBO.setLinkType("33");
+            jzqContractFileStreamInputBO.setContractAplNo(apl);
+            fileOUTSteam(jzqContractFileStreamInputBO);
             stopWatch.stop();
             log.info("统计君子签总耗时{}",stopWatch.prettyPrint());
             log.info("发起裙子签证进入7 method：updatecontractInfoById()1--->>>保存合同连接结束{}",res);
@@ -241,7 +243,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     }
 
     private JzqOrganizationAuditStatusVo checkOrganizationStatus(GpadDlrAuthenticationEmailInfo gpadDlrAuthenticationEmailInfo) {
-        RequestUtils re =RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
+        RequestUtils re =RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);
         //构建请求参数
         Map<String,Object> params=new HashMap<>();
         params.put("emailOrMobile",gpadDlrAuthenticationEmailInfo.getEmail());
@@ -452,7 +454,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
     private Boolean uploadMemorySignPath(GentlemanSaltingVo gentlemanSaltingVo, File localFile1, String identityCard) {
         String success = "";
-        RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
+        RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);
         //构建请求参数
         Map<String,Object> params=new HashMap<>();
         params.put("identityCard",identityCard);
@@ -470,7 +472,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
         log.info("开始校验 method:personValid{},身份证号    {}",name,identityCard);
         Boolean result = false;
-        RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
+        RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);
         //构建请求参数
         Map<String,Object> params = getCommonValidPostParams(gentlemanSaltingVo);
         params.put("name",name);
@@ -577,7 +579,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         String sign=DigestUtils.md5Hex(signSrc);
         System.out.println(sign);
 
-//        RequestUtils requestUtils = HttpClientUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
+//        RequestUtils requestUtils = HttpClientUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);
        //构建请求参数
         Map<String,Object> params=new HashMap<>();
         params.put("applyNo",autoSignatureGetLinkInputBO.getApplyNo()); //TODO *
@@ -701,13 +703,6 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 throw new ServiceException("该订单发起线下签署状态修改失败，请检查是否签署",CommCode.DATA_IS_WRONG.getCode());
             }
 
-//            FlowInfoDto flow = new FlowInfoDto();
-//            flow.setBussinessNo(bussinessNo);
-//            flow.setNodeNum(FlowNodeNum.HAND_OVER_CAR_GUIDE.getCode());
-//            result = flowInfoRepository.updateDeliverCarReadyToConfirm(flow);
-//            if (!result){
-//                throw new ServiceException("流程接口扭转失败",500);
-//            }
         } finally {
             RedisLockUtils.unlock(bussinessNo);
         }
@@ -743,7 +738,6 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 }
             }
 
-            // TODO 上线时打开
         } finally {
             RedisLockUtils.unlock(bussinessNo);
         }
@@ -800,14 +794,30 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     }
 
     @Override
-    public R filtOUTSteam(String apl,String bussinessNo) {
+    public R fileOUTSteam(JzqContractFileStreamInputBO jzqContractFileStreamInputBO) {
         int i = 1;
+        String bussinessNo = jzqContractFileStreamInputBO.getBussinessNo();
+        String apl = jzqContractFileStreamInputBO.getContractAplNo();
+        log.info("jzqContractFileStreamIputBO接口参数为 bussinessNo--》》》{}，apl---》》》》{}",bussinessNo,apl);
+
+        R<List<FileInfoDto>> listR = isJzqPngFile(jzqContractFileStreamInputBO);
+        if ("500".equals(listR.getCode()+"")){
+            throw new ServiceException("数据查询超时，请联系重新试",CommCode.NETWORK_READ_TIMED_OUT.getCode());
+        }
+        List<FileInfoDto> data1 = listR.getData();
+        if (data1.size() > 0){
+            for (FileInfoDto fileInfoDto : data1) {
+                if ("1".equals(fileInfoDto.getFileType()+"") && StringUtils.isNotEmpty(fileInfoDto.getFilePath())){
+                    return listR;
+                }
+            }
+        }
+
         List<UploadFileOutputDto> list = new ArrayList<>();
-        RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
+        RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);
         //构建请求参数
         Map<String,Object> params =new HashMap<>();
-        params.put("applyNo",apl); //TODO *
-//        params.put("applyNo","apl"); //TODO *
+        params.put("applyNo",apl);
         String data;
         do {
             try {
@@ -829,8 +839,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             log.info("进入PDF 转图片方法--->>->>>{}",handoverCarCheckInfo.getContractLink());
             HttpURLConnection httpUrl = null;
             try {
-
-//            File file = UrltoFile(data);
+                RedisLockUtils.lock(bussinessNo);
                 httpUrl = (HttpURLConnection) new URL(data).openConnection();
                 httpUrl.connect();
                 InputStream ins = httpUrl.getInputStream();
@@ -869,8 +878,6 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                     pathDir.mkdirs();
                 }
                 File savedFile = new File(pngPath.concat(File.separator).concat(fileName));
-//            File file = new File("D:\\usr\\gpadfilepath\\20231120.png");
-//            System.out.println(file.getAbsolutePath());
                 pdf2multiImage(result, savedFile.getAbsolutePath());
 
                 list.add(uploadFileOutputDto);
@@ -893,7 +900,6 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 fileInfo1.setVersion(0);
                 log.info("保存png--->>->>>{}",JSON.toJSONString(fileInfo1));
                 fileInfoRepository.save(fileInfo1);
-
                 fileInfo = null;
                 fileInfo1 =null;
             } catch (Exception e) {
@@ -902,16 +908,29 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 if (null != httpUrl){
                     httpUrl.disconnect();
                 }
+                RedisLockUtils.unlock(bussinessNo);
             }
         }
         log.info("PDF转图片结束 --->>->>>{}",JSON.toJSONString(list));
         return R.ok(list);
     }
 
+    private R<List<FileInfoDto>> isJzqPngFile(JzqContractFileStreamInputBO jzqContractFileStreamInputBO) {
+        //查询文件
+        CommonFilePathCheckInputBO commonFilePathCheckInputBO = new CommonFilePathCheckInputBO();
+        commonFilePathCheckInputBO.setBussinessNo(jzqContractFileStreamInputBO.getBussinessNo());
+        commonFilePathCheckInputBO.setLinkType("33");
+        commonFilePathCheckInputBO.setFileType(jzqContractFileStreamInputBO.getFileType());
+        R<List<FileInfoDto>> listR = fileInfoRepository.queryCommonFile(commonFilePathCheckInputBO);
+        commonFilePathCheckInputBO = null;
+        return listR;
+    }
+
     public File transferToFile(MultipartFile multipartFile,String suffix) throws IOException {
         String originalFilename = multipartFile.getOriginalFilename();
         System.out.println(originalFilename);
         String prefix = System.currentTimeMillis() + "";
+        //TODO 兼容前端传过文件没有后缀得情况
 //        if (!StringUtils.isEmpty(originalFilename)){
 //            prefix = originalFilename.substring(0, originalFilename.lastIndexOf("."));
 //            suffix = originalFilename.substring(originalFilename.lastIndexOf("."));
@@ -1043,234 +1062,4 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             e.printStackTrace();
         }
     }
-
-//    public static void main(String[] args) {
-//////        long ts = System.currentTimeMillis();
-//////        String nonce= DigestUtils.md5Hex(System.currentTimeMillis()+"");
-//////        String signSrc="nonce"+nonce+"ts"+ts+"app_key"+APP_KEY+"app_secret"+APP_SECRET;
-//////        String sign=DigestUtils.md5Hex(signSrc);
-//////        GentlemanSaltingVo build = GentlemanSaltingVo.builder()
-//////                .ts(ts)
-//////                .sign(sign)
-//////                .nonce(nonce)
-//////                .build();
-//////        String url= SERVICE_URL+"/v2/sign/notify";
-//////        System.out.println(ts+"-----"+nonce+"-----"+sign+"");
-//////
-////////        RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
-////////构建请求参数
-//////        Map<String,Object> params = new HashMap<>();
-//////        params.put("applyNo","APL1706236248945348608"); //TODO +
-////////params.put("bussinessNo","XXX"); //TODO +
-//////        params.put("fullName","LF171625");
-//////        params.put("identityCard","222401198904210332");
-//////        params.put("identityType",1);
-//////        params.put("signNotifyType",1); //默认为1
-//////        params.put("ts",build.getTs());
-//////        params.put("app_key",APP_KEY);
-//////        params.put("encry_method","md5");
-//////        params.put("nonce",build.getNonce());
-//////        params.put("sign",build.getSign());
-//////        String ri= HttpClientUtils.init().getPost(url,null,params,true);
-//////        System.out.println(ri);
-////////        ResultInfo<Void> ri= requestUtils.doPost("/v2/sign/notify",params);
-//////        System.out.println(ri);
-////        RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
-////        //构建请求参数
-////        Map<String,Object> params=new HashMap<>();
-////        params.put("name","张现彬");//
-////        params.put("identityCard","372522198405100972");//
-////        ResultInfo<Void> ri= requestUtils.doPost("/v2/auth/userValid",params);
-////        System.out.println(ri);
-////        if (null != ri.getData()){
-////            String data = ri.getData()+"";
-////            System.out.println(data);
-//
-////            String s = JSONUtil.parseObj(data).get("valid") + "";
-////            String code = JSONUtil.parseObj(data).get("code") + "";
-////            System.out.println(code);
-////            String message = JSONUtil.parseObj(data).get("message") + "";
-////            System.out.println(message);
-////            Boolean aBoolean = Boolean.valueOf(s);
-////            Boolean x = s);
-////            System.out.println(x);
-////            System.out.println(data);
-////       }
-//////
-////
-////
-////           //上传手写个人签
-//////            RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
-//////            //构建请求参数
-//////            Map<String,Object> params=new HashMap<>();
-//////            params.put("identityCard","222401198904210332");
-//////            params.put("signImgFile",new FileBody(new File("D:\\广汽传祺pad，移动端\\10-07\\微信图片_20231010124505.png")));
-//////            ResultInfo<Void> ri= requestUtils.doPost("/v2/user/uploadPersSign",params);
-//////            ri.setSuccess(false);
-//////        System.out.println(ri);
-//////        String string = JSONObject.toJSONString(ri) ;
-//////        String text = String.valueOf(ri);
-//////        if (!StringUtils.isEmpty(string)){
-//////            JSONObject jsonObject = JSON.parseObject(string);
-//////            String success = jsonObject.getString("success");
-//////            Boolean aBoolean = Boolean.valueOf(success);
-//////            System.out.println(aBoolean);
-//////        }
-////
-////       获取PDF下载文件
-//        RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
-//        //构建请求参数
-//        Map<String,Object> params =new HashMap<>();
-//        params.put("applyNo","APL1726926248741453824"); //TODO *
-//        ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkFile",params);
-//        String data = ri.getData();
-//        System.out.println(data);
-//
-//        try {
-//            File file = UrltoFile(data);
-//            System.out.println(file);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        InputStream inputStreamFromUrl = getInputStreamFromUrl(data);
-//
-//        try {
-//            HttpServletResponse res;
-//            BufferedInputStream bis = null;
-//            bis = new BufferedInputStream(inputStreamFromUrl);
-//            System.out.println(data);
-//            OutputStream outputStream = null;
-//            outputStream = res.getOutputStream();
-//            byte[] buffer = new byte[1024];
-//            int i = bis.read(buffer);
-//            while (i != -1) {
-//                outputStream.write(buffer, 0, i);
-//                i = bis.read(buffer);
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-////        byte[] bytes = SERVICE_URL.getBytes();
-//
-////
- //       获取在线查看链接
-//        RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);//建议生成为spring bean
-////构建请求参数
-//        Map<String,Object> params=new HashMap<>();
-//        params.put("applyNo","APL1725717778008657920"); //TODO *
-//        ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkAnonyDetail",params);
-//        System.out.println(ri);
-//    }
-//    public static InputStream getInputStreamFromUrl(String urlStr) {
-//       InputStream inputStream=null;
-//       try {
-//        //url解码
-//        URL url = new URL(java.net.URLDecoder.decode(urlStr, "UTF-8"));
-//        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-//        //设置超时间为3秒
-//        conn.setConnectTimeout(3 * 1000);
-//        //防止屏蔽程序抓取而返回403错误
-//        conn.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt)");
-//        //得到输入流
-//        inputStream = conn.getInputStream();
-//         } catch (IOException e) {
-//        System.out.println(1);
-//        }
-//       return inputStream;
-//    }
-//
-//
-//    public static void downloadFile(String filePath, String fileName, HttpServletResponse res) {
-//        log.info("下载文件--->>> fileFullPath = {} fileName = {}", filePath, fileName);
-//
-//        if (Strings.isEmpty(filePath) || Strings.isEmpty(fileName)) {
-//            throw new ServiceException("文件路径或文件名不能为空!", StatusCode.PARAMETER_ILLEGAL.getValue());
-//        }
-//
-//        InputStream inputStream = null;
-//        BufferedInputStream bis = null;
-//        OutputStream outputStream = null;
-//
-//        //设置返回文件的名字
-//        try {
-//            inputStream = new FileInputStream(filePath.concat(File.separator).concat(fileName));
-//            res.setHeader("Content-Disposition",
-//                    "inline; filename=" + URLEncoder.encode(fileName, "UTF-8"));
-//            //设置返回值的类型
-//            res.setHeader("content-type", "application/octet-stream");
-//            bis = new BufferedInputStream(inputStream);
-//            outputStream = res.getOutputStream();
-//            byte[] buffer = new byte[1024];
-//            int i = bis.read(buffer);
-//            while (i != -1) {
-//                outputStream.write(buffer, 0, i);
-//                i = bis.read(buffer);
-//            }
-//        } catch (Exception e) {
-//            log.error("下载文件出错! {}", e.getMessage());
-//        } finally {
-//            try {
-//                if (null != outputStream) {
-//                    outputStream.close();
-//                }
-//                if (null != inputStream) {
-//                    inputStream.close();
-//                }
-//                if (null != bis) {
-//                    bis.close();
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//
-//        }
-//
-//    }
-//
-//
-////获取链接地址文件的byte数据
-//public static byte[] getUrlFileData(String fileUrl) throws Exception
-//{
-//URL url = new URL(fileUrl);
-//HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
-//httpConn.connect();
-//InputStream cin = httpConn.getInputStream();
-//ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-//byte[] buffer = new byte[1024];
-//int len = 0;
-//while ((len = cin.read(buffer)) != -1) {
-//outStream.write(buffer, 0, len);
-//}
-//cin.close();
-//byte[] fileData = outStream.toByteArray();
-//outStream.close();
-//return fileData;
-//}
-
-    public File UrltoFile(String url) throws Exception {
-        HttpURLConnection httpUrl = (HttpURLConnection) new URL(url).openConnection();
-        httpUrl.connect();
-        InputStream ins=httpUrl.getInputStream();
-//        ApplicationHome applicationHome = new ApplicationHome(this.getClass());
-        // 保存目录位置根据项目需求可
-//        String str = applicationHome.getDir().getParentFile().getParentFile().getAbsolutePath() + "\\src\\main\\resources\\static\\"+ System.currentTimeMillis();
-        File file = new File(System.getProperty("java.io.tmpdir") + File.separator + "xie");//System.getProperty("java.io.tmpdir")缓存
-        if (file.exists()) {
-            file.delete();//如果缓存中存在该文件就删除
-        }
-        OutputStream os = new FileOutputStream(file);
-        int bytesRead;
-        int len = 8192;
-        byte[] buffer = new byte[len];
-        while ((bytesRead = ins.read(buffer, 0, len)) != -1) {
-            os.write(buffer, 0, bytesRead);
-        }
-        os.close();
-        ins.close();
-        return file;
-
-    }
-//
-//
-
 }

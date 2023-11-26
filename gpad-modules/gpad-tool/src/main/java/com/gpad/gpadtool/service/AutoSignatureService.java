@@ -2,6 +2,7 @@ package com.gpad.gpadtool.service;
 
 import com.gpad.common.core.bo.input.*;
 import com.gpad.common.core.domain.R;
+import com.gpad.gpadtool.domain.dto.JzqContractFileStreamInputBO;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
@@ -30,5 +31,5 @@ public interface AutoSignatureService {
 
     Boolean signatureUploadFile(AuthUserSignatureInputBO authUserSignatureInputBO,MultipartFile fileProductPng,String result);
 
-    R filtOUTSteam(String url,String bussinessNo);
+    R fileOUTSteam(JzqContractFileStreamInputBO jzqContractFileStreamInputBO);
 }

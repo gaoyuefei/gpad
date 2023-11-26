@@ -1,5 +1,6 @@
 package com.gpad.gpadtool.controller.autoSignature;
 
+import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.gpad.common.core.bo.input.*;
@@ -10,6 +11,7 @@ import com.gpad.common.core.utils.JwtUtils;
 import com.gpad.common.core.utils.StringUtils;
 import com.gpad.common.security.utils.SecurityUtils;
 import com.gpad.gpadtool.constant.CommCode;
+import com.gpad.gpadtool.domain.dto.JzqContractFileStreamInputBO;
 import com.gpad.gpadtool.domain.dto.UploadFileOutputDto;
 import com.gpad.gpadtool.service.AutoSignatureService;
 import com.gpad.gpadtool.utils.DateUtil;
@@ -18,6 +20,7 @@ import com.gpad.gpadtool.utils.MonitorUtil;
 import com.gpad.gpadtool.utils.UuidUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -161,9 +164,7 @@ public class GentlemanSignatureController {
         if (StringUtils.isEmpty(autoSignatureInputBO.getFullName())){
             throw new ServiceException("客户姓名有误，请检查姓名信息", CommCode.DATA_UPDATE_WRONG.getCode());
         }
-//        if (StringUtils.isEmpty(autoSignatureInputBO.getMobile())){
-//            throw new ServiceException("客户手机号码有误，请检查手机号码信息", CommCode.DATA_UPDATE_WRONG.getCode());
-//        }
+
         return autoSignatureService.startGentlemanSignature(autoSignatureInputBO,file,fileCustomerPng,fileProductPng);
     }
 
@@ -217,15 +218,14 @@ public class GentlemanSignatureController {
         return R.ok(uploadFileOutputDto);
     }
 
-
-
    /**
      * 获取签约合同文件流
      */
-    @Operation(summary = "上传销售人员签名图片")
-    @GetMapping("/v2/auth/filtOUTSteam")
-    public R filtOUTSteam(@RequestParam(value = "apl") String apl ,@RequestParam(value = "bussinessNo")String bussinessNo){
-        return autoSignatureService.filtOUTSteam(apl,bussinessNo);
+    @Operation(summary = "获取签约合同文件流")
+    @PostMapping("/v2/auth/fileOUTSteam")
+    public R fileOUTSteam(@RequestBody JzqContractFileStreamInputBO jzqContractFileStreamInputBO){
+        log.info("fileOUTSteam接口参数为 {}", JSON.toJSONString(jzqContractFileStreamInputBO));
+        return autoSignatureService.fileOUTSteam(jzqContractFileStreamInputBO);
     }
 
 }

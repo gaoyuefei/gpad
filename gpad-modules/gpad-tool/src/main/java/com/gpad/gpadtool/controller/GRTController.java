@@ -1,5 +1,6 @@
 package com.gpad.gpadtool.controller;
 
+import cn.hutool.core.lang.UUID;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson2.JSON;
 import com.gpad.common.core.constant.TokenConstants;
@@ -19,6 +20,7 @@ import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -77,7 +79,6 @@ public class GRTController {
         log.info("GRT-获取GRT订单列表接口userName --->>> {}", JSONObject.toJSONString(userName));
         orderNoListParamVo.setUserCode(username);
         orderNoListParamVo.setDealerCode(dealerCode);
-        // TODO 登录账号
         log.info("GRT-获取GRT订单列表接口 --->>> {}", JSONObject.toJSONString(orderNoListParamVo));
         return grtService.grtGetOrderNoList(orderNoListParamVo);
     }

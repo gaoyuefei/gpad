@@ -1,10 +1,8 @@
 package com.gpad.gpadtool.repository;
 
-import java.util.Date;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gpad.common.core.bo.input.AutoSignatureInputBO;
 import com.gpad.common.core.utils.StringUtils;
@@ -13,6 +11,7 @@ import com.gpad.gpadtool.domain.entity.HandoverCarCheckInfo;
 import com.gpad.gpadtool.mapper.HandoverCarCheckInfoMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 

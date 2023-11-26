@@ -494,7 +494,7 @@ public class GRTService {
                     throw new ServiceException("订单信息入库失败",CommCode.DATA_UPDATE_WRONG.getCode());
                 }
                 log.info("method:saveOrderDetailEntity().订单内容: {}", grtOrderDetail.getData());
-                //新建交车流程信息并入库 -- 步骤为第一步 // TODO
+                //新建交车流程信息并入库 -- 步骤为第一步
                 FlowInfoDto flowInfoDto = new FlowInfoDto();
                 flowInfoDto.setBussinessNo(bussinessNo);
                 flowInfoDto.setNodeNum(FlowNodeNum.ARRIVE_STORE.getCode());
