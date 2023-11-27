@@ -474,16 +474,7 @@ public class ScrmService {
             log.info("JSONObject.parseObject转换异常--->>> scrmWxCropUserInfoOutputDto 》》》{}",JSONObject.toJSONString(response.getBody()));
             e.printStackTrace();
         }
-//        finally {
-//            log.info("调用接口异常--->>> request{}",JSONObject.toJSONString(scrmWxCropUserInfoOutputDto));
-//        }
-//        if (!"200".equals(scrmWxCropUserInfoOutputDto.getCode())){
-//            scrmWxCropUserInfoOutputDto.setCode("200");
-//            WxCropUserInfoOutputDto data = new WxCropUserInfoOutputDto();
-//            data.setUserId("17620371344");
-//            scrmWxCropUserInfoOutputDto.setData(data);
-//            log.info("进入了补偿方法{}",JSON.toJSONString(scrmWxCropUserInfoOutputDto));
-//        }
+
         log.info("method:getWxCropUserInfo() 执行结束");
         return R.ok(scrmWxCropUserInfoOutputDto);
     }

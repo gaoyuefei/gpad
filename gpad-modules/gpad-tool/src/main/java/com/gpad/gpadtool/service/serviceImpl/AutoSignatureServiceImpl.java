@@ -7,9 +7,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-
 import com.gpad.common.core.bo.input.*;
-
 import com.gpad.common.core.domain.R;
 import com.gpad.common.core.exception.ServiceException;
 import com.gpad.common.core.utils.StringUtils;
@@ -40,20 +38,22 @@ import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
@@ -162,6 +162,8 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             AuthUserSignatureInputBO authUserSignatureInputBO = new AuthUserSignatureInputBO();
             BeanUtil.copyProperties(autoSignatureInputBO,authUserSignatureInputBO);
             authUserSignatureInputBO.setAccount(authUserSignatureInputBO.getAccount());
+            authUserSignatureInputBO.setMemorySignPath(StringUtils.isNotEmpty(autoSignatureInputBO.getMemorySignPath())?autoSignatureInputBO.getMemorySignPath():gpadIdentityAuthInfo.getFilePath());
+            authUserSignatureInputBO.setId(gpadIdentityAuthInfo.getId()+"");
             log.info("发起裙子签证进入4 method：startGentlemanSignature()1--->>>修改参数为{}",JSON.toJSONString(authUserSignatureInputBO));
             //TODO 这里一定要传ID  后端解析账号
             Boolean result1 = gpadIdentityAuthInfoRepository.updateAuthUserSignature(authUserSignatureInputBO);
@@ -345,7 +347,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 if (null != fileCustomerPng){
                     result = uploadMemorySignPath(gentlemanSaltingVo,localCustomerPng,autoSignatureInputBO.getIdentityCard());
                     if (!result){
-                        throw new ServiceException("上传客户签名失败",500);
+                        throw new ServiceException("上传客户签名失败",CommCode.UPLOAD_SIGN_PNG_WRONG.getCode());
                     }
                 }
 
@@ -367,7 +369,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 //这里必须用new String，因为使用的是IdentityHashMap（为了多个file的同name上传）
 
                 //开始调用外部接口
-                String str= null;
+                String str = null;
                 try {
                     str = HttpClientUtils.init().getPost(url,null,params,true);
                 } catch (Exception e) {
@@ -491,19 +493,84 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     }
 
     private Boolean uploadMemorySignPath(GentlemanSaltingVo gentlemanSaltingVo, File localFile1, String identityCard) {
-        String success = "";
-        RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);
-        //构建请求参数
-        Map<String,Object> params=new HashMap<>();
-        params.put("identityCard",identityCard);
-        params.put("signImgFile",new FileBody(localFile1));
-        ResultInfo<Void> ri= requestUtils.doPost("/v2/user/uploadPersSign",params);
-        String str = JSONObject.toJSONString(ri);
-        if (!StringUtils.isEmpty(str)){
-            success = JSON.parseObject(str).getString("success");
-            log.info("上传是否成功{}",success);
+        Boolean success = false;
+
+        GentlemanSaltingVo authSafety = getAuthSafety();
+        MultiValueMap<String,Object> params1 = new LinkedMultiValueMap<>();
+        params1.add("ts",authSafety.getTs());
+        params1.add("nonce",authSafety.getNonce());
+        params1.add("sign",authSafety.getSign());
+        params1.add("app_key",APP_KEY);
+        params1.add("encry_method","md5");
+        params1.add("identityCard",identityCard);
+        FileBody fileBody = new FileBody(localFile1);
+        InputStream inputStream1 = null;
+        try {
+            inputStream1 = fileBody.getInputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return Boolean.valueOf(true);
+
+        InputStream finalInputStream = inputStream1;
+        org.springframework.core.io.Resource resource = new InputStreamResource(finalInputStream){
+            @Override
+            public long contentLength() throws IOException {
+                return finalInputStream.available();
+            }
+            @Override
+            public String getFilename(){
+                return System.currentTimeMillis()+".png";
+            }
+        };
+
+        params1.add("signImgFile",resource);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Accept", MediaType.APPLICATION_JSON.toString());
+        headers.setContentType(MediaType.valueOf(MediaType.MULTIPART_FORM_DATA_VALUE));
+        HttpEntity request = new HttpEntity(params1, headers);
+        ResponseEntity<String> stringResponseEntity = null;
+        try {
+            stringResponseEntity = restTemplate.postForEntity(SERVICE_URL+"/v2/user/uploadPersSign",request, String.class);
+        } catch (RestClientException e) {
+            log.info("实名认证捕获了异常{}",stringResponseEntity);
+            e.printStackTrace();
+        }finally {
+            try {
+                if (null != inputStream1){
+                    inputStream1.close();
+                }
+            } catch (IOException e) {
+                log.info("上传个人签名流未正常关闭");
+                e.printStackTrace();
+            }
+            try {
+                if (null != finalInputStream){
+                    finalInputStream.close();
+                }
+            } catch (IOException e) {
+                log.info("上传个人签名流未正常关闭");
+                e.printStackTrace();
+            }
+        }
+        request = null;
+        authSafety = null;
+        params1 = null;
+        if (!"200".equals(stringResponseEntity.getStatusCodeValue()+"")){
+            throw new ServiceException("网络开小差,请稍后尝试",CommCode.INTFR_OUTTER_INVOKE_ERROR.getCode());
+        }
+
+        String ri = stringResponseEntity.getBody();
+        if (!StringUtils.isNotEmpty(ri)){
+            throw new ServiceException("网络开小差，请联系管理员或尝试重新发起",CommCode.INTFR_OUTTER_INVOKE_ERROR.getCode());
+        }
+
+        JzqUploadPerSignVo jzqUploadPerSignVo = JSONObject.parseObject(ri, JzqUploadPerSignVo.class);
+        if (ObjectUtil.isNotEmpty(jzqUploadPerSignVo))
+        {
+            success = jzqUploadPerSignVo.getSuccess();
+        }
+
+        return success;
     }
 
     public boolean personValid(GentlemanSaltingVo gentlemanSaltingVo,String name,String identityCard) {
@@ -906,11 +973,12 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         if (StringUtils.isNotEmpty(handoverCarCheckInfo.getContractLink()) && StringUtils.isNotEmpty(data)){
             log.info("进入PDF 转图片方法--->>->>>{}",handoverCarCheckInfo.getContractLink());
             HttpURLConnection httpUrl = null;
+            InputStream ins = null;
             try {
                 RedisLockUtils.lock(bussinessNo);
                 httpUrl = (HttpURLConnection) new URL(data).openConnection();
                 httpUrl.connect();
-                InputStream ins = httpUrl.getInputStream();
+                ins = httpUrl.getInputStream();
                 //文件存储路径
                 String filePath = FILE_PATH.concat(File.separator).concat(DateUtil.generateDateTimeStr()).concat(File.separator);
                 log.info("文件上传!当前文件存储路径=== {}", filePath);
@@ -976,6 +1044,13 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             }finally {
                 if (null != httpUrl){
                     httpUrl.disconnect();
+                }
+                if (null != ins){
+                    try {
+                        ins.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
                 RedisLockUtils.unlock(bussinessNo);
             }

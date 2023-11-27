@@ -25,6 +25,8 @@ public class HeaderInterceptor implements AsyncHandlerInterceptor
 {
     private static final String TRACE_ID = "traceId";
 
+    private static final String USER_NAME = "userName";
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception
     {
@@ -47,13 +49,25 @@ public class HeaderInterceptor implements AsyncHandlerInterceptor
                 SecurityContextHolder.set(SecurityConstants.LOGIN_USER, loginUser);
             }
         }
+
         String traceId = request.getHeader(TRACE_ID);
-        if (StringUtils.isEmpty(traceId)) {
+        if (StringUtils.isEmpty(traceId))
+        {
             String val = UUID.randomUUID().toString().replaceAll("-", "");
             MDC.put("traceId", val);
         } else {
             MDC.put("traceId", traceId);
         }
+
+        String userName = request.getHeader(USER_NAME);
+        String u = SecurityUtils.getUsername();
+        if (StringUtils.isEmpty(userName))
+        {
+            MDC.put("userName", u);
+        } else {
+            MDC.put("userName", u);
+        }
+
         return true;
     }
 
