@@ -7,7 +7,9 @@ import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+
 import com.gpad.common.core.bo.input.*;
+
 import com.gpad.common.core.domain.R;
 import com.gpad.common.core.exception.ServiceException;
 import com.gpad.common.core.utils.StringUtils;
@@ -19,13 +21,9 @@ import com.gpad.gpadtool.domain.entity.FileInfo;
 import com.gpad.gpadtool.domain.entity.GpadDlrAuthenticationEmailInfo;
 import com.gpad.gpadtool.domain.entity.GpadIdentityAuthInfo;
 import com.gpad.gpadtool.domain.entity.HandoverCarCheckInfo;
-import com.gpad.gpadtool.domain.vo.JzqDataValidSignatureVo;
-import com.gpad.gpadtool.domain.vo.JzqOrganizationAuditStatusVo;
-import com.gpad.gpadtool.domain.vo.JzqSignApplyVo;
-import com.gpad.gpadtool.domain.vo.JzqUserValidSignatureVo;
+import com.gpad.gpadtool.domain.vo.*;
 import com.gpad.gpadtool.repository.*;
 import com.gpad.gpadtool.service.AutoSignatureService;
-import com.gpad.gpadtool.service.GRTService;
 import com.gpad.gpadtool.utils.DateUtil;
 import com.gpad.gpadtool.utils.FileUtil;
 import com.gpad.gpadtool.utils.RedisLockUtils;
@@ -42,8 +40,12 @@ import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
@@ -55,6 +57,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
+
 
 /**
  * @author Donald.Lee
@@ -81,6 +84,9 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
     @Value("${jzq.app-key}")
     private String APP_KEY;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     @Autowired
     private FlowInfoRepository flowInfoRepository;
@@ -122,14 +128,12 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 ////        }
 ////        log.info("快速校验2 method：checkOrganizationStatus()1--->>> {}",JSON.toJSONString(jzqOrganizationAuditStatusVo));
         StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
         String data = "";
         String bussinessNo = autoSignatureInputBO.getBussinessNo();
         log.info("快速通过校验后：发起裙子签证进入1 method：startGentlemanSignature()1--->>> {}",bussinessNo);
-
         try {
             RedisLockUtils.lock(bussinessNo);
-
+            stopWatch.start();
             // 查询数据
             String account = autoSignatureInputBO.getAccount();
             log.info("发起裙子签证进入2 method：startGentlemanSignature()1--->>> {}", JSON.toJSONString(account));
@@ -148,7 +152,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             //安全认证->接口加盐处理
             GentlemanSaltingVo gentlemanSaltingVo = getAuthSafety();
 
-            //校验当前个人是否实名认证 TODO 1.询问前端是否需要跳转不同页面    3.代码优化 参数封装方法
+            //校验当前个人是否实名认证
             if (autoSignatureInputBO.getIdentityType() == 1){
                 if(!personValid(gentlemanSaltingVo,autoSignatureInputBO.getProductName(),autoSignatureInputBO.getIdentityCard1())){
                     return R.fail(null,"产品专家认证失败，请检查身份证号,手机号");
@@ -180,6 +184,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 return R.fail(null,"产品专家签名订单绑定失败号,请求重新上传");
             }
             log.info("发起裙子签证进入5 method：startGentlemanSignature()1--->>>产品专家发起结束");
+
             //必填校验  TODO 判断文件是否为空
             if (null == file && null == fileCustomerPng){
                 return R.ok(null,"专家签名成功(入库成功)");
@@ -195,7 +200,12 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             }
             log.info("发起裙子签证进入6 method：turnOnLineSignature()1--->>>开始发起合同调用");
             GpadDlrAuthenticationEmailInfo gpadDlrAuthenticationEmailInfo = new GpadDlrAuthenticationEmailInfo();
+            stopWatch.stop();
+
+            stopWatch.start();
             R result = turnOnLineSignature(autoSignatureInputBO,gentlemanSaltingVo,file,fileCustomerPng,fileProductPng,gpadDlrAuthenticationEmailInfo);
+            stopWatch.stop();
+
             if (!"200".equals(result.getCode()+"")){
                 throw new ServiceException(result.getMsg(),500);
             }
@@ -206,24 +216,52 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 return R.fail(null,CommCode.INTFR_OUTTER_INVOKE_ERROR.getCode(),"发起线上签失败");
             }
             log.info("发起裙子签证进入6 method：turnOnLineSignature()1--->>>发起合同结果{}",result);
-            RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);
-            //构建请求参数
-            Map<String,Object> params=new HashMap<>();
+
             String apl = result.getData().toString();
-            params.put("applyNo", apl); //TODO *
-            ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkAnonyDetail",params);
-            log.info("发起裙子签证进入6.1 method：applyNo()1--->>>{}",JSON.toJSONString(ri));
-            if (ObjectUtil.isNotEmpty(ri)){
-                data = ri.getData();
+            GentlemanSaltingVo authSafety = getAuthSafety();
+            MultiValueMap<String,Object> params1 = new LinkedMultiValueMap<>();
+            params1.add("ts",authSafety.getTs());
+            params1.add("nonce",authSafety.getNonce());
+            params1.add("sign",authSafety.getSign());
+            params1.add("app_key",APP_KEY);
+            params1.add("encry_method","md5");
+            params1.add("applyNo",apl);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.valueOf(MediaType.MULTIPART_FORM_DATA_VALUE));
+            HttpEntity request = new HttpEntity(params1, headers);
+            ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(SERVICE_URL+"/v2/sign/linkAnonyDetail",request, String.class);
+            request = null;
+            headers = null;
+            authSafety = null;
+
+            log.info("打印在线连接1== {}",JSON.toJSONString(stringResponseEntity));
+            if (!"200".equals(stringResponseEntity.getStatusCodeValue()+"")){
+                throw new ServiceException("网络开小差,请稍后尝试",CommCode.INTFR_OUTTER_INVOKE_ERROR.getCode());
             }
 
+            String body = stringResponseEntity.getBody();
+            if (!StringUtils.isNotEmpty(body)){
+                throw new ServiceException("网络开小差，请联系管理员或尝试重新发起",CommCode.INTFR_OUTTER_INVOKE_ERROR.getCode());
+            }
+
+            JzqGetLinkPdfFileDlVo jzqGetLinkPdfFileDlVo = JSONObject.parseObject(body, JzqGetLinkPdfFileDlVo.class);
+            log.info("打印在线连接1== 转换后{}",JSON.toJSONString(jzqGetLinkPdfFileDlVo));
+            stringResponseEntity = null;
+
+            if (ObjectUtil.isNotEmpty(jzqGetLinkPdfFileDlVo)){
+                if (jzqGetLinkPdfFileDlVo.getSuccess()){
+                    data = jzqGetLinkPdfFileDlVo.getData();
+                }
+            }
+
+            log.info("打印入库前data--->>>{}",JSON.toJSONString(data));
             autoSignatureInputBO.setAccountId(gpadIdentityAuthInfo.getId());
             Boolean res = handoverCarCheckInfoRepository.updatecontractInfoById(apl, data, autoSignatureInputBO);
             if (!res){
                 throw new ServiceException("合同连接保存失败",CommCode.DATA_UPDATE_WRONG.getCode());
             }
             log.info("保存合同成功 执行method：filtOUTSteam()1--->>{}->>>{}",apl,bussinessNo);
-            stopWatch.stop();
+
 
             stopWatch.start();
             JzqContractFileStreamInputBO jzqContractFileStreamInputBO = new JzqContractFileStreamInputBO();
@@ -472,16 +510,27 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
         log.info("开始校验 method:personValid{},身份证号    {}",name,identityCard);
         Boolean result = false;
-        RequestUtils requestUtils=RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);
-        //构建请求参数
-        Map<String,Object> params = getCommonValidPostParams(gentlemanSaltingVo);
-        params.put("name",name);
-        params.put("identityCard",identityCard);
-        ResultInfo<Void> ri= requestUtils.doPost("/v2/auth/userValid",params);
-        log.info("身份签名认证签名结果 method:personValid{}",JSONObject.toJSONString(ri));
-
-        JzqUserValidSignatureVo jzqUserValidSignatureVo = JSON.parseObject(JSONObject.toJSONString(ri), JzqUserValidSignatureVo.class);
-
+        GentlemanSaltingVo authSafety = getAuthSafety();
+        MultiValueMap<String,Object> params = new LinkedMultiValueMap<>();
+        params.add("ts",authSafety.getTs());
+        params.add("nonce",authSafety.getNonce());
+        params.add("sign",authSafety.getSign());
+        params.add("app_key",APP_KEY);
+        params.add("encry_method","md5");
+        params.add("name",name);
+        params.add("identityCard",identityCard);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.valueOf(MediaType.MULTIPART_FORM_DATA_VALUE));
+        HttpEntity request = new HttpEntity(params, headers);
+        ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(SERVICE_URL+"/v2/auth/userValid",request, String.class);
+        if (!"200".equals(stringResponseEntity.getStatusCodeValue()+"")){
+            throw new ServiceException("网络开小差,请稍后尝试",CommCode.INTFR_OUTTER_INVOKE_ERROR.getCode());
+        }
+        log.info("身份签名认证签名结果 method:personValid{}",JSONObject.toJSONString(stringResponseEntity));
+        JzqUserValidSignatureVo jzqUserValidSignatureVo = JSON.parseObject(stringResponseEntity.getBody(), JzqUserValidSignatureVo.class);
+        headers = null;
+        params = null;
+        authSafety = null;
         if (ObjectUtil.isNotEmpty((jzqUserValidSignatureVo))){
             if (jzqUserValidSignatureVo.getSuccess()){
                 JzqDataValidSignatureVo data = jzqUserValidSignatureVo.getData();
@@ -814,28 +863,47 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
         }
 
         List<UploadFileOutputDto> list = new ArrayList<>();
-        RequestUtils requestUtils = RequestUtils.init(SERVICE_URL,APP_KEY,APP_SECRET);
-        //构建请求参数
-        Map<String,Object> params =new HashMap<>();
-        params.put("applyNo",apl);
-        String data;
+        GentlemanSaltingVo authSafety = getAuthSafety();
+        MultiValueMap<String,Object> params1 = new LinkedMultiValueMap<>();
+        params1.add("ts",authSafety.getTs());
+        params1.add("nonce",authSafety.getNonce());
+        params1.add("sign",authSafety.getSign());
+        params1.add("app_key",APP_KEY);
+        params1.add("encry_method","md5");
+        params1.add("applyNo",apl);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.valueOf(MediaType.MULTIPART_FORM_DATA_VALUE));
+        HttpEntity request = new HttpEntity(params1, headers);
+        String data= "";
         do {
             try {
                 Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            ResultInfo<String> ri= requestUtils.doPost("/v2/sign/linkFile",params);
-            log.info("打印返回地址== {}", ri);
-            data = ri.getData();
-            log.info("打印调了多少次== {}", i);
+            ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(SERVICE_URL+"/v2/sign/linkFile",request, String.class);
+            if(!"200".equals(stringResponseEntity.getStatusCode().value()+"")){
+                break;
+            }
+            String body = stringResponseEntity.getBody();
+            if (StringUtils.isNotEmpty(body)){
+                JzqGetLinkPdfFileDlVo jzqGetLinkPdfFileDlVo = JSONObject.parseObject(body, JzqGetLinkPdfFileDlVo.class);
+                log.info("打印返回地址== {}",JSON.toJSONString(jzqGetLinkPdfFileDlVo));
+                if (ObjectUtil.isEmpty(jzqGetLinkPdfFileDlVo)){
+                    break;
+                }
+                data = jzqGetLinkPdfFileDlVo.getData();
+                log.info("打印调了多少次== {}", i);
+            }
             i++;
         } while (StringUtils.isEmpty(data) && i <=10);
-
-        log.info("打印当前地址PDF 生成地址== {}", data);
+        request = null;
+        params1 = null;
+        authSafety = null;
+        log.info("打印当前地址PDF 生成地址== {}", "循环接受地址"+ data);
         HandoverCarCheckInfo handoverCarCheckInfo = handoverCarCheckInfoRepository.queryDeliverCarConfirmInfo(bussinessNo);
         log.info("handoverCarCheckInfo1--->>->>>{}",JSON.toJSONString(handoverCarCheckInfo));
-        if (StringUtils.isNotEmpty(handoverCarCheckInfo.getContractLink())){
+        if (StringUtils.isNotEmpty(handoverCarCheckInfo.getContractLink()) && StringUtils.isNotEmpty(data)){
             log.info("进入PDF 转图片方法--->>->>>{}",handoverCarCheckInfo.getContractLink());
             HttpURLConnection httpUrl = null;
             try {
@@ -900,6 +968,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 fileInfo1.setVersion(0);
                 log.info("保存png--->>->>>{}",JSON.toJSONString(fileInfo1));
                 fileInfoRepository.save(fileInfo1);
+
                 fileInfo = null;
                 fileInfo1 =null;
             } catch (Exception e) {

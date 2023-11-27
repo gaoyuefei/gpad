@@ -20,7 +20,6 @@ import com.gpad.gpadtool.utils.MonitorUtil;
 import com.gpad.gpadtool.utils.UuidUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
