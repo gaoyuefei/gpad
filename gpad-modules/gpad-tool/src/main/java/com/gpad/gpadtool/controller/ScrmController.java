@@ -5,8 +5,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.gpad.common.core.domain.R;
 import com.gpad.common.core.exception.ServiceException;
+import com.gpad.common.core.utils.JwtUtils;
 import com.gpad.common.core.web.domain.AjaxResult;
 import com.gpad.common.redis.service.RedisService;
+import com.gpad.common.security.auth.AuthUtil;
 import com.gpad.common.security.service.TokenService;
 import com.gpad.common.security.utils.SecurityUtils;
 import com.gpad.gpadtool.constant.RedisKey;
@@ -74,7 +76,6 @@ public class ScrmController {
 
     @Autowired
     private RestTemplate restTemplate;
-
 
     @Value("${scrm.publicKey}")
     private String publicKey;
@@ -214,7 +215,6 @@ public class ScrmController {
         SysUser sysUser = new SysUser();
         sysUser.setUserId(System.currentTimeMillis());
         loginUser.setDealerCode(dealerCode);
-//        ScrmWxCropUserInfoOutputDto data = scrmWxCropUserInfoOutputDtoR.getData();
         sysUser.setUserName(StringUtils.isBlank(employeeNo)?"补偿用户名":employeeNo);
         log.info("扫码登录信息结果userID---》》》{},----employeeNo 》》》{}",userId,employeeNo);
         loginUser.setSysUser(sysUser);
@@ -224,7 +224,7 @@ public class ScrmController {
         log.info("打印key为{}",sign);
         log.info("解密后key为{}",decodeSign);
         scanCodeTokenInfoVo.setCode("200");
-        scanCodeTokenInfoVo.setExpressTime("180");
+        scanCodeTokenInfoVo.setExpressTime("60");
         scanCodeTokenInfoVo.setMsg("回调登录成功");
         scanCodeTokenInfoVo.setToken(access_token.toString());
         log.info("打印最后拼接对象{}",JSON.toJSONString(scanCodeTokenInfoVo));
@@ -420,37 +420,41 @@ public class ScrmController {
         return scrmService.getWxCropUserInfo(scrmWxCropUserInfoInputDto);
     }
 
-    @Operation(summary = "H5页面获取token")
-    @PostMapping("/sit/getAccessTokenByH5")
-    public R getAccessTokenByH5(@RequestBody ScrmEncrypeParamVo paramVo) {
-        log.info("H5页面获取token 开始--->>> {}", JSONObject.toJSONString(paramVo));
-        Map<String, Object> dataMap = new HashMap<>();
-        dataMap.put("account", paramVo.getData());
-        String employeeNo;
-        try {
-            employeeNo = CryptoUtils.privateKeyDecrypt(paramVo.getData(), privateKey);
-        } catch (Exception e) {
-            log.info("解密数据报错:  {}", e.getMessage());
-            return R.fail("解密数据报错 ");
-        }
-
-        log.info("用户登录! employeeNo {}", employeeNo);
-                LoginUser loginUser = new LoginUser();
-                SysUser sysUser = new SysUser();
-                sysUser.setUserId(System.currentTimeMillis());
-                sysUser.setUserName(employeeNo);
-//                loginUser.setDealerCode("");
-                loginUser.setSysUser(sysUser);
-                Map<String, Object> tokenMap = tokenService.createToken(loginUser);
-                log.info("H5页面获取token-结束 --->>> {}", JSONObject.toJSONString(tokenMap));
-                return R.ok(tokenMap);
-
-    }
+//    @Operation(summary = "H5页面获取token")
+//    @PostMapping("/sit/getAccessTokenByH5")
+//    public R getAccessTokenByH5(@RequestBody ScrmEncrypeParamVo paramVo) {
+//        log.info("H5页面获取token 开始--->>> {}", JSONObject.toJSONString(paramVo));
+//        Map<String, Object> dataMap = new HashMap<>();
+//        dataMap.put("account", paramVo.getData());
+//        String employeeNo;
+//        try {
+//            employeeNo = CryptoUtils.privateKeyDecrypt(paramVo.getData(), privateKey);
+//        } catch (Exception e) {
+//            log.info("解密数据报错:  {}", e.getMessage());
+//            return R.fail("解密数据报错 ");
+//        }
+//
+//        log.info("用户登录! employeeNo {}", employeeNo);
+//                LoginUser loginUser = new LoginUser();
+//                SysUser sysUser = new SysUser();
+//                sysUser.setUserId(System.currentTimeMillis());
+//                sysUser.setUserName(employeeNo);
+////                loginUser.setDealerCode("");
+//                loginUser.setSysUser(sysUser);
+//                Map<String, Object> tokenMap = tokenService.createToken(loginUser);
+//                log.info("H5页面获取token-结束 --->>> {}", JSONObject.toJSONString(tokenMap));
+//                return R.ok(tokenMap);
+//
+//    }
 
     @Operation(summary = "sitH5页面获取token")
     @PostMapping("/getAccessTokenByH5")
-    public R sitGetAccessTokenByH5(@RequestBody ScrmEncrypeParamVo paramVo) {
+    public R sitGetAccessTokenByH5(HttpServletRequest request,@RequestBody ScrmEncrypeParamVo paramVo) {
         log.info("H5页面获取token 开始--->>> {}", JSONObject.toJSONString(paramVo));
+
+        String token = SecurityUtils.getToken(request);
+        log.info("记录用户登录token,--->>> {}", token);
+
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("account", paramVo.getData());
         String employeeNo;
@@ -476,14 +480,7 @@ public class ScrmController {
                     dealerCode = data.getData().getDealerCode();
                 }
             }
-//            //用userCode查SCRM用户表
-//            ScrmWxCropUserInfoInputDto scrmWxCropUserInfoInputDto = new ScrmWxCropUserInfoInputDto();
-//            scrmWxCropUserInfoInputDto.setUserId(employeeNo);
-//            R<ScrmWxCropUserInfoOutputDto> scrmWxCropUserInfoOutputDtoR = scrmService.getWxCropUserInfo(scrmWxCropUserInfoInputDto);;
-//            log.info("外部接口返回结果 --->>> {}", JSONObject.toJSONString(scrmWxCropUserInfoOutputDtoR));
-//            if (!scrmWxCropUserInfoOutputDtoR.getData().getCode().equals("200")) {
-//                return R.fail("企业微信扫码登录获取企微成员信失败");
-//            }
+
             LoginUser loginUser = new LoginUser();
             SysUser sysUser = new SysUser();
             sysUser.setUserId(System.currentTimeMillis());
@@ -495,6 +492,14 @@ public class ScrmController {
             log.info("H5页面获取token-结束 --->>> {}", JSONObject.toJSONString(tokenMap));
             return R.ok(tokenMap);
         }else {
+            //
+            if (com.gpad.common.core.utils.StringUtils.isNotEmpty(token))
+            {
+                String username = JwtUtils.getUserName(token);
+                // 删除用户缓存记录
+                AuthUtil.logoutByToken(token);
+                log.info("记录用户退出日志,登出成功--->>> {}->>{}", token,username);
+            }
             //查不到不作处理
             return R.fail("登录状态已失效，请重新登录");
         }

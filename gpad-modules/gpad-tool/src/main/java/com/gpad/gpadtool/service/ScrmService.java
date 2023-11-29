@@ -241,6 +241,7 @@ public class ScrmService {
         try {
             response = restTemplate.postForEntity(url, request, String.class);
         } catch (RestClientException e) {
+            log.info("appUrl + accountOnLineStatus{},--->>>调用失败 {}", url,JSON.toJSONString(response));
             e.printStackTrace();
         }
         if(ObjectUtil.isEmpty(response)){
@@ -257,17 +258,9 @@ public class ScrmService {
         if (ObjectUtil.isEmpty(accountOnLineStatusOutPutDto)){
             return R.fail(new AccountOnLineStatusOutPutDto());
         }
-
         log.info("外部接口正在返回body为{}",response.getBody());
-        log.info("请求外部接口结束返回转换后出参{}", JSONObject.toJSONString(accountOnLineStatusOutPutDto));
-//        if (null == accountOnLineStatusOutPutDto || "0".equals(accountOnLineStatusOutPutDto.getResultCode())){
-//            AccountOnLineStatusOutPutDto accountOnLineStatusOutPutDto1 = new AccountOnLineStatusOutPutDto();
-//            accountOnLineStatusOutPutDto1.setResultCode("1");
-//            accountOnLineStatusOutPutDto1.setResultMessage("发补偿数据");
-//            log.info("请求外部接口异常{}，补偿数据为{}", JSONObject.toJSONString(accountOnLineStatusOutPutDto), JSONObject.toJSONString(accountOnLineStatusOutPutDto1));
-//            return R.ok(accountOnLineStatusOutPutDto1);
-//        }
-        log.info("进入method:accountOnLineStatus 执行结束返参为---->{}",JSON.toJSONString(accountOnLineStatusOutPutDto));
+
+        log.info("进入method:accountOnLineStatus 请求外部接口结束返回转换后出参为---->{}",JSON.toJSONString(accountOnLineStatusOutPutDto));
         return R.ok(accountOnLineStatusOutPutDto);
     }
 
