@@ -4,15 +4,14 @@ import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.gpad.common.core.domain.R;
+import com.gpad.common.core.exception.ServiceException;
 import com.gpad.common.core.utils.StringUtils;
+import com.gpad.gpadtool.constant.CommCode;
 import com.gpad.gpadtool.domain.dto.wxapi.ExhibitionMixPadInputBO;
 import com.gpad.gpadtool.domain.dto.wxapi.WxApiCommentInputBO;
 import com.gpad.gpadtool.domain.dto.wxapi.outBo.ExhibitionMixPadOutBO;
 import com.gpad.gpadtool.domain.dto.wxapi.outBo.WxApiCommentOutBO;
-import com.gpad.gpadtool.domain.vo.LoginResVo;
-import com.gpad.gpadtool.domain.vo.OrderCommentUrlVo;
-import com.gpad.gpadtool.domain.vo.WxApiGetCommentVo;
-import com.gpad.gpadtool.domain.vo.WxTokenVO;
+import com.gpad.gpadtool.domain.vo.*;
 import com.gpad.gpadtool.enums.WxToPadSchemaUrlTypeEnum;
 import com.gpad.gpadtool.service.WxApiSchemaService;
 import com.gpad.gpadtool.utils.UrlSchemaUntils;
@@ -22,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.UnsupportedEncodingException;
@@ -117,8 +117,8 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
 
         WxTokenVO wxTokenVO = getAppToken(tokenUerName);
         log.info("获取加密后得token2为:  {}", JSON.toJSONString(wxTokenVO));
-        ExhibitionMixPadOutBO exhibitionMixPadOutBO = queryExhibitionMixPadExt(exhibitionMixPadInputBO, wxTokenVO);
-        return R.ok(exhibitionMixPadOutBO.getData(),exhibitionMixPadOutBO.getMsg());
+
+        return queryExhibitionMixPadExt(exhibitionMixPadInputBO, wxTokenVO);
     }
 
     @Override
@@ -198,9 +198,10 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
 
     }
 
-    public ExhibitionMixPadOutBO queryExhibitionMixPadExt(ExhibitionMixPadInputBO exhibitionMixPadInputBO, WxTokenVO wxTokenVO) {
+    public R queryExhibitionMixPadExt(ExhibitionMixPadInputBO exhibitionMixPadInputBO, WxTokenVO wxTokenVO) {
         // commentUrlExt
         String url = commentUrlExt+"big-screen-bff/fronted/exhibition/content/queryExhibitionMisePad";
+        log.info("打印请求URL:  {}", JSON.toJSONString(url));
 
         String token = wxTokenVO.getToken();
         HttpHeaders headers = new HttpHeaders();
@@ -209,11 +210,39 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("deriveCode", exhibitionMixPadInputBO.getPackageCode());
         String json = com.alibaba.fastjson.JSONObject.toJSONString(jsonObject);
-        //封装成一个请求对象
+        log.info("素材请求头为:  {}", headers);
+
+        //封装请求
         HttpEntity request = new HttpEntity(json, headers);
-        ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
-        ExhibitionMixPadOutBO exhibitionMixPadOutBO = com.alibaba.fastjson.JSONObject.parseObject(response.getBody(), ExhibitionMixPadOutBO.class);
-        return exhibitionMixPadOutBO;
+        ResponseEntity<String> response = null;
+        try {
+            response = restTemplate.postForEntity(url, request, String.class);
+        } catch (RestClientException e) {
+            log.info("打印捕获信息:  {}", JSON.toJSONString(response));
+            e.printStackTrace();
+        }
+        if (ObjectUtil.isEmpty(response)){
+            throw new ServiceException("网络开小差了，请联系稍后重试或联系管理员",CommCode.NETWORK_READ_TIMED_OUT.getCode());
+        }
+        log.info("素材返回参数为:  {}", response);
+        ExhibitionMixPadOutBO exhibitionMixPadOutBO = null;
+        try {
+            exhibitionMixPadOutBO = com.alibaba.fastjson.JSONObject.parseObject(response.getBody(), ExhibitionMixPadOutBO.class);
+        } catch (Exception e) {
+            log.info("打印捕获转换异常信息:  {}", JSON.toJSONString(response));
+            e.printStackTrace();
+        }
+
+        if (ObjectUtil.isEmpty(exhibitionMixPadOutBO)){
+           return R.fail(null,-1,"数据不合法");
+        }
+
+        if (!"0000".equals(exhibitionMixPadOutBO.getCode())){
+          return   R.fail(null,exhibitionMixPadOutBO.getMsg());
+        }
+
+        log.info("素材转换后得数据为:  {}", JSON.toJSONString(exhibitionMixPadOutBO));
+        return R.ok(exhibitionMixPadOutBO.getData());
     }
 
     public WxApiCommentOutBO getOrderCommentStatus(WxTokenVO wxTokenVO,WxApiCommentInputBO wxApiCommentInputBO) {
@@ -293,18 +322,6 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         return data;
     }
 
-//    public static void main(String[] args) {
-//        String str = "https://pad-test.spgacmotorfm.com/pages/deliveryCeremony/index";
-//        String str = ?bussinessNo=DSODGDA0102021050700001
-//        String encodeUrl = null;
-//        try {
-//            encodeUrl = URLEncoder.encode(str, "UTF-8");
-//        } catch (UnsupportedEncodingException e) {
-//            e.printStackTrace();
-//        }
-//
-//        System.out.println(encodeUrl);
-//    }
 
     public WxTokenVO getAppToken(LoginResVo tokenUerName) {
         log.info("进入获取小程序token接口->>>>>{}",JSONObject.toJSONString(tokenUerName));
