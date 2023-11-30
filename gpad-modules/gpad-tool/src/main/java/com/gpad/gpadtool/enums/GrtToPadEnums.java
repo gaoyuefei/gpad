@@ -106,7 +106,11 @@ public enum GrtToPadEnums {
             //兼容GRT传值
 //            return StringUtils.isEmpty(bindStatus)?"3":"4";
             //兼容业务方调整，设置成未绑定状态 对应群里编号:202311292230
-            return "3";
+            //回滚状态
+            if("未绑定".equals(bindStatus)){
+                return "3";
+            }
+            return "4";
         }
 
         if ("14041009".equals(value)){
