@@ -27,6 +27,8 @@ public class OrderDetailOutBO {
     private String invoiceStatus;
     @ApiModelProperty(value = "发票号")
     private String billingNo;
+    @ApiModelProperty(value = "派生代码")
+    private String packageCode;
     @ApiModelProperty(value = "发票文件列表")
     private List<String> billFiles;
     @ApiModelProperty(value = "是否已结清")
