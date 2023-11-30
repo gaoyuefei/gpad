@@ -136,21 +136,7 @@ public class HandoverCarController {
         if (Strings.isEmpty(handoverCarPrepareDto.getBussinessNo())){
             return R.fail("bussinessNo必传，请检查参数! ");
         }
-        R<List<OrderDetailResultDto>> grtOrderDetail = grtService.getGrtOrderDetail(handoverCarPrepareDto.getBussinessNo());
-        HandoverCarPrepareOutBO handoverCarPrepareOutBO = handoverCarPrepareService.queryReadyDeliverCarOrderNo(handoverCarPrepareDto);
-        List<OrderDetailResultDto> data = grtOrderDetail.getData();
-        if (CollectionUtil.isNotEmpty(data)){
-            OrderDetailResultDto invoiceStatus = data.get(0);
-//            if (handoverCarPrepareOutBO.get)
-//            handoverCarPrepareOutBO.setUnifiedSalesInvoice(Boolean.parseBoolean(invoiceStatus.getInvoiceStatus())?1:0);
-//            handoverCarPrepareOutBO.setLoanStatus(Boolean.parseBoolean(invoiceStatus.getPayOffStatus())?1:0);
-            //开具发票状态
-            handoverCarPrepareOutBO.setInvoiceStatus(Boolean.parseBoolean(invoiceStatus.getInvoiceStatus())?"0":"1");
-            //尾款支付状态
-            handoverCarPrepareOutBO.setPayOffStatus(Boolean.parseBoolean(invoiceStatus.getPayOffStatus())?"0":"1");
-            handoverCarPrepareOutBO.setPaymentMethod(PayMethodToCodeEnum.getPadValueByType(invoiceStatus.getPaymentMethod()));
-        }
-        return R.ok(handoverCarPrepareOutBO);
+        return R.ok(handoverCarPrepareService.queryReadyDeliverCarOrderNo(handoverCarPrepareDto));
     }
 
     /**

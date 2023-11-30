@@ -1,27 +1,27 @@
 package com.gpad.gpadtool.service;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.gpad.common.core.domain.R;
 import com.gpad.common.core.exception.ServiceException;
+import com.gpad.common.core.utils.StringUtils;
 import com.gpad.gpadtool.constant.CommCode;
 import com.gpad.gpadtool.constant.FlowNodeNum;
-import com.gpad.gpadtool.domain.dto.FileInfoDto;
-import com.gpad.gpadtool.domain.dto.FlowInfoDto;
-import com.gpad.gpadtool.domain.dto.HandoverCarPrepareDto;
-import com.gpad.gpadtool.domain.dto.HandoverCarPrepareOutBO;
+import com.gpad.gpadtool.domain.dto.*;
 import com.gpad.gpadtool.domain.entity.FileInfo;
 import com.gpad.gpadtool.domain.entity.HandoverCarPrepare;
+import com.gpad.gpadtool.enums.PayMethodToCodeEnum;
 import com.gpad.gpadtool.repository.FileInfoRepository;
 import com.gpad.gpadtool.repository.FlowInfoRepository;
 import com.gpad.gpadtool.repository.HandoverCarPrepareRepository;
 import com.gpad.gpadtool.repository.OrderDetailRepository;
 import com.gpad.gpadtool.utils.RedisLockUtils;
+import com.sun.org.apache.bcel.internal.generic.IF_ACMPEQ;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.BeanUtils;
@@ -55,6 +55,10 @@ public class HandoverCarPrepareService {
 
     @Autowired
     private OrderDetailRepository orderDetailRepository;
+
+    @Autowired
+    private GRTService grtService;
+
 
     public HandoverCarPrepareDto getBybussinessNo(String bussinessNo){
 
@@ -138,7 +142,7 @@ public class HandoverCarPrepareService {
                     flow.setUpdateTime(new Date());
                     result = flowInfoRepository.updateDeliverCarReadyToConfirm(flow);
                     if (!result){
-                        throw new ServiceException("流程节点分离", R.FAIL);
+                        throw new ServiceException("流程状态不合法", R.FAIL);
                     }
                 }
             } finally {
@@ -169,46 +173,56 @@ public class HandoverCarPrepareService {
     }
 
     public HandoverCarPrepareOutBO queryReadyDeliverCarOrderNo(HandoverCarPrepareDto handoverCarPrepareDto) {
-
+        String bussinessNo = handoverCarPrepareDto.getBussinessNo();
         HandoverCarPrepareOutBO readyDeliverCarOutBO = new HandoverCarPrepareOutBO();
 
-        String bussinessNo = handoverCarPrepareDto.getBussinessNo();
-        if (StringUtils.isBlank(bussinessNo)){
-            throw new ServiceException(CommCode.DATA_IS_WRONG.getMessage(), CommCode.DATA_IS_WRONG.getCode());
+        R<List<OrderDetailResultDto>> grtOrderDetail = grtService.getGrtOrderDetail(handoverCarPrepareDto.getBussinessNo());
+        List<OrderDetailResultDto> data = grtOrderDetail.getData();
+        log.info("GRT详情返回数据{}", JSON.toJSONString(data));
+        if (CollectionUtil.isEmpty(data)){
+            throw new ServiceException("交车准备页面订单详情数据网络开小差，请联系管理员并重试",CommCode.DATA_NOT_FOUND.getCode());
         }
-
+        log.info("打印订单详情数据-》》》{}",JSON.toJSONString(data));
         HandoverCarPrepare handoverCarPrepare = handoverCarPrepareRepository.queryBybussinessNo(bussinessNo);
+
         readyDeliverCarOutBO.setBussinessNo(bussinessNo);
         BeanUtil.copyProperties(handoverCarPrepare,readyDeliverCarOutBO);
-        String supplies = handoverCarPrepare.getSupplies();
-        readyDeliverCarOutBO.setUnifiedSalesInvoice(handoverCarPrepare.getUnifiedSalesInvoice());
-        readyDeliverCarOutBO.setLoanStatus(handoverCarPrepare.getLoanStatus());
-        readyDeliverCarOutBO.setSupplies(supplies);
+
+        OrderDetailResultDto orderDetailResultDto = data.get(0);
+        readyDeliverCarOutBO.setPaymentMethod(PayMethodToCodeEnum.getPadValueByType(orderDetailResultDto.getPaymentMethod()));
+        //开具发票状态
+        readyDeliverCarOutBO.setInvoiceStatus(grtChineseToEnumValue(orderDetailResultDto.getInvoiceStatus()));
+        //尾款支付状态
+        readyDeliverCarOutBO.setPayOffStatus(grtChineseToEnumValue(orderDetailResultDto.getPayOffStatus()));
+
         if (null == handoverCarPrepare.getLoanStatus()){
             readyDeliverCarOutBO.setLoanStatus(0);
         }
         if (null == handoverCarPrepare.getLoanStatus()){
             readyDeliverCarOutBO.setUnifiedSalesInvoice(0);
         }
-        //兼容传值
-//        if (null != supplies && !"".equals(supplies) && !"null".equals(supplies)){
-//            if(!org.apache.commons.lang3.StringUtils.isBlank(supplies)){
-//                String substring = supplies.substring(supplies.indexOf("[")+1, supplies.length()-1);
-//                if (!"null".equals(substring)){
-//                    List<Integer> list = new ArrayList<>();
-//                    if (!org.apache.commons.lang3.StringUtils.isBlank(substring)){
-//                        System.out.println(substring);
-//                        String[] split = substring.split(",");
-//                        for (String s : split) {
-//                            list.add(Integer.valueOf(s.trim()));
-//                        }
-//                        readyDeliverCarOutBO.setSuppliesAtt(list);
-//                    }
-//                    readyDeliverCarOutBO.setSuppliesAtt(list);
-//                }
-//            }
-//
-//        }
+        String supplies = handoverCarPrepare.getSupplies();
+        readyDeliverCarOutBO.setSupplies(supplies);
+
+        //查询流程节点等于3
+        FlowInfoDto bybussinessNo = flowInfoRepository.getBybussinessNo(handoverCarPrepareDto.getBussinessNo());
+        Integer nodeNum = bybussinessNo.getNodeNum();
+        log.info("当前节点信息为 --->>>:bussinessNoBo{}，当前状态{}", JSON.toJSONString(bybussinessNo),nodeNum);
+        if (null == nodeNum){
+            nodeNum = 0;
+        }
+
+        if (nodeNum >= 3){
+            String id = handoverCarPrepare.getId();
+            if (StringUtils.isNotEmpty(id)){
+                readyDeliverCarOutBO.setLoanStatus(handoverCarPrepare.getLoanStatus());
+                readyDeliverCarOutBO.setUnifiedSalesInvoice(handoverCarPrepare.getUnifiedSalesInvoice());
+                readyDeliverCarOutBO.setInvoiceStatus("0");
+                readyDeliverCarOutBO.setPayOffStatus("0");
+                log.info("进入开始交车，强制不能更改-》》》{}",nodeNum);
+            }
+        }
+
         readyDeliverCarOutBO.setId(handoverCarPrepare.getId());
         List<FileInfo> fileInfos = fileInfoRepository.queryFileBybussinessNo(bussinessNo);
         List<FileInfoDto> list = new ArrayList<>();
@@ -218,8 +232,21 @@ public class HandoverCarPrepareService {
             list.add(fileInfoDto);
         });
         readyDeliverCarOutBO.setLinkType(list);
+
+        log.info("交车准备页面OUTBo数据-》》》{}",JSON.toJSONString(readyDeliverCarOutBO));
         return readyDeliverCarOutBO;
     }
+
+    public String grtChineseToEnumValue(String invoiceStatus) {
+        if ("是".equals(invoiceStatus)){
+            return "0";
+        }
+        if ("否".equals(invoiceStatus)){
+            return "1";
+        }
+        return "1";
+    }
+
 
     public HandoverCarPrepareDto selectByBussinessNo(String bussinessNo) {
         return handoverCarPrepareRepository.selectByBussinessNo(bussinessNo);

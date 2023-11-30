@@ -102,6 +102,10 @@ public enum GrtToPadEnums {
             return "3";
         }
 
+        if ("14041027".equals(value)){
+            return "3";
+        }
+
         if ("14041010".equals(value)){
             //兼容GRT传值
 //            return StringUtils.isEmpty(bindStatus)?"3":"4";
@@ -110,6 +114,9 @@ public enum GrtToPadEnums {
 //            if("未绑定".equals(bindStatus)){
 //                return "3";
 //            }
+            if("未绑定".equals(bindStatus)){
+                return "3";
+            }
             return "4";
         }
 
@@ -147,6 +154,9 @@ public enum GrtToPadEnums {
         return "";
     }
 
+    public static void main(String[] args) {
+        System.out.println(GrtToPadEnums.getValueByVin("14041004", "15615", "未绑定"));
+    }
 
 
 }
