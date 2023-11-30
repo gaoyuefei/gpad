@@ -18,6 +18,7 @@ import com.gpad.gpadtool.utils.DateUtil;
 import com.gpad.gpadtool.utils.FileUtil;
 import com.gpad.gpadtool.utils.MonitorUtil;
 import com.gpad.gpadtool.utils.UuidUtil;
+import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +38,7 @@ import java.io.File;
  * @Version: 1.0
  */
 @Slf4j
+@Api(value = "君子签接口", tags = "君子签相关")
 @RestController
 @RequestMapping("/gentlemanSignature")
 public class GentlemanSignatureController {
