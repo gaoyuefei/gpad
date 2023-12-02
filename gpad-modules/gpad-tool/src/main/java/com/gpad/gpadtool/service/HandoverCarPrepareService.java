@@ -180,7 +180,7 @@ public class HandoverCarPrepareService {
         List<OrderDetailResultDto> data = grtOrderDetail.getData();
         log.info("GRT详情返回数据{}", JSON.toJSONString(data));
         if (CollectionUtil.isEmpty(data)){
-            throw new ServiceException("交车准备页面订单详情数据网络开小差，请联系管理员并重试",CommCode.DATA_NOT_FOUND.getCode());
+            throw new ServiceException("交车准备页面GRT订单详情数据网络开小差，请联系管理员并重试",CommCode.DATA_NOT_FOUND.getCode());
         }
         log.info("打印订单详情数据-》》》{}",JSON.toJSONString(data));
         HandoverCarPrepare handoverCarPrepare = handoverCarPrepareRepository.queryBybussinessNo(bussinessNo);
@@ -195,14 +195,7 @@ public class HandoverCarPrepareService {
         //尾款支付状态
         readyDeliverCarOutBO.setPayOffStatus(grtChineseToEnumValue(orderDetailResultDto.getPayOffStatus()));
 
-        if (null == handoverCarPrepare.getLoanStatus()){
-            readyDeliverCarOutBO.setLoanStatus(0);
-        }
-        if (null == handoverCarPrepare.getLoanStatus()){
-            readyDeliverCarOutBO.setUnifiedSalesInvoice(0);
-        }
-        String supplies = handoverCarPrepare.getSupplies();
-        readyDeliverCarOutBO.setSupplies(supplies);
+        readyDeliverCarOutBO = getStatusByDbOrGRT(handoverCarPrepare,readyDeliverCarOutBO);
 
         //查询流程节点等于3
         FlowInfoDto bybussinessNo = flowInfoRepository.getBybussinessNo(handoverCarPrepareDto.getBussinessNo());
@@ -234,6 +227,29 @@ public class HandoverCarPrepareService {
         readyDeliverCarOutBO.setLinkType(list);
 
         log.info("交车准备页面OUTBo数据-》》》{}",JSON.toJSONString(readyDeliverCarOutBO));
+        return readyDeliverCarOutBO;
+    }
+
+    public HandoverCarPrepareOutBO getStatusByDbOrGRT(HandoverCarPrepare handoverCarPrepare, HandoverCarPrepareOutBO readyDeliverCarOutBO) {
+        String supplies = handoverCarPrepare.getSupplies();
+        readyDeliverCarOutBO.setSupplies(supplies);
+
+        //读取页面状态
+        if (null == handoverCarPrepare.getLoanStatus()){
+            readyDeliverCarOutBO.setLoanStatus(0);
+        }
+        if (null == handoverCarPrepare.getUnifiedSalesInvoice()){
+            readyDeliverCarOutBO.setUnifiedSalesInvoice(0);
+        }
+
+        if ("0".equals(readyDeliverCarOutBO.getInvoiceStatus())){
+            readyDeliverCarOutBO.setUnifiedSalesInvoice(1);
+        }
+
+        if ("0".equals(readyDeliverCarOutBO.getPayOffStatus())){
+            readyDeliverCarOutBO.setLoanStatus(1);
+        }
+
         return readyDeliverCarOutBO;
     }
 
