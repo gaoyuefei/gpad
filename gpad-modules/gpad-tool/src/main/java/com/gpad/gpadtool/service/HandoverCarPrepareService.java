@@ -210,8 +210,6 @@ public class HandoverCarPrepareService {
             if (StringUtils.isNotEmpty(id)){
                 readyDeliverCarOutBO.setLoanStatus(handoverCarPrepare.getLoanStatus());
                 readyDeliverCarOutBO.setUnifiedSalesInvoice(handoverCarPrepare.getUnifiedSalesInvoice());
-                readyDeliverCarOutBO.setInvoiceStatus("0");
-                readyDeliverCarOutBO.setPayOffStatus("0");
                 log.info("进入开始交车，强制不能更改-》》》{}",nodeNum);
             }
         }
