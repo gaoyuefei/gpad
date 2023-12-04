@@ -267,6 +267,7 @@ public class HandoverCarService {
                     }
                     OrderDetailResultDto orderDetailResultDto = data.get(0);
                     HandoverCarPrepareDto handoverCarPrepareDto = handoverCarPrepareService.selectByBussinessNo(bussinessNo);
+                    log.info("交车确认页面{}",JSON.toJSONString(handoverCarPrepareDto));
                     if(ObjectUtil.isEmpty(handoverCarPrepareDto)){
                         throw new ServiceException("交车完成,获取车牌失败，请重试",CommCode.DATA_IS_WRONG.getCode());
                     }
@@ -276,16 +277,18 @@ public class HandoverCarService {
                         throw new ServiceException("检测有未完成项,请先完成线上或线下签署。",CommCode.DATA_IS_WRONG.getCode());
                     }
 
-                    if (null == handoverCarCheckInfo.getId() && handoverCarCheckInfo.getId() == 0){
+                    if (null == handoverCarCheckInfo.getId() && 9999 <= handoverCarCheckInfo.getId()){
                         throw new ServiceException("检测有未完成项,请先完成线上或线下签署。",CommCode.DATA_IS_WRONG.getCode());
                     }
 
-                    if ("0".equals(handoverCarCheckInfo.getSignType()) && "0".equals(handoverCarCheckInfo.getSignStatus())){
-                        throw new ServiceException("检测有未完成项,请先完成线上或线下签署。",CommCode.DATA_IS_WRONG.getCode());
-                    }
-
-                    if ("1".equals(handoverCarCheckInfo.getSignType()) && "1".equals(handoverCarCheckInfo.getSignStatus())){
-                        throw new ServiceException("检测有未完成项,请先完成线上或线下签署。",CommCode.DATA_IS_WRONG.getCode());
+                    if (StringUtils.isEmpty(handoverCarCheckInfo.getContractAplNo())){
+                        if (!"1".equals(handoverCarCheckInfo.getSignType()+"") && "1".equals(handoverCarCheckInfo.getSignStatus()+"")){
+                            throw new ServiceException("检测有未完成项,请先完成线上或线下签署。",CommCode.DATA_IS_WRONG.getCode());
+                        }
+                    }else {
+                        if ("0".equals(handoverCarCheckInfo.getSignType()+"") && "0".equals(handoverCarCheckInfo.getSignStatus()+"")){
+                            throw new ServiceException("检测有未完成项,请先完成线上或线下签署。",CommCode.DATA_IS_WRONG.getCode());
+                        }
                     }
 
                     handoverCarCheckInfo.setIsDelivery(1);

@@ -154,9 +154,7 @@ public enum GrtToPadEnums {
         return "";
     }
 
-    public static void main(String[] args) {
-        System.out.println(GrtToPadEnums.getValueByVin("14041004", "15615", "未绑定"));
-    }
+
 
 
 }

@@ -796,12 +796,13 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             if ("1".equals(handoverCarCheckInfo.getSignType()+"")){
                 throw new ServiceException("该订单已发起线下签署，请重新加载页面",CommCode.DATA_IS_WRONG.getCode());
             }
-            if(!StringUtils.isEmpty(handoverCarCheckInfo.getContractLink())){
+            if(!StringUtils.isEmpty(handoverCarCheckInfo.getContractAplNo())){
                 throw new ServiceException("检测该该订单,已发起线上签署。",CommCode.DATA_IS_WRONG.getCode());
             }
-            if("0".equals(handoverCarCheckInfo.getSignType()) && "1".equals(handoverCarCheckInfo.getSignStatus())){
+            if("0".equals(handoverCarCheckInfo.getSignType()+"") && "1".equals(handoverCarCheckInfo.getSignStatus()+"")){
                 throw new ServiceException("检测该该订单状态,已发起线上签署。",CommCode.DATA_IS_WRONG.getCode());
             }
+
             String uiid = signatureTurnOffSignInputBO.getId();
             Long id = handoverCarCheckInfo.getId();
             HandoverCarCheckInfo handoverCarInfor = new HandoverCarCheckInfo();

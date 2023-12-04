@@ -184,6 +184,7 @@ public class GentlemanSignatureController {
     @Operation(summary = "发起线下签署")
     @PostMapping("/turn/off/signature")
     public R turnOffSignature(@RequestBody SignatureTurnOffSignInputBO SignatureTurnOffSignInputBO){
+        log.info("发起线下签署=== {}", JSON.toJSONString(SignatureTurnOffSignInputBO));
         return autoSignatureService.turnOffSignature(SignatureTurnOffSignInputBO);
     }
 
