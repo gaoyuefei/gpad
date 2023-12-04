@@ -267,12 +267,13 @@ public class HandoverCarService {
                     }
                     OrderDetailResultDto orderDetailResultDto = data.get(0);
                     HandoverCarPrepareDto handoverCarPrepareDto = handoverCarPrepareService.selectByBussinessNo(bussinessNo);
-                    log.info("交车确认页面{}",JSON.toJSONString(handoverCarPrepareDto));
+                    log.info("交车确认页面handoverCarPrepareDto{}",JSON.toJSONString(handoverCarPrepareDto));
                     if(ObjectUtil.isEmpty(handoverCarPrepareDto)){
                         throw new ServiceException("交车完成,获取车牌失败，请重试",CommCode.DATA_IS_WRONG.getCode());
                     }
 
                     HandoverCarCheckInfo handoverCarCheckInfo = handoverCarCheckInfoRepository.queryDeliverCarConfirmInfo(bussinessNo);
+                    log.info("交车确认页面handoverCarCheckInfo{}",JSON.toJSONString(handoverCarPrepareDto));
                     if (ObjectUtil.isEmpty(handoverCarCheckInfo.getBussinessNo())){
                         throw new ServiceException("检测有未完成项,请先完成线上或线下签署。",CommCode.DATA_IS_WRONG.getCode());
                     }
@@ -282,7 +283,7 @@ public class HandoverCarService {
                     }
 
                     if (StringUtils.isEmpty(handoverCarCheckInfo.getContractAplNo())){
-                        if (!"1".equals(handoverCarCheckInfo.getSignType()+"") && "1".equals(handoverCarCheckInfo.getSignStatus()+"")){
+                        if (!("1".equals(handoverCarCheckInfo.getSignType()+"") && "1".equals(handoverCarCheckInfo.getSignStatus()+""))){
                             throw new ServiceException("检测有未完成项,请先完成线上或线下签署。",CommCode.DATA_IS_WRONG.getCode());
                         }
                     }else {
