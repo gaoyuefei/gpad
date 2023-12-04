@@ -575,7 +575,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
     public boolean personValid(GentlemanSaltingVo gentlemanSaltingVo,String name,String identityCard) {
 
-        log.info("开始校验 method:personValid{},身份证号    {}",name,identityCard);
+        log.info("开始校验 method:personValid-》》》》》姓名{},身份证号-》》》》{}",name,identityCard);
         Boolean result = false;
         GentlemanSaltingVo authSafety = getAuthSafety();
         MultiValueMap<String,Object> params = new LinkedMultiValueMap<>();
@@ -796,6 +796,12 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             if ("1".equals(handoverCarCheckInfo.getSignType()+"")){
                 throw new ServiceException("该订单已发起线下签署，请重新加载页面",CommCode.DATA_IS_WRONG.getCode());
             }
+            if(!StringUtils.isEmpty(handoverCarCheckInfo.getContractLink())){
+                throw new ServiceException("检测该该订单,已发起线上签署。",CommCode.DATA_IS_WRONG.getCode());
+            }
+            if("0".equals(handoverCarCheckInfo.getSignType()) && "1".equals(handoverCarCheckInfo.getSignStatus())){
+                throw new ServiceException("检测该该订单状态,已发起线上签署。",CommCode.DATA_IS_WRONG.getCode());
+            }
             String uiid = signatureTurnOffSignInputBO.getId();
             Long id = handoverCarCheckInfo.getId();
             HandoverCarCheckInfo handoverCarInfor = new HandoverCarCheckInfo();
@@ -816,9 +822,8 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             }
             result = handoverCarCheckInfoRepository.saveOrUpdateHandoverCarInfo(handoverCarInfor);
             if (!result){
-                throw new ServiceException("该订单发起线下签署状态修改失败，请检查是否签署",CommCode.DATA_IS_WRONG.getCode());
+                throw new ServiceException("订单发起线下签署网络繁忙，请联系网络管理或稍等重复",CommCode.DATA_IS_WRONG.getCode());
             }
-
         } finally {
             RedisLockUtils.unlock(bussinessNo);
         }

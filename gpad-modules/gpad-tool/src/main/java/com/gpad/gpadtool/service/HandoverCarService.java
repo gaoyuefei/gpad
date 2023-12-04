@@ -270,14 +270,22 @@ public class HandoverCarService {
                     if(ObjectUtil.isEmpty(handoverCarPrepareDto)){
                         throw new ServiceException("交车完成,获取车牌失败，请重试",CommCode.DATA_IS_WRONG.getCode());
                     }
-                    //修改交车完成状态
+
                     HandoverCarCheckInfo handoverCarCheckInfo = handoverCarCheckInfoRepository.queryDeliverCarConfirmInfo(bussinessNo);
                     if (ObjectUtil.isEmpty(handoverCarCheckInfo.getBussinessNo())){
-                        throw new ServiceException("检测有未完成项,请先完成线上或线下签署",CommCode.DATA_IS_WRONG.getCode());
+                        throw new ServiceException("检测有未完成项,请先完成线上或线下签署。",CommCode.DATA_IS_WRONG.getCode());
                     }
 
                     if (null == handoverCarCheckInfo.getId() && handoverCarCheckInfo.getId() == 0){
-                        throw new ServiceException("检测有未完成项,请先完成线上或线下签署",CommCode.DATA_IS_WRONG.getCode());
+                        throw new ServiceException("检测有未完成项,请先完成线上或线下签署。",CommCode.DATA_IS_WRONG.getCode());
+                    }
+
+                    if ("0".equals(handoverCarCheckInfo.getSignType()) && "0".equals(handoverCarCheckInfo.getSignStatus())){
+                        throw new ServiceException("检测有未完成项,请先完成线上或线下签署。",CommCode.DATA_IS_WRONG.getCode());
+                    }
+
+                    if ("1".equals(handoverCarCheckInfo.getSignType()) && "1".equals(handoverCarCheckInfo.getSignStatus())){
+                        throw new ServiceException("检测有未完成项,请先完成线上或线下签署。",CommCode.DATA_IS_WRONG.getCode());
                     }
 
                     handoverCarCheckInfo.setIsDelivery(1);
@@ -298,8 +306,6 @@ public class HandoverCarService {
                         log.info("交车完成参数为{}",JSON.toJSONString(dataOut));
                         int code = r.getCode();
                         String msg = r.getMsg();
-//                        status = JSONUtil.parseObj(dataOut).get("code") + "";
-//                        message = JSONUtil.parseObj(dataOut).get("msg") + "";
                         if ("200".equals(code+"")){
                            return R.ok(true,msg);
                         }else {

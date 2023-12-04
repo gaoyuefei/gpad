@@ -99,8 +99,7 @@ public class HandoverCarPrepareService {
         String bussinessNo = handoverCarPrepareDto.getBussinessNo();
             try {
                 RedisLockUtils.lock(bussinessNo);
-                //TODO 前端有ID 一定要传ID
-                //自己拿ID
+
                 if (Strings.isBlank(handoverCarPrepareDto.getId()) && !checkedbussinessNo(bussinessNo)) {
                     log.info("进入保存方法 --->>> method:saveOrUpdateHandoverCarPrepareDto{},{}", bussinessNo,handoverCarPrepareDto.getId());
                     //幂等处理
@@ -189,15 +188,12 @@ public class HandoverCarPrepareService {
         BeanUtil.copyProperties(handoverCarPrepare,readyDeliverCarOutBO);
 
         OrderDetailResultDto orderDetailResultDto = data.get(0);
+        //读取订单详情状态
         readyDeliverCarOutBO.setPaymentMethod(PayMethodToCodeEnum.getPadValueByType(orderDetailResultDto.getPaymentMethod()));
-        //开具发票状态
         readyDeliverCarOutBO.setInvoiceStatus(grtChineseToEnumValue(orderDetailResultDto.getInvoiceStatus()));
-        //尾款支付状态
         readyDeliverCarOutBO.setPayOffStatus(grtChineseToEnumValue(orderDetailResultDto.getPayOffStatus()));
-
         readyDeliverCarOutBO = getStatusByDbOrGRT(handoverCarPrepare,readyDeliverCarOutBO);
 
-        //查询流程节点等于3
         FlowInfoDto bybussinessNo = flowInfoRepository.getBybussinessNo(handoverCarPrepareDto.getBussinessNo());
         Integer nodeNum = bybussinessNo.getNodeNum();
         log.info("当前节点信息为 --->>>:bussinessNoBo{}，当前状态{}", JSON.toJSONString(bybussinessNo),nodeNum);
@@ -232,7 +228,7 @@ public class HandoverCarPrepareService {
         String supplies = handoverCarPrepare.getSupplies();
         readyDeliverCarOutBO.setSupplies(supplies);
 
-        //读取页面状态
+        //状态转换
         if (null == handoverCarPrepare.getLoanStatus()){
             readyDeliverCarOutBO.setLoanStatus(0);
         }
