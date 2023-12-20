@@ -20,10 +20,10 @@ public class ExhibitionPhotoGalleryListPadVo {
     private String id;
 
     @ApiModelProperty(value = "图片集素材图集合")
-    private MiseCdrListPadVo miseCdrList;
+    private List<MiseCdrListPadVo> miseCdrList;
 
     @ApiModelProperty(value = "图片集名称")
-    private Boolean name;
+    private String name;
 
     @ApiModelProperty(value = "排序")
     private Integer sort;

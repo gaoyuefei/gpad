@@ -16,7 +16,7 @@ import javax.validation.constraints.NotBlank;
 @Data
 public class ExhibitionMixPadInputBO {
 
-    @NotBlank
+
     @ApiModelProperty(value =  "派生代码")
     private String packageCode;
 

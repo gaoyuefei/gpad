@@ -56,12 +56,14 @@ public class OrderNoResultDto {
     private String colorCode;
     @ApiModelProperty(value = "销售顾问名称")
     private String salesCounselor;
-    //2023//11/10 新增字段
     @ApiModelProperty(value = "APP订单号")
     private String originOrderNo;
-
     @ApiModelProperty(value = "销售顾问名称")
     private String consultant;
+    @ApiModelProperty(value = "派生代码")
+    private String packageCode;
+    @ApiModelProperty(value = "派生名称")
+    private String packageName;
     @ApiModelProperty(value = "销售顾问ID")
     private String consultantId;
     @ApiModelProperty(value = "销售日期")

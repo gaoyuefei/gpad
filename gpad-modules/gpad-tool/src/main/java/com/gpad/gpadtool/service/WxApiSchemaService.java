@@ -17,4 +17,7 @@ public interface WxApiSchemaService {
 
     R getOrderCommentUrl(OrderCommentUrlVo orderCommentUrlVo);
 
+    R queryCommBoxExhibitionMixPad(ExhibitionMixPadInputBO exhibitionMixPadInputBO);
+
+    R getGoodsIdAndNewVIdByCode(String code);
 }

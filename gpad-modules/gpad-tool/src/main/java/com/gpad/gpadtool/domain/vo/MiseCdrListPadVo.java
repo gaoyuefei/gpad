@@ -20,9 +20,6 @@ public class MiseCdrListPadVo {
     private String id;
 
     @ApiModelProperty(value = "颜色集合")
-    private String code;
-
-    @ApiModelProperty(value = "颜色集合")
     private String cdrType;
 
     @ApiModelProperty(value = "颜色集合")
@@ -32,7 +29,7 @@ public class MiseCdrListPadVo {
     @ApiModelProperty(value = "颜色集合")
     private String coverImg;
     @ApiModelProperty(value = "颜色集合")
-    private String coverImgList;
+    private List<String> coverImgList;
     @ApiModelProperty(value = "颜色集合")
     private String materialCode;
     @ApiModelProperty(value = "颜色集合")

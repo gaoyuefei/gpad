@@ -102,5 +102,25 @@ public class WxApiSchemaController {
         return wxApiSchemaService.queryExhibitionMixPad(exhibitionMixPadInputBO);
     }
 
+    /**
+     * 获取素材连接车型下拉框
+     */
+    @Operation(summary = "获取素材连接车型下拉框")
+    @PostMapping("/exhibition/queryCommBoxExhibitionMixPad")
+    public R queryCommBoxExhibitionMixPad(@RequestBody ExhibitionMixPadInputBO exhibitionMixPadInputBO){
+        log.info(" -queryCommBoxExhibitionMixPad-->>> queryCommBoxExhibitionMixPad = {}", JSON.toJSONString(exhibitionMixPadInputBO));
+        return wxApiSchemaService.queryCommBoxExhibitionMixPad(exhibitionMixPadInputBO);
+    }
+
+    /**
+     * 获取商品ID和新车型代码
+     */
+    @Operation(summary = "获取商品ID和新车型代码")
+    @GetMapping("/exhibition/getGoodsIdAndNewVIdByCode")
+    public R getGoodsIdAndNewVIdByCode(@RequestParam("code") String code){
+        log.info(" -getGoodsIdAndNewVIdByCode-->>> getGoodsIdAndNewVIdByCode = {}", JSON.toJSONString(code));
+        return wxApiSchemaService.getGoodsIdAndNewVIdByCode(code);
+    }
+
 }
 
