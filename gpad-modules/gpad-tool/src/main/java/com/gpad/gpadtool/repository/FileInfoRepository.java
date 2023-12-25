@@ -17,6 +17,7 @@ import com.gpad.gpadtool.mapper.FileInfoMapper;
 import com.gpad.gpadtool.utils.UuidUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -184,5 +185,12 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
         });
         log.info("方式执行结束 对象复制之后mehtod：queryCommonFile(){}", JSON.toJSONString(fileInfoOutBo));
         return R.ok(fileInfoOutBo);
+    }
+
+    @Autowired
+    private FileInfoMapper fileInfoMapper;
+
+    public String selectSysConfigByKey(String sysKey){
+        return fileInfoMapper.selectSysConfigByKey(sysKey);
     }
 }

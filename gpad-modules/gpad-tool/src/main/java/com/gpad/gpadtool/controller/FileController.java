@@ -2,7 +2,10 @@ package com.gpad.gpadtool.controller;
 
 import cn.hutool.core.util.IdUtil;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.gpad.common.core.domain.R;
+import com.gpad.gpadtool.utils.FileZipUtil;
+import com.gpad.gpadtool.utils.ZipFileDTO;
 import com.gpad.gpadtool.domain.dto.CommonFilePathCheckInputBO;
 import com.gpad.gpadtool.domain.dto.FileInfoDto;
 import com.gpad.gpadtool.domain.dto.UploadFileOutputDto;
@@ -14,6 +17,7 @@ import com.gpad.gpadtool.utils.UuidUtil;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +26,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -42,6 +48,10 @@ public class FileController {
 
     @Autowired
     private FileInfoService fileInfoService;
+    @Autowired
+    private FileZipUtil fileZipUtil;
+
+    private static final String SYS_KEY = "zip.download.file.types";
 
     /**
      * 文件上传
@@ -103,6 +113,41 @@ public class FileController {
     public void downloadFile(HttpServletResponse response, @RequestParam("filePath") String filePath, @RequestParam("fileName") String fileName) {
         log.info("文件下载!存储路径=== {} ,文件名=== {}", filePath, fileName);
         FileUtil.downloadFile(filePath, fileName, response);
+    }
+
+    /**
+     * 文件打包下载
+     * 批量下载订单下的所有文件--打成zip包下载
+     *  下载文件类型通过数据库参数配置
+     */
+    @Operation(summary = "文件打包下载")
+    @GetMapping("/downloadZipFile")
+    public void downloadZipFile(HttpServletResponse response, @RequestParam("businessNo") String businessNo) {
+        log.info("文件打包下载!订单号=== {}", businessNo);
+        //1、查数据库参数配置，获取需要下载的文件类型
+        String downloadZipFileLinkTypes = fileInfoService.selectSysConfigByKey(SYS_KEY);
+        List<String> linkTypes = new ArrayList<>();
+        List<FileInfoDto> files = new ArrayList<>();
+        if (Strings.isNotEmpty(downloadZipFileLinkTypes)){
+            linkTypes = Arrays.asList(downloadZipFileLinkTypes.split(","));
+        }
+        //2、根据订单号和文件类型查文件信息
+        if (CollectionUtils.isNotEmpty(linkTypes)){
+            linkTypes.forEach(f->{
+                List<FileInfoDto> fileInfos = fileInfoService.getByBusinessNoAndLinkType(businessNo, Integer.parseInt(f));
+                files.addAll(fileInfos);
+            });
+        }
+        //3、打包下载
+            //转换为ZipFileDTO
+        List<String> fileNames = new ArrayList<>();
+        List<ByteArrayOutputStream> outputStreams = new ArrayList<>();
+        String zipFIleName = DateUtil.generateDateTimeStr().concat("_")+System.currentTimeMillis()+".zip";
+        files.forEach(f->{
+            fileNames.add(f.getFileName());
+            outputStreams.add(fileZipUtil.getByteArrayOutputStream(f.getFilePath()));
+        });
+        fileZipUtil.downloadZipFile(response,new ZipFileDTO(fileNames,outputStreams,zipFIleName));
     }
 
     /**

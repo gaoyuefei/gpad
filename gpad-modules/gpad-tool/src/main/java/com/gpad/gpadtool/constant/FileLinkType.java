@@ -14,6 +14,7 @@ public enum FileLinkType {
     CHECK_OTHER(22, "到店检查-其他检查项"),
     CONFIRM_OUT(31, "交车确认-外观检查"),
     CONFIRM_OTHER(32, "交车确认-其他检查项"),
+    CONFIRM_SIGN(33, "交车确认-君子签签名"),
     SIGN(4, "签名PDF"),
     GUIDE(5, "用车指南"),
     CHECK_FLOW(6, "标准检查流程演示"),
