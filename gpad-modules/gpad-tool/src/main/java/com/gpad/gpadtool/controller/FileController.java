@@ -2,6 +2,7 @@ package com.gpad.gpadtool.controller;
 
 import cn.hutool.core.util.IdUtil;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.gpad.common.core.domain.R;
 import com.gpad.gpadtool.utils.FileZipUtil;
@@ -123,9 +124,10 @@ public class FileController {
     @Operation(summary = "文件打包下载")
     @GetMapping("/downloadZipFile")
     public void downloadZipFile(HttpServletResponse response, @RequestParam("businessNo") String businessNo) {
-        log.info("文件打包下载!订单号=== {}", businessNo);
+        log.info("文件批量压缩下载--->>> 订单号=== {}", businessNo);
         //1、查数据库参数配置，获取需要下载的文件类型
         String downloadZipFileLinkTypes = fileInfoService.selectSysConfigByKey(SYS_KEY);
+        log.info("文件批量压缩下载--->>> 数据库配置的文件类型==={}",downloadZipFileLinkTypes);
         List<String> linkTypes = new ArrayList<>();
         List<FileInfoDto> files = new ArrayList<>();
         if (Strings.isNotEmpty(downloadZipFileLinkTypes)){
@@ -138,19 +140,23 @@ public class FileController {
                 files.addAll(fileInfos);
             });
         }
+        log.info("文件批量压缩下载--->>> businessNo=【{}】,查到的files=【{}】",businessNo, JSONObject.toJSONString(files));
         if (CollectionUtils.isEmpty(files)){
-            return;
+            throw new RuntimeException("查不到文件信息!");
         }
         //3、打包下载
             //转换为ZipFileDTO
         List<String> fileNames = new ArrayList<>();
         List<ByteArrayOutputStream> outputStreams = new ArrayList<>();
         String zipFIleName = DateUtil.generateDateTimeStr().concat("_")+System.currentTimeMillis()+".zip";
+        log.info("文件批量压缩下载--->>> zipFIleName=【{}】",zipFIleName);
         files.forEach(f->{
             fileNames.add(f.getFileName());
             outputStreams.add(fileZipUtil.getByteArrayOutputStream(f.getFilePath()));
         });
+        log.info("文件批量压缩下载--->>> 开始打包下载!");
         fileZipUtil.downloadZipFile(response,new ZipFileDTO(fileNames,outputStreams,zipFIleName));
+        log.info("文件批量压缩下载--->>> 打包下载完成!");
     }
 
     /**
