@@ -14,6 +14,7 @@ import com.gpad.gpadtool.constant.CommCode;
 import com.gpad.gpadtool.constant.FlowNodeNum;
 import com.gpad.gpadtool.domain.dto.*;
 import com.gpad.gpadtool.domain.entity.FileInfo;
+import com.gpad.gpadtool.domain.entity.HandoverCarCheckInfo;
 import com.gpad.gpadtool.domain.entity.HandoverCarPrepare;
 import com.gpad.gpadtool.enums.PayMethodToCodeEnum;
 import com.gpad.gpadtool.repository.FileInfoRepository;
@@ -57,6 +58,9 @@ public class HandoverCarPrepareService {
     private OrderDetailRepository orderDetailRepository;
 
     @Autowired
+    private HandoverCarCheckInfoService handoverCarCheckInfoService;
+
+    @Autowired
     private GRTService grtService;
 
 
@@ -85,10 +89,6 @@ public class HandoverCarPrepareService {
         List<HandoverCarPrepare> handoverCarPrepares = new ArrayList<>();
         list.forEach(l->handoverCarPrepares.add(JSONObject.parseObject(JSONObject.toJSONString(l),HandoverCarPrepare.class)));
         handoverCarPrepareRepository.saveBatch(handoverCarPrepares);
-    }
-
-    public void batchSaveOrUpdateHandoverCarPrepareDtoList(List<HandoverCarPrepareDto> list) {
-        list.forEach(this::saveOrUpdateHandoverCarPrepareDto);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -148,6 +148,10 @@ public class HandoverCarPrepareService {
                 RedisLockUtils.unlock(bussinessNo);
             }
         return R.ok(result);
+    }
+
+    public void batchSaveOrUpdateHandoverCarPrepareDtoList(List<HandoverCarPrepareDto> list) {
+        list.forEach(this::saveOrUpdateHandoverCarPrepareDto);
     }
 
     private boolean checkedbussinessNo(String bussinessNo) {
@@ -219,6 +223,13 @@ public class HandoverCarPrepareService {
             list.add(fileInfoDto);
         });
         readyDeliverCarOutBO.setLinkType(list);
+
+        HandoverCarCheckInfo handoverCarCheckInfo = handoverCarCheckInfoService.getListBybussinessNo(bussinessNo);
+        log.info("查询返回实体为: {}", JSONObject.toJSONString(handoverCarCheckInfo));
+
+        Integer isDelivery = handoverCarCheckInfo.getIsDelivery();
+        readyDeliverCarOutBO.setIsDelivery(null == isDelivery ?0:isDelivery);
+        log.info("打印实体状态: {}", JSONObject.toJSONString(isDelivery));
 
         log.info("交车准备页面OUTBo数据-》》》{}",JSON.toJSONString(readyDeliverCarOutBO));
         return readyDeliverCarOutBO;

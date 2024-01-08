@@ -251,6 +251,9 @@ public class HandoverCarService {
             FlowInfoDto bybussinessNo = flowInfoRepository.getBybussinessNo(bussinessNo);
             if (ObjectUtil.isNotEmpty(bybussinessNo)) {
                 Integer nodeNum = bybussinessNo.getNodeNum();
+                if ("2".equals(nodeNum+"")){
+                    return R.ok(null,200,"检测交车准备页面或者交车确认页面存在未完成项，请完成后重试");
+                }
                 if("3".equals(nodeNum+"")){
                     FlowInfoDto flowInfoDto = new FlowInfoDto();
                     flowInfoDto.setBussinessNo(bussinessNo);
@@ -333,5 +336,32 @@ public class HandoverCarService {
         HandoverCarCheckInfo handoverCarCheckInfo = handoverCarCheckInfoService.getListBybussinessNo(bussinessNo);
         log.info("查询合同连接为{}",JSON.toJSONString(handoverCarCheckInfo));
         return R.ok(handoverCarCheckInfo.getContractLink());
+    }
+
+    public R deliveryEvaluationNext(String bussinessNo) {
+        Boolean result = false;
+        Integer nodeNum = 0;
+        FlowInfoDto bybussinessNo = flowInfoRepository.getBybussinessNo(bussinessNo);
+        log.info("当前节点信息为 --->>>:bybussinessNo{}", JSON.toJSONString(bybussinessNo));
+
+        if (ObjectUtil.isNotEmpty(bybussinessNo)){
+            nodeNum = bybussinessNo.getNodeNum();
+        }
+
+        if(null == nodeNum){
+            nodeNum = 0;
+        }
+
+        if (4 == nodeNum){
+            FlowInfoDto flowInfoDto = new FlowInfoDto();
+            flowInfoDto.setBussinessNo(bussinessNo);
+            flowInfoDto.setNodeNum(FlowNodeNum.HAND_OVER_CAR_JUDGE.getCode());
+            result = flowInfoRepository.updateDeliverCarReadyToConfirm(flowInfoDto);
+            if (!result){
+                throw new ServiceException("当前流程状态更新有误,请刷新后重试", CommCode.DATA_UPDATE_WRONG.getCode());
+            }
+            log.info("交车评价下一步信息为{}",JSON.toJSONString(flowInfoDto));
+        }
+        return R.ok(result);
     }
 }

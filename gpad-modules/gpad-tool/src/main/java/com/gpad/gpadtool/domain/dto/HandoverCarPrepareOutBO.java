@@ -66,6 +66,9 @@ public class HandoverCarPrepareOutBO {
     @ApiModelProperty(value = "车况检查及交车仪式")
     private List<FileInfoDto> linkType;
 
+    @ApiModelProperty(value = "0：未完成交车，1：已完成交车")
+    private Integer isDelivery;
+
     private Date createTime;
 
     private Date updateTime;
