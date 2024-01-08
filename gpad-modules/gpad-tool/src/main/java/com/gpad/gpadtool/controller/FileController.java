@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.nacos.common.utils.CollectionUtils;
 import com.gpad.common.core.domain.R;
+import com.gpad.common.core.exception.ServiceException;
 import com.gpad.gpadtool.utils.FileZipUtil;
 import com.gpad.gpadtool.utils.ZipFileDTO;
 import com.gpad.gpadtool.domain.dto.CommonFilePathCheckInputBO;
@@ -142,7 +143,7 @@ public class FileController {
         }
         log.info("文件批量压缩下载--->>> businessNo=【{}】,查到的files=【{}】",businessNo, JSONObject.toJSONString(files));
         if (CollectionUtils.isEmpty(files)){
-            throw new RuntimeException("查不到文件信息!");
+            throw new ServiceException("查不到文件信息!");
         }
         //3、打包下载
             //转换为ZipFileDTO
@@ -150,10 +151,15 @@ public class FileController {
         List<ByteArrayOutputStream> outputStreams = new ArrayList<>();
         String zipFIleName = DateUtil.generateDateTimeStr().concat("_")+System.currentTimeMillis()+".zip";
         log.info("文件批量压缩下载--->>> zipFIleName=【{}】",zipFIleName);
-        files.forEach(f->{
-            fileNames.add(f.getFileName());
-            outputStreams.add(fileZipUtil.getByteArrayOutputStream(f.getFilePath()));
-        });
+        try {
+            files.forEach(f -> {
+                fileNames.add(f.getFileName());
+                outputStreams.add(fileZipUtil.getByteArrayOutputStream(f.getFilePath()));
+            });
+        }catch (Exception e){
+            log.error("文件批量压缩下载--->>> 读取文件出错! {}",e.getMessage());
+            throw new ServiceException("读取不到文件信息!请联系管理员!");
+        }
         log.info("文件批量压缩下载--->>> 开始打包下载!");
         fileZipUtil.downloadZipFile(response,new ZipFileDTO(fileNames,outputStreams,zipFIleName));
         log.info("文件批量压缩下载--->>> 打包下载完成!");
