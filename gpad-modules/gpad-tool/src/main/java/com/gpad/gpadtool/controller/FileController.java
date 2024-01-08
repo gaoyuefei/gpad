@@ -22,12 +22,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,6 +44,7 @@ import java.util.List;
 @Slf4j
 @Api(value = "文件管理接口", tags = "文件管理接口")
 @RestController
+@RefreshScope
 @RequestMapping("/api/file")
 public class FileController {
 
@@ -54,6 +57,7 @@ public class FileController {
     private FileZipUtil fileZipUtil;
 
     private static final String SYS_KEY = "zip.download.file.types";
+    private static final String FILE_HOME = "zip.download.file.home";
 
     /**
      * 文件上传
@@ -129,6 +133,8 @@ public class FileController {
         //1、查数据库参数配置，获取需要下载的文件类型
         String downloadZipFileLinkTypes = fileInfoService.selectSysConfigByKey(SYS_KEY);
         log.info("文件批量压缩下载--->>> 数据库配置的文件类型==={}",downloadZipFileLinkTypes);
+        String fileHome = fileInfoService.selectSysConfigByKey(FILE_HOME);
+        log.info("文件批量压缩下载--->>> 数据库配置的文件根目录==={}",fileHome);
         List<String> linkTypes = new ArrayList<>();
         List<FileInfoDto> files = new ArrayList<>();
         if (Strings.isNotEmpty(downloadZipFileLinkTypes)){
@@ -154,7 +160,7 @@ public class FileController {
         try {
             files.forEach(f -> {
                 fileNames.add(f.getFileName());
-                outputStreams.add(fileZipUtil.getByteArrayOutputStream(f.getFilePath()));
+                outputStreams.add(fileZipUtil.getByteArrayOutputStream(fileHome + f.getFilePath()));
             });
         }catch (Exception e){
             log.error("文件批量压缩下载--->>> 读取文件出错! {}",e.getMessage());
