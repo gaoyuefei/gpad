@@ -150,7 +150,7 @@ public class HandoverCarController {
     }
 
     /**
-     * 保存交车评价信息
+     * 保存交车评价信息（未使用到）
      */
     @Operation(summary = "保存交车评价信息")
     @PostMapping("/saveHandoverCarJudge")
@@ -225,6 +225,16 @@ public class HandoverCarController {
     @PostMapping("/handOverCar/getContractLinkByBussinessNo")
     public R<String> getContractLinkByBussinessNo(@RequestBody DeliveryContractLinkInputBO deliveryContractLinkInputBO){
         return handoverCarService.getContractLinkByBussinessNo(deliveryContractLinkInputBO);
+    }
+
+    /**
+     * 交车评价下一步信息
+     */
+    @Operation(summary = "交车评价下一步信息")
+    @GetMapping("/handOverCar/deliveryEvaluationNext")
+    public R deliveryEvaluationNext(@RequestParam("bussinessNo") String bussinessNo){
+        log.info("交车评价下一步信息,入参为{}",JSON.toJSONString(bussinessNo));
+        return handoverCarService.deliveryEvaluationNext(bussinessNo);
     }
 
 }
