@@ -138,6 +138,9 @@ public class FileController {
                 files.addAll(fileInfos);
             });
         }
+        if (CollectionUtils.isEmpty(files)){
+            return;
+        }
         //3、打包下载
             //转换为ZipFileDTO
         List<String> fileNames = new ArrayList<>();
