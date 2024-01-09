@@ -202,6 +202,7 @@ public class LoginController {
     @GetMapping("/js_sdk/getUrl")
     public R getJsdk(@RequestParam("url") String url) {
         log.info("SDK使用权限签名url! {}",url);
+        String url1 = "https://pad-test.spgacmotorfm.com/pages/orderList/deliveryManagementList?account=Jy+6RjqtL/h8oOJeqM1h72RKaQISTO0Umii3BxergFxK9KMrItp5TXjdXbvemZYdi4ZQ2pxjPe328p1MgpKJ2UGEUTe8MUlfILgopMkq2/evxzEUx0Qd2BIXlXkOYQHc7XjqqxlgEvMLzO+MM6EzsxANffRZE2sKoJ0xlA5a5IY=";
         long ts = System.currentTimeMillis() / 1000;
         JssdkVo jssdkVo = new JssdkVo();
         jssdkVo.setAppId(wx_appId);
@@ -212,7 +213,7 @@ public class LoginController {
             e.printStackTrace();
         }
         String ticket = getJsApiTicket();
-        String signature  = "jsapi_ticket="+ticket+"&"+ "noncestr="+jssdkVo.getNonceStr()+"&" +"timestamp="+jssdkVo.getTimeTamp()+"&"+"url="+url;
+        String signature  = "jsapi_ticket="+ticket+"&"+ "noncestr="+jssdkVo.getNonceStr()+"&" +"timestamp="+jssdkVo.getTimeTamp()+"&"+"url="+url1;
         log.info("signature {}",JSONObject.toJSONString(signature));
         try {
             jssdkVo.setSignature(Sha1Util.sha1(signature));
