@@ -73,6 +73,8 @@ public class LoginController {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @Autowired
+    private TokenService tokenService;
 
     /**
      * 获取当前账号 account
@@ -154,8 +156,7 @@ public class LoginController {
         return R.ok(scanCodeTokenInfoVo);
     }
 
-    @Autowired
-    private TokenService tokenService;
+
 
     /**
      * 方便调试接口
@@ -200,7 +201,7 @@ public class LoginController {
     @Operation(summary = "JS-SDK使用权限签名")
     @GetMapping("/js_sdk/getUrl")
     public R getJsdk(@RequestParam("url") String url) {
-        long ts = System.currentTimeMillis();
+        long ts = System.currentTimeMillis() / 1000;
         JssdkVo jssdkVo = new JssdkVo();
         jssdkVo.setAppId(wx_appId);
         jssdkVo.setTimeTamp(ts+"");
