@@ -27,6 +27,10 @@ public class DateUtil {
     }
 
     public static String generateDateTimeStr(){
+        return new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+    }
+
+    public static String generateDateStr(){
         return new SimpleDateFormat("yyyyMMdd").format(new Date());
     }
 

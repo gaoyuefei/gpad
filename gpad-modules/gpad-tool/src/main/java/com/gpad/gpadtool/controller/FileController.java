@@ -155,7 +155,7 @@ public class FileController {
             //转换为ZipFileDTO
         List<String> fileNames = new ArrayList<>();
         List<ByteArrayOutputStream> outputStreams = new ArrayList<>();
-        String zipFIleName = DateUtil.generateDateTimeStr().concat("_")+System.currentTimeMillis()+".zip";
+        String zipFIleName = businessNo.concat("_").concat(DateUtil.generateDateTimeStr()+".zip");
         log.info("文件批量压缩下载--->>> zipFIleName=【{}】",zipFIleName);
         try {
             files.forEach(f -> {
