@@ -38,6 +38,7 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
         LambdaQueryWrapper<FileInfo> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(FileInfo::getBussinessNo,bussinessNo);
         wrapper.eq(FileInfo::getLinkType,linkType);
+        wrapper.eq(FileInfo::getDelFlag,0);
         List<FileInfo> list = this.list(wrapper);
         List<FileInfoDto> result = new ArrayList<>();
         list.forEach(l->result.add(JSONObject.parseObject(JSONObject.toJSONString(l),FileInfoDto.class)));
