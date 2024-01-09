@@ -207,15 +207,15 @@ public class LoginController {
         jssdkVo.setAppId(wx_appId);
         jssdkVo.setTimeTamp(ts+"");
         try {
-            jssdkVo.setNonceStr(Sha1Util.getSha1(DigestUtils.sha1(ts + "")));
+            jssdkVo.setNonceStr(Sha1Util.sha1(ts+""));
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
         String ticket = getJsApiTicket();
-        String signature  = "jsapi_ticket="+ticket+"&"+ "nonceStr="+jssdkVo.getNonceStr()+"&" +"timestamp="+jssdkVo.getTimeTamp()+"&"+"url="+url;
+        String signature  = "jsapi_ticket="+ticket+"&"+ "noncestr="+jssdkVo.getNonceStr()+"&" +"timestamp="+jssdkVo.getTimeTamp()+"&"+"url="+url;
         log.info("signature {}",JSONObject.toJSONString(signature));
         try {
-            jssdkVo.setSignature(Sha1Util.getSha1(DigestUtils.sha1(signature)));
+            jssdkVo.setSignature(Sha1Util.sha1(ts+""));
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
