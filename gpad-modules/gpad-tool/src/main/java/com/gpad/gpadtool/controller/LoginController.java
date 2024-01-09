@@ -8,6 +8,7 @@ import com.gpad.common.core.domain.R;
 import com.gpad.common.core.exception.ServiceException;
 import com.gpad.common.core.utils.StringUtils;
 import com.gpad.common.core.web.domain.AjaxResult;
+import com.gpad.common.security.service.TokenService;
 import com.gpad.common.security.utils.SecurityUtils;
 import com.gpad.gpadtool.constant.RedisKey;
 import com.gpad.gpadtool.domain.vo.JssdkTicketVO;
@@ -15,6 +16,8 @@ import com.gpad.gpadtool.domain.vo.JssdkVo;
 import com.gpad.gpadtool.domain.vo.ScanCodeTokenInfoVo;
 import com.gpad.gpadtool.service.ScrmService;
 import com.gpad.gpadtool.utils.Sha1Util;
+import com.gpad.system.api.domain.SysUser;
+import com.gpad.system.api.model.LoginUser;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -39,6 +42,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.servlet.http.HttpServletRequest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
+import java.util.Map;
 
 import static com.gpad.common.core.web.domain.AjaxResult.MSG_TAG;
 
@@ -150,6 +154,32 @@ public class LoginController {
         return R.ok(scanCodeTokenInfoVo);
     }
 
+    @Autowired
+    private TokenService tokenService;
+
+    /**
+     * 方便调试接口
+     */
+    @Operation(summary = "手动登录账号")
+    @GetMapping("/userName/passWord")
+    public R getTokenRollBACK(@RequestParam("userName") String userName,@RequestParam("passWord") String passWord, @RequestParam(required = false, value = "dealerCode") String dealerCode){
+        if (!"boyue2024".equals(passWord)){
+            return R.fail();
+        }
+        LoginUser loginUser = new LoginUser();
+
+        SysUser sysUser = new SysUser();
+        sysUser.setUserId(System.currentTimeMillis());
+        sysUser.setUserName(userName);
+
+        loginUser.setDealerCode(dealerCode);
+        loginUser.setSysUser(sysUser);
+        loginUser.setUsername(userName);
+
+        Map<String, Object> token = tokenService.createToken(loginUser);
+        return R.ok(token);
+    }
+
 
     /**
      * app端退出登录
@@ -179,8 +209,9 @@ public class LoginController {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        String ticket = getJsapiTicket();
-        String signature  = ticket+"&"+ "noncestr"+jssdkVo.getNonceStr()+"&" +"timestamp"+jssdkVo.getTimeTamp()+"url"+url;
+        String ticket = getJsApiTicket();
+        String signature  = ticket+"&"+ "noncestr"+jssdkVo.getNonceStr()+"&" +"timestamp"+jssdkVo.getTimeTamp()+"&"+"url"+url;
+        log.info("signature {}",JSONObject.toJSONString(signature));
         try {
             jssdkVo.setSignature(Sha1Util.getSha1(DigestUtils.sha1(signature)));
         } catch (NoSuchAlgorithmException e) {
@@ -189,7 +220,7 @@ public class LoginController {
         return R.ok(jssdkVo);
     }
 
-    private String getJsapiTicket() {
+    private String getJsApiTicket() {
         //获取token
         AjaxResult accessToken = scrmService.getAccessToken();
         String token = accessToken.get(MSG_TAG) +"";

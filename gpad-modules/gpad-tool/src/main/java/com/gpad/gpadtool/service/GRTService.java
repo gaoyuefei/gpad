@@ -431,7 +431,7 @@ public class GRTService {
         httpHeaders.add("appKey", GRTSignUtil.APP_KEY_GRT);
         httpHeaders.add("timestamp", String.valueOf(timestamp));
         HttpEntity<OrderDeliverDateParamVo> requestEntity = new HttpEntity<>(orderDeliverDateParamVo,httpHeaders);
-        log.info("封装请求头为 new HttpEntity<>(orderDeliverDateParamVo,httpHeaders)()--->>> {}", JSONObject.toJSONString(requestEntity.getHeaders()));
+        log.info("封装请求头为 new HttpEntity<>(orderDeliverDateParamVo,httpHeaders)()--->>> {}", JSONObject.toJSONString(requestEntity));
 
         ResponseEntity<String> response = null;
         try {
