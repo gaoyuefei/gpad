@@ -215,7 +215,7 @@ public class LoginController {
         String signature  = "jsapi_ticket="+ticket+"&"+ "noncestr="+jssdkVo.getNonceStr()+"&" +"timestamp="+jssdkVo.getTimeTamp()+"&"+"url="+url;
         log.info("signature {}",JSONObject.toJSONString(signature));
         try {
-            jssdkVo.setSignature(Sha1Util.sha1(ts+""));
+            jssdkVo.setSignature(Sha1Util.sha1(signature));
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
