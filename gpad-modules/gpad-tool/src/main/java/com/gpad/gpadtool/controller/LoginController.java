@@ -201,6 +201,7 @@ public class LoginController {
     @Operation(summary = "JS-SDK使用权限签名")
     @GetMapping("/js_sdk/getUrl")
     public R getJsdk(@RequestParam("url") String url) {
+        log.info("SDK使用权限签名url! {}",url);
         long ts = System.currentTimeMillis() / 1000;
         JssdkVo jssdkVo = new JssdkVo();
         jssdkVo.setAppId(wx_appId);
@@ -211,13 +212,14 @@ public class LoginController {
             e.printStackTrace();
         }
         String ticket = getJsApiTicket();
-        String signature  = ticket+"&"+ "noncestr"+jssdkVo.getNonceStr()+"&" +"timestamp"+jssdkVo.getTimeTamp()+"&"+"url"+url;
+        String signature  = "jsapi_ticket="+ticket+"&"+ "nonceStr="+jssdkVo.getNonceStr()+"&" +"timestamp="+jssdkVo.getTimeTamp()+"&"+"url="+url;
         log.info("signature {}",JSONObject.toJSONString(signature));
         try {
             jssdkVo.setSignature(Sha1Util.getSha1(DigestUtils.sha1(signature)));
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+        log.info("jssdkVo {}",JSONObject.toJSONString(jssdkVo));
         return R.ok(jssdkVo);
     }
 
