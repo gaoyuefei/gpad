@@ -149,7 +149,7 @@ public class FileController {
         }
         log.info("文件批量压缩下载--->>> businessNo=【{}】,查到的files=【{}】",businessNo, JSONObject.toJSONString(files));
         if (CollectionUtils.isEmpty(files)){
-            throw new ServiceException("查不到文件信息!");
+            throw new ServiceException("暂无数据!");
         }
         //3、打包下载
             //转换为ZipFileDTO
