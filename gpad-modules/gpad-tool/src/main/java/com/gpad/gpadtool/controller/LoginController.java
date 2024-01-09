@@ -233,6 +233,8 @@ public class LoginController {
         HttpEntity<String> requestEntity = new HttpEntity<>( httpHeaders);
         String url = "https://qyapi.weixin.qq.com/cgi-bin/get_jsapi_ticket";
         url = url.concat("?access_token=").concat(token);
+        url= url.concat("&debug=1");
+        log.info("调用url {}",JSONObject.toJSONString(url));
         ResponseEntity<String> response = null;
         try {
             response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
