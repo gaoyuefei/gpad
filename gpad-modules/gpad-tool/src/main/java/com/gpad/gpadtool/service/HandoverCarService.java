@@ -155,27 +155,19 @@ public class HandoverCarService {
             Long handoverCarCheckInfoId = handoverCarCheckInfo.getId();
             log.info("查询返回实体为ID: {}", handoverCarCheckInfoId);
             handoverCarCheckInfoDto.setId(handoverCarCheckInfoId);
+
             //交车确认信息入库
             result = handoverCarCheckInfoService.saveDeliverCarConfirmInfo(handoverCarCheckInfoDto);
             if (!result){
                 throw new ServiceException("合同信息保存失败",CommCode.DATA_UPDATE_WRONG.getCode());
             }
             log.info("method:saveDeliverCarConfirmInfo().合同信息成功: {}", JSONObject.toJSONString(handoverCarCheckInfoDto));
-            //
-            //新建交车流程信息并入库 -- 步骤为第一步 //
-//            FlowInfoDto flowInfoDto = new FlowInfoDto();
-//            flowInfoDto.setBussinessNo(bussinessNo);
-//            flowInfoDto.setNodeNum(FlowNodeNum.ARRIVE_STORE.getCode());
-//            flowInfoDto.setVersion(0);
-//            result = flowInfoRepository.saveFlowInfoFirstNode(flowInfoDto);
-//            if (!result){
-//                throw new ServiceException("流程接口入库失败",500);
-//            }
+
         } finally {
             RedisLockUtils.unlock(bussinessNo);
         }
-        return R.ok(true);
 
+        return R.ok(true);
     }
 
     public FlowInfoDto queryProcessNode(String bussinessNo) {

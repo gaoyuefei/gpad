@@ -60,6 +60,10 @@ public class HandoverCarCheckInfoDto {
     private Integer operateDashboard;
     @ApiModelProperty(value = "确认随车附件和工具（工具、千斤顶、点烟器等）")
     private Integer operateTools;
+    @ApiModelProperty(value = "备胎、千斤顶、点烟器等")
+    private Integer attachmentsAndToolsInfo;
+    @ApiModelProperty(value = "车机绑定")
+    private Integer carMachineBinding;
     @ApiModelProperty(value = "车辆合格证")
     private Integer dataQualified;
     @ApiModelProperty(value = "车辆一致性证书")

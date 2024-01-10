@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.gpad.common.core.domain.R;
 import com.gpad.gpadtool.domain.dto.*;
-import com.gpad.gpadtool.enums.PayMethodToCodeEnum;
 import com.gpad.gpadtool.service.*;
 import io.swagger.annotations.Api;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,7 +48,7 @@ public class HandoverCarController {
      */
     @Operation(summary = "查询流程节点信息")
     @GetMapping("/getProcessNodeByNo")
-    public R<FlowInfoDto> queryProcessNode(@RequestParam("bussinessNo") String bussinessNo){
+    public R<FlowInfoDto> queryProcessNode(@RequestParam(required = false,value = "bussinessNo") String bussinessNo){
         log.info("查询交车评价信息 --->>> {}", bussinessNo);
         if (Strings.isEmpty(bussinessNo)){
             return R.fail("bussinessNo必传，请检查参数! ");

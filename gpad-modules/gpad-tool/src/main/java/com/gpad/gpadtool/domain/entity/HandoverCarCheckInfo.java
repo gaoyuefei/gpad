@@ -132,9 +132,19 @@ public class HandoverCarCheckInfo implements Serializable {
     private Integer operateDashboard;
 
     /**
-     * 确认随车附件和工具（工具、千斤顶、点烟器等）
+     * 确认随车附件和工具
      */
     private Integer operateTools;
+
+    /**
+     * 备胎、千斤顶、点烟器等
+     */
+    private Integer attachmentsAndToolsInfo;
+
+    /**
+     * 车机绑定
+     */
+    private Integer carMachineBinding;
 
     /**
      * 车辆合格证

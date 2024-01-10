@@ -59,8 +59,12 @@ public class HandoverCarCheckInfoOutBO {
     private Integer operateTire;
     @ApiModelProperty(value = "仪表盘及各项指示灯说明")
     private Integer operateDashboard;
-    @ApiModelProperty(value = "确认随车附件和工具（工具、千斤顶、点烟器等）")
+    @ApiModelProperty(value = "确认随车附件和工具")
     private Integer operateTools;
+    @ApiModelProperty(value = "备胎、千斤顶、点烟器等")
+    private Integer attachmentsAndToolsInfo;
+    @ApiModelProperty(value = "车机绑定")
+    private Integer carMachineBinding;
     @ApiModelProperty(value = "车辆合格证")
     private Integer dataQualified;
     @ApiModelProperty(value = "车辆一致性证书")
