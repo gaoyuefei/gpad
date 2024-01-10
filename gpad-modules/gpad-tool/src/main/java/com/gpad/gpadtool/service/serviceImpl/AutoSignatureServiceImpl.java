@@ -1021,12 +1021,13 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
                 }
                 File savedFile = new File(pngPath.concat(File.separator).concat(fileName));
                 log.info("文件上传路径pdf2multiImage {}", JSON.toJSONString(savedFile.getAbsolutePath()));
-                pdf2multiImage(result, savedFile.getAbsolutePath());
+                String absolutePath = savedFile.getAbsolutePath();
+                pdf2multiImage(result, absolutePath);
 
                 list.add(uploadFileOutputDto);
-                pngPath = filePath.concat(fileName).replaceAll("\\\\", "/");
                 UploadFileOutputDto uploadFileOutputDto1 = new UploadFileOutputDto();
-                String subPngPath = pngPath.substring(4);
+                absolutePath =  absolutePath.replaceAll("\\\\", "/");
+                String subPngPath = absolutePath.substring(4);
                 uploadFileOutputDto1.setFileName(fileName);
                 uploadFileOutputDto1.setFilePath(subPngPath);
                 list.add(uploadFileOutputDto1);
