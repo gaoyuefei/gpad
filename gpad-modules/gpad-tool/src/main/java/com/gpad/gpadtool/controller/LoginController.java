@@ -41,6 +41,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.Locale;
 import java.util.Map;
 
@@ -201,7 +202,11 @@ public class LoginController {
     @Operation(summary = "JS-SDK使用权限签名")
     @GetMapping("/js_sdk/getUrl")
     public R getJsdk(@RequestParam("url") String url) {
-        log.info("SDK使用权限签名url! {}",url);
+        log.info("解密前! {}",url);
+        byte[] encodedBytes = Base64.getDecoder().decode(url.getBytes());
+        String originalText = new String(encodedBytes);
+        log.info("解密后!--》》》{}",url);
+        url = originalText;
         long ts = System.currentTimeMillis() / 1000;
         JssdkVo jssdkVo = new JssdkVo();
         jssdkVo.setAppId(wx_appId);
