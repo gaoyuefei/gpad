@@ -205,14 +205,14 @@ public class LoginController {
         long ts = System.currentTimeMillis() / 1000;
         JssdkVo jssdkVo = new JssdkVo();
         jssdkVo.setAppId(wx_appId);
-        jssdkVo.setTimeTamp(ts+"");
+        jssdkVo.setTimestamp(ts+"");
         try {
             jssdkVo.setNonceStr(Sha1Util.sha1(ts+""));
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
         String ticket = getJsApiTicket();
-        String signature  = "jsapi_ticket="+ticket+"&"+ "nonceStr="+jssdkVo.getNonceStr()+"&" +"timestamp="+jssdkVo.getTimeTamp()+"&"+"url="+url;
+        String signature  = "jsapi_ticket="+ticket+"&"+ "nonceStr="+jssdkVo.getNonceStr()+"&" +"timestamp="+jssdkVo.getTimestamp()+"&"+"url="+url;
         log.info("signature {}",JSONObject.toJSONString(signature));
         try {
             jssdkVo.setSignature(Sha1Util.sha1(signature));

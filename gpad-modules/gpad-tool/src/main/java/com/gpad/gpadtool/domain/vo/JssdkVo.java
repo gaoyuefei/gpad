@@ -18,7 +18,7 @@ public class JssdkVo {
     private String appId;
 
     @ApiModelProperty(value = "时间戳")
-    private String timeTamp;
+    private String timestamp;
 
     @ApiModelProperty(value = "生成随机串")
     private String nonceStr;
