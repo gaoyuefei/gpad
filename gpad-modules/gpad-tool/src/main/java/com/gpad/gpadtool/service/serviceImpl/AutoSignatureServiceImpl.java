@@ -1013,13 +1013,14 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
 
                 String fileName = UuidUtil.generateUuidWithDate() + "." + "png";
                 //输入路径，输出路径
-                String pngPath = FILE_PATH.concat(File.separator).concat(DateUtil.generateDateTimeStr()).concat(File.separator);
+                String pngPath = FILE_PATH.concat(File.separator).concat(File.separator);
 
                 File pathDir = new File(pngPath);
                 if (!pathDir.exists()) {
                     pathDir.mkdirs();
                 }
                 File savedFile = new File(pngPath.concat(File.separator).concat(fileName));
+                log.info("文件上传路径pdf2multiImage {}", JSON.toJSONString(savedFile.getAbsolutePath()));
                 pdf2multiImage(result, savedFile.getAbsolutePath());
 
                 list.add(uploadFileOutputDto);
