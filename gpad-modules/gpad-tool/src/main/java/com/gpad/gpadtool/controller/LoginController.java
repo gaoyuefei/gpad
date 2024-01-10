@@ -15,7 +15,6 @@ import com.gpad.gpadtool.domain.vo.JssdkTicketVO;
 import com.gpad.gpadtool.domain.vo.JssdkVo;
 import com.gpad.gpadtool.domain.vo.ScanCodeTokenInfoVo;
 import com.gpad.gpadtool.service.ScrmService;
-import com.gpad.gpadtool.utils.Sha1Util;
 import com.gpad.system.api.domain.SysUser;
 import com.gpad.system.api.model.LoginUser;
 import io.swagger.annotations.Api;
@@ -40,10 +39,10 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.gpad.common.core.web.domain.AjaxResult.MSG_TAG;
 
@@ -211,20 +210,19 @@ public class LoginController {
         JssdkVo jssdkVo = new JssdkVo();
         jssdkVo.setAppId(wx_appId);
         jssdkVo.setTimestamp(ts+"");
-        try {
-            jssdkVo.setNonceStr(Sha1Util.sha1(ts+""));
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+        //生成16位随机串
+        String nonceStr = UUID.randomUUID().toString().replace("-", "");
+        if (nonceStr.length() > 16){
+            nonceStr = nonceStr.substring(0,16);
         }
+        jssdkVo.setNonceStr(nonceStr);
+
         String ticket = getJsApiTicket();
-        String signature  = "jsapi_ticket="+ticket+"&"+ "nonceStr="+jssdkVo.getNonceStr()+"&" +"timestamp="+jssdkVo.getTimestamp()+"&"+"url="+url;
+        String signature  = "jsapi_ticket="+ticket+"&"+ "noncestr="+jssdkVo.getNonceStr()+"&" +"timestamp="+jssdkVo.getTimestamp()+"&"+"url="+url;
         log.info("signature {}",JSONObject.toJSONString(signature));
-        try {
-            jssdkVo.setSignature(Sha1Util.sha1(signature));
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
+        jssdkVo.setSignature(DigestUtils.sha1Hex(signature));
         log.info("jssdkVo {}",JSONObject.toJSONString(jssdkVo));
+
         return R.ok(jssdkVo);
     }
 
