@@ -131,13 +131,7 @@ public class FileInfoRepository extends ServiceImpl<FileInfoMapper, FileInfo> {
     }
 
     public Boolean delFileInfoAll(String bussinessNo) {
-        return this.lambdaUpdate().setSql(" version = version + 1 ")
-                .set(FileInfo::getDelFlag,1)
-                .eq(FileInfo::getFileType,"21")
-                .or()
-                .eq(FileInfo::getFileType,"22")
-                .eq(FileInfo::getBussinessNo,bussinessNo)
-                .eq(FileInfo::getDelFlag,0).update();
+        return fileInfoMapper.updateDelFlagByOrderNo(bussinessNo);
     }
 
     public Boolean delFileInfo(FileInfoDto fileInfoDto) {

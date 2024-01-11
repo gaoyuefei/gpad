@@ -13,4 +13,6 @@ public interface FileInfoMapper extends BaseMapper<FileInfo> {
     @Select("select config_value from sys_config where config_key = #{configKey}")
     String selectSysConfigByKey(@Param("configKey")String configKey);
 
+
+    Boolean updateDelFlagByOrderNo(@Param("bussinessNo") String bussinessNo);
 }
