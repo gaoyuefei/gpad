@@ -43,6 +43,7 @@ import java.util.Base64;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static com.gpad.common.core.web.domain.AjaxResult.MSG_TAG;
 
@@ -72,6 +73,9 @@ public class LoginController {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     @Autowired
     private TokenService tokenService;
@@ -193,19 +197,17 @@ public class LoginController {
         Boolean deleteToken = redisTemplate.delete(token);
         log.info("移除token! {}",deleteToken);
     }
-    @Autowired
-    private RestTemplate restTemplate;
+
     /**
-     *
+     *   获取JS-SDK使用权限签名
      */
     @Operation(summary = "JS-SDK使用权限签名")
     @GetMapping("/js_sdk/getUrl")
-    public R getJsdk(@RequestParam("url") String url) {
-        log.info("解密前! {}",url);
+    public R getJsdkApi(@RequestParam("url") String url) {
+        log.info("解密前!-->>>>>>{}",url);
         byte[] encodedBytes = Base64.getDecoder().decode(url.getBytes());
-        String originalText = new String(encodedBytes);
-        log.info("解密后!--》》》{}",url);
-        url = originalText;
+        url = new String(encodedBytes);
+        log.info("解密后!-->>>>>>{}",url);
         long ts = System.currentTimeMillis() / 1000;
         JssdkVo jssdkVo = new JssdkVo();
         jssdkVo.setAppId(wx_appId);
@@ -221,12 +223,20 @@ public class LoginController {
         String signature  = "jsapi_ticket="+ticket+"&"+ "noncestr="+jssdkVo.getNonceStr()+"&" +"timestamp="+jssdkVo.getTimestamp()+"&"+"url="+url;
         log.info("signature {}",JSONObject.toJSONString(signature));
         jssdkVo.setSignature(DigestUtils.sha1Hex(signature));
-        log.info("jssdkVo {}",JSONObject.toJSONString(jssdkVo));
+        log.info("调用mehtod: getJsdkApi() 返回结果未{}",JSONObject.toJSONString(jssdkVo));
 
         return R.ok(jssdkVo);
     }
 
-    private String getJsApiTicket() {
+    public String getJsApiTicket() {
+        // redis查库
+        String jsApiTicket = (String) redisTemplate.opsForValue().get(RedisKey.PAD_JS_TICKET);
+        log.info("调用redis查询结果为----> {}",jsApiTicket);
+        if (Strings.isNotEmpty(jsApiTicket)){
+            log.info("redis查库成功 开始执行返回.....!");
+           return jsApiTicket;
+        }
+
         //获取token
         AjaxResult accessToken = scrmService.getAccessToken();
         String token = accessToken.get(MSG_TAG) +"";
@@ -253,9 +263,16 @@ public class LoginController {
             e.printStackTrace();
         }
         log.info("返回签证是 {}",JSONObject.toJSONString(jssdkTicketVO));
-        if (ObjectUtil.isEmpty(jssdkTicketVO)){
+
+        if (ObjectUtil.isEmpty(jssdkTicketVO) && "0".equals(jssdkTicketVO.getErrcode()) ){
             throw new ServiceException("生成签名失败，请检查参数",500);
         }
+        log.info("返回签证是 {}",JSONObject.toJSONString(jssdkTicketVO));
+
+        // redis写库 失效时间设置110L--> 企业微信失效7200s
+        redisTemplate.opsForValue().set(RedisKey.PAD_JS_TICKET, jssdkTicketVO.getTicket(),RedisKey.EXPIRES_TIME_JS_TICKET, TimeUnit.MINUTES);
+
+        log.info("redis写库成功 开始执行返回.....!");
         return jssdkTicketVO.getTicket();
     }
 

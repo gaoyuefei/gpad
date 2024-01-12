@@ -9,7 +9,9 @@ package com.gpad.gpadtool.constant;
  */
 public class RedisKey {
     public static final Long ACCESS_TOKEN_EXPIRE_TIME = 60L;
+    public static final Long EXPIRES_TIME_JS_TICKET = 110L;
     public static final String ACCESS_TOKEN_KEY = "ACCESS_TOKEN_KEY";
+    public static final String PAD_JS_TICKET = "PAD_JS_TICKET";
     public static final String PAD_TOKEN_KEY = "tokenId";
     public static final Long SIGN_EXPIRE_TIME = 3L;
     public static final Long TOKEN_EXPIRE_TIME = 60L;
