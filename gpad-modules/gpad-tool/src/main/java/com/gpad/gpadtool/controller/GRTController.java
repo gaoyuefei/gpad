@@ -89,7 +89,7 @@ public class GRTController {
     @Operation(summary = "GRT-待交车订单详情接口")
     @PostMapping("/grt/getSyncOrderDetail")
     public R getGrtOrderDetail(@RequestParam("bussinessNo") String bussinessNo){
-        log.info("GRT-待交车订单详情接口 --->>> {}", bussinessNo);
+        log.info("GRT-待交车订单详情接口入参 --->>> {}", bussinessNo);
         return grtService.getPadOrderDetail(bussinessNo);
     }
 

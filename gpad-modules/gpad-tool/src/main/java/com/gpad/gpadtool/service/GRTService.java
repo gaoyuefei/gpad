@@ -492,12 +492,13 @@ public class GRTService {
             try {
                 //幂等处理
                 RedisLockUtils.lock(bussinessNo);
+                log.info("锁开始 --》》》》{}", bussinessNo);
                 //根据订单
                 OrderDetail padOrderDetail = orderDetailRepository.getPadOrderDetail(bussinessNo);
                 //获取当前操作厂端 与 TODO
                 log.info("method:getPadOrderDetail(): PAD端订单查询订单号为：{}", bussinessNo);
-                if(null == padOrderDetail){
-                    log.info("method:getPadOrderDetail(): 进入判断条件内：{}", com.alibaba.fastjson2.JSONObject.toJSONString(padOrderDetail));
+                if(ObjectUtil.isEmpty(padOrderDetail)||null == padOrderDetail){
+                log.info("method:getPadOrderDetail(): 进入判断条件内：{}", com.alibaba.fastjson2.JSONObject.toJSONString(padOrderDetail));
                 //订单信息入库
                 result = orderDetailRepository.saveOrderDetailEntity(data.get(0),bussinessNo);
                 if (!result){
@@ -523,6 +524,7 @@ public class GRTService {
                 }
             } finally {
                 RedisLockUtils.unlock(bussinessNo);
+                log.info("锁结束 --》》》》{}", bussinessNo);
             }
 
         return R.ok(orderDetailOutBO);
