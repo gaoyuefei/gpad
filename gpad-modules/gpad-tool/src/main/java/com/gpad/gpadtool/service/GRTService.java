@@ -484,10 +484,6 @@ public class GRTService {
         }
         OrderDetailResultDto source = data.get(0);
         BeanUtils.copyProperties(source,orderDetailOutBO);
-        String grtNo = source.getBussinessNo();
-        if (StringUtils.isEmpty(grtNo)){
-            throw new ServiceException("GRT订单列表与GRT订单详情不一致，请系统联系管理员", CommCode.DATA_NOT_FOUND.getCode());
-        }
         //查询数据库数据
             try {
                 //幂等处理
@@ -497,7 +493,7 @@ public class GRTService {
                 OrderDetail padOrderDetail = orderDetailRepository.getPadOrderDetail(bussinessNo);
                 //获取当前操作厂端 与 TODO
                 log.info("method:getPadOrderDetail(): PAD端订单查询订单号为：{}", bussinessNo);
-                if(ObjectUtil.isEmpty(padOrderDetail)||null == padOrderDetail){
+                if(ObjectUtil.isEmpty(padOrderDetail) || null == padOrderDetail){
                 log.info("method:getPadOrderDetail(): 进入判断条件内：{}", com.alibaba.fastjson2.JSONObject.toJSONString(padOrderDetail));
                 //订单信息入库
                 result = orderDetailRepository.saveOrderDetailEntity(data.get(0),bussinessNo);
