@@ -23,9 +23,6 @@ import java.util.List;
 @Service
 public class OrderDetailRepository extends ServiceImpl<OrderDetailMapper, OrderDetail>  {
 
-    @Autowired
-    private OrderDetailRepository orderDetailRepository;
-
     public OrderDetail getPadOrderDetail(String bussinessNo) {
         List<OrderDetail> list = this.lambdaQuery().eq(OrderDetail::getBussinessNo, bussinessNo).orderByDesc(OrderDetail::getCreateTime).list();
         return CollectionUtils.isEmpty(list)? (null):(list.get(0));
@@ -38,9 +35,8 @@ public class OrderDetailRepository extends ServiceImpl<OrderDetailMapper, OrderD
     }
 
     public Boolean saveOrderDetailEntity(OrderDetailResultDto orderDetailResultDto,String bussinessNo) {
-        OrderDetail padOrderDetail = orderDetailRepository.getDBPadOrderDetail(bussinessNo);
+
         OrderDetail orderDetail = OrderDetail.builder()
-                .id(ObjectUtil.isNotEmpty(padOrderDetail)?padOrderDetail.getId():null)
                 .bussinessNo(bussinessNo)
                 .invoiceDate(orderDetailResultDto.getInvoiceDate())
                 .invoiceStatus(orderDetailResultDto.getInvoiceStatus())

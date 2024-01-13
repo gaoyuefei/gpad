@@ -86,12 +86,8 @@ public class FlowInfoRepository extends ServiceImpl<FlowInfoMapper, FlowInfo> {
 
 
     public Boolean saveFlowInfoFirstNode(FlowInfoDto flowInfoDto) {
-        FlowInfoDto bybussinessNo = flowInfoRepository.getBybussinessNo(flowInfoDto.getBussinessNo());
         flowInfoDto.setCreateTime(new Date());
         FlowInfo flowInfo = JSONObject.parseObject(JSONObject.toJSONString(flowInfoDto), FlowInfo.class);
-        if (ObjectUtil.isNotEmpty(bybussinessNo)) {
-            flowInfo.setId(Long.valueOf(bybussinessNo.getId()));
-        }
         return this.saveOrUpdate(flowInfo);
     }
 

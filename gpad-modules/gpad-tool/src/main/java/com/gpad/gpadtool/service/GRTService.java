@@ -19,6 +19,7 @@ import com.gpad.gpadtool.utils.DateUtil;
 import com.gpad.gpadtool.utils.GRTSignUtil;
 import com.gpad.gpadtool.utils.RedisLockUtils;
 import com.gpad.gpadtool.utils.UuidUtil;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.BeanUtils;
@@ -481,7 +482,12 @@ public class GRTService {
 //           throw new ServiceException("查询订单信息有误", CommCode.DATA_NOT_FOUND.getCode());
             return R.ok(null,"查无数据");
         }
-        BeanUtils.copyProperties(data.get(0),orderDetailOutBO);
+        OrderDetailResultDto source = data.get(0);
+        BeanUtils.copyProperties(source,orderDetailOutBO);
+        String grtNo = source.getBussinessNo();
+        if (StringUtils.isEmpty(grtNo)){
+            throw new ServiceException("GRT订单列表与GRT订单详情不一致，请系统联系管理员", CommCode.DATA_NOT_FOUND.getCode());
+        }
         //查询数据库数据
             try {
                 //幂等处理
@@ -491,6 +497,7 @@ public class GRTService {
                 //获取当前操作厂端 与 TODO
                 log.info("method:getPadOrderDetail(): PAD端订单查询订单号为：{}", bussinessNo);
                 if(null == padOrderDetail){
+                    log.info("method:getPadOrderDetail(): 进入判断条件内：{}", com.alibaba.fastjson2.JSONObject.toJSONString(padOrderDetail));
                 //订单信息入库
                 result = orderDetailRepository.saveOrderDetailEntity(data.get(0),bussinessNo);
                 if (!result){
@@ -508,6 +515,7 @@ public class GRTService {
                 }
                 orderDetailOutBO.setBussinessNo(bussinessNo);
                 }else {
+                    log.info("查到数据走这里时间");
                     String remark = padOrderDetail.getRemark();
                     orderDetailOutBO.setRemark(remark);
                     orderDetailOutBO.setBussinessNo(bussinessNo);
