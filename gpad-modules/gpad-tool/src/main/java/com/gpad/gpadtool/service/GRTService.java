@@ -1,5 +1,6 @@
 package com.gpad.gpadtool.service;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.StopWatch;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
@@ -30,6 +31,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.concurrent.*;
 
 /**
  * @author Donald.Lee
@@ -474,7 +476,8 @@ public class GRTService {
         }
         log.info("GRT-待交车订单详情接口method：getGrtOrderDetail()调用结束 --->>>{}", JSON.toJSONString(orderDetailOutBO));
         List<OrderDetailResultDto> data = grtOrderDetail.getData();
-        if (data.size() <= 0){
+        log.info("GRT：在PAD 调用判断条件--->>>{}  条件2{}", JSON.toJSONString(data),CollectionUtil.isEmpty(data));
+        if (data.size() <= 0 || CollectionUtil.isEmpty(data)){
 //           throw new ServiceException("查询订单信息有误", CommCode.DATA_NOT_FOUND.getCode());
             return R.ok(null,"查无数据");
         }

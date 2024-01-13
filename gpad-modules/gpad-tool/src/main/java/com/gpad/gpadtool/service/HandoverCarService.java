@@ -14,6 +14,7 @@ import com.gpad.gpadtool.constant.FlowNodeNum;
 import com.gpad.gpadtool.domain.dto.*;
 import com.gpad.gpadtool.domain.entity.FileInfo;
 import com.gpad.gpadtool.domain.entity.HandoverCarCheckInfo;
+import com.gpad.gpadtool.domain.entity.OrderDetail;
 import com.gpad.gpadtool.repository.*;
 import com.gpad.gpadtool.utils.RedisLockUtils;
 import lombok.extern.slf4j.Slf4j;

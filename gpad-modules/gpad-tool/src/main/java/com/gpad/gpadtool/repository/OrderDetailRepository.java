@@ -1,10 +1,12 @@
 package com.gpad.gpadtool.repository;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gpad.gpadtool.domain.dto.OrderDetailResultDto;
 import com.gpad.gpadtool.domain.entity.OrderDetail;
 import com.gpad.gpadtool.mapper.OrderDetailMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -21,18 +23,29 @@ import java.util.List;
 @Service
 public class OrderDetailRepository extends ServiceImpl<OrderDetailMapper, OrderDetail>  {
 
+    @Autowired
+    private OrderDetailRepository orderDetailRepository;
+
     public OrderDetail getPadOrderDetail(String bussinessNo) {
         List<OrderDetail> list = this.lambdaQuery().eq(OrderDetail::getBussinessNo, bussinessNo).orderByDesc(OrderDetail::getCreateTime).list();
         return CollectionUtils.isEmpty(list)? (null):(list.get(0));
     }
 
-    public Boolean saveOrderDetailEntity(OrderDetailResultDto orderDetailResultDto,String bussinessNo) {
+    public OrderDetail getDBPadOrderDetail(String bussinessNo) {
+        OrderDetail orderDetail = OrderDetail.builder().build();
+        List<OrderDetail> list = this.lambdaQuery().eq(OrderDetail::getBussinessNo, bussinessNo).orderByDesc(OrderDetail::getCreateTime).list();
+        return CollectionUtils.isEmpty(list) || list.size()<= 0? (orderDetail):(list.get(0));
+    }
 
+    public Boolean saveOrderDetailEntity(OrderDetailResultDto orderDetailResultDto,String bussinessNo) {
+        OrderDetail padOrderDetail = orderDetailRepository.getDBPadOrderDetail(bussinessNo);
         OrderDetail orderDetail = OrderDetail.builder()
+                .id(ObjectUtil.isNotEmpty(padOrderDetail)?padOrderDetail.getId():null)
                 .bussinessNo(bussinessNo)
                 .invoiceDate(orderDetailResultDto.getInvoiceDate())
                 .invoiceStatus(orderDetailResultDto.getInvoiceStatus())
                 .billingNo(orderDetailResultDto.getBillingNo())
+
                 // 支付状态 是否已结清
                 .payOffStatus(orderDetailResultDto.getPayOffStatus())
                 .payOffDate(orderDetailResultDto.getPayOffDate())
@@ -51,7 +64,7 @@ public class OrderDetailRepository extends ServiceImpl<OrderDetailMapper, OrderD
                 .remark(orderDetailResultDto.getRemark())
                 .createTime(new Date())
                 .build();
-        return this.save(orderDetail);
+        return this.saveOrUpdate(orderDetail);
     }
 
     public OrderDetail queryOrderDetail(String bussinessNo) {

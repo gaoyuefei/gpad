@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.gpad.gpadtool.domain.dto.FlowInfoDto;
 import com.gpad.gpadtool.domain.entity.FlowInfo;
 import com.gpad.gpadtool.mapper.FlowInfoMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,7 +24,10 @@ import java.util.List;
  */
 @Service
 public class FlowInfoRepository extends ServiceImpl<FlowInfoMapper, FlowInfo> {
-    
+
+    @Autowired
+    private FlowInfoRepository flowInfoRepository;
+
     public FlowInfoDto saveFlowInfoDto(FlowInfoDto flowInfoDto) {
 //        flowInfoDto.setId(UuidUtil.generateUuid());
 //        flowInfoDto.setCreateBy();
@@ -80,9 +84,15 @@ public class FlowInfoRepository extends ServiceImpl<FlowInfoMapper, FlowInfo> {
                 .update();
     }
 
+
     public Boolean saveFlowInfoFirstNode(FlowInfoDto flowInfoDto) {
+        FlowInfoDto bybussinessNo = flowInfoRepository.getBybussinessNo(flowInfoDto.getBussinessNo());
         flowInfoDto.setCreateTime(new Date());
-        return this.save(JSONObject.parseObject(JSONObject.toJSONString(flowInfoDto),FlowInfo.class));
+        FlowInfo flowInfo = JSONObject.parseObject(JSONObject.toJSONString(flowInfoDto), FlowInfo.class);
+        if (ObjectUtil.isNotEmpty(bybussinessNo)) {
+            flowInfo.setId(Long.valueOf(bybussinessNo.getId()));
+        }
+        return this.saveOrUpdate(flowInfo);
     }
 
 
