@@ -25,9 +25,6 @@ import java.util.List;
 @Service
 public class FlowInfoRepository extends ServiceImpl<FlowInfoMapper, FlowInfo> {
 
-    @Autowired
-    private FlowInfoRepository flowInfoRepository;
-
     public FlowInfoDto saveFlowInfoDto(FlowInfoDto flowInfoDto) {
 //        flowInfoDto.setId(UuidUtil.generateUuid());
 //        flowInfoDto.setCreateBy();

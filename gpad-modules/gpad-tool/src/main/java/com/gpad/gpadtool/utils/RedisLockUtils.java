@@ -5,7 +5,7 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 
 /**
- * 详述：reids锁辅助类
+ * 详述：reids锁辅助类1
  *
  * @author： LF
  * @date： 2023年10月3
