@@ -788,8 +788,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
             RedisLockUtils.lock(bussinessNo);
             FlowInfoDto bybussinessNo = flowInfoRepository.getBybussinessNo(bussinessNo);
             Integer nodeNum = bybussinessNo.getNodeNum();
-            int i = Integer.parseInt(status);
-            if (!(3 == nodeNum)){
+            if (nodeNum > 3){
                 throw new ServiceException("该订单实际流程订单与实际不符，请重新加载页面",CommCode.DATA_IS_WRONG.getCode());
             }
             HandoverCarCheckInfo handoverCarCheckInfo = handoverCarCheckInfoRepository.queryDeliverCarConfirmInfo(bussinessNo);
