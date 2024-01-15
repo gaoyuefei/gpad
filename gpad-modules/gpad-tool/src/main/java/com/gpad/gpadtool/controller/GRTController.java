@@ -1,6 +1,5 @@
 package com.gpad.gpadtool.controller;
 
-import cn.hutool.core.lang.UUID;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson2.JSON;
 import com.gpad.common.core.constant.TokenConstants;
@@ -90,7 +89,13 @@ public class GRTController {
     @PostMapping("/grt/getSyncOrderDetail")
     public R getGrtOrderDetail(@RequestParam("bussinessNo") String bussinessNo){
         log.info("GRT-待交车订单详情接口入参 --->>> {}", bussinessNo);
-        return grtService.getPadOrderDetail(bussinessNo);
+        R padOrderDetail = null;
+        try {
+            padOrderDetail = grtService.getPadOrderDetail(bussinessNo);
+        } catch (Exception e) {
+            log.info("唯一索引报错无误处理");
+        }
+        return padOrderDetail;
     }
 
     /**
@@ -100,7 +105,13 @@ public class GRTController {
     @PostMapping("/grt/H5/getSyncOrderDetailH5")
     public R getSyncOrderDetailH5(@RequestParam("bussinessNo") String bussinessNo){
         log.info("GRT-待交车订单详情接口 --->>> {}", bussinessNo);
-        return grtService.getPadOrderDetail(bussinessNo);
+        R padOrderDetail = null;
+        try {
+            padOrderDetail = grtService.getPadOrderDetail(bussinessNo);
+        } catch (Exception e) {
+            log.info("唯一索引报错无误处理");
+        }
+        return padOrderDetail;
     }
 
     /**
