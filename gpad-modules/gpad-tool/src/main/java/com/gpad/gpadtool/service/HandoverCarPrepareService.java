@@ -133,7 +133,12 @@ public class HandoverCarPrepareService {
                 if(null == nodeNum){
                     nodeNum = 0;
                 }
-                if (2 == nodeNum  && "1".equals(handoverCarPrepareDto.getButton())){
+
+                if(4 == nodeNum){
+                    throw new ServiceException("UI非法操作", R.FAIL);
+                }
+
+                if (2 >= nodeNum  && "1".equals(handoverCarPrepareDto.getButton())){
                     //扭转流程订单流程状态
                     FlowInfoDto flow = new FlowInfoDto();
                     flow.setBussinessNo(handoverCarPrepareDto.getBussinessNo());

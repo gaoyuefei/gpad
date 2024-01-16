@@ -106,7 +106,7 @@ public class AutoSignatureServiceImpl  implements AutoSignatureService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public R<String> startGentlemanSignature(AutoSignatureInputBO autoSignatureInputBO, MultipartFile file,MultipartFile fileCustomerPng,MultipartFile fileProductPng) {
-
+//         //保留
 //        GpadDlrAuthenticationEmailInfo gpadDlrAuthenticationEmailInfo = gpadDlrAuthenticationEmailInfoRepository.queryEmail(autoSignatureInputBO.getDealerCode());
 ////        if ("test".equals(environment)){
 ////            if (!ObjectUtil.isNotEmpty(gpadDlrAuthenticationEmailInfo)){
