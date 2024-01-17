@@ -97,7 +97,13 @@ public class HandoverCarPrepareService {
         Boolean result = false;
         Integer nodeNum = 0;
         String bussinessNo = handoverCarPrepareDto.getBussinessNo();
-            try {
+
+        //查库补ID
+        HandoverCarPrepare handoverCarPrepare = handoverCarPrepareRepository.queryBybussinessNo(bussinessNo);
+        handoverCarPrepareDto.setId(StringUtils.isNotEmpty(handoverCarPrepare.getId())?handoverCarPrepare.getId():null);
+        log.info("查库补ID 结果为{}", JSONObject.toJSONString(handoverCarPrepare));
+
+        try {
                 RedisLockUtils.lock(bussinessNo);
 
                 if (Strings.isBlank(handoverCarPrepareDto.getId()) && !checkedbussinessNo(bussinessNo)) {
