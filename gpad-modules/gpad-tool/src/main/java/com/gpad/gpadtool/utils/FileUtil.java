@@ -5,6 +5,7 @@ import com.gpad.gpadtool.constant.StatusCode;
 import com.gpad.common.core.exception.ServiceException;
 import com.gpad.gpadtool.constant.FileTypeConstant;
 import lombok.extern.slf4j.Slf4j;
+import net.coobird.thumbnailator.Thumbnails;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -93,6 +94,30 @@ public class FileUtil {
         finally {
 //            savedFile.delete();
 
+        }
+    }
+
+    /**
+     * 压缩文件并写出到服务器
+     * @param path 压缩文件并写出到服务器的存储路径
+     */
+    public static void uploadFileByZip(MultipartFile multipartFile, String path, String fileName) {
+        log.info("上传文件开始  {}", System.currentTimeMillis());
+        log.info("文件存储路径--->>> path={}", path);
+
+        try (InputStream ins = multipartFile.getInputStream()) {
+            File pathDir = new File(path);
+            if (!pathDir.exists()) {
+                pathDir.mkdirs();
+            }
+            log.info("上传文件文件名 = {}", fileName);
+            log.info("开始压缩文件并写出到服务器  {}", System.currentTimeMillis());
+            File savedFile = new File(path.concat(File.separator).concat(fileName));
+            Thumbnails.of(ins).scale(1).outputQuality(0.01).toFile(savedFile);
+            log.info("压缩文件并写出到服务器完成  {}", System.currentTimeMillis());
+        } catch (Exception e) {
+            log.warn("压缩文件并写出到服务器出错!:{}", e.getMessage());
+            throw new ServiceException("上传文件出错! ".concat(e.getMessage()), StatusCode.SYS_ERR.getValue());
         }
     }
 

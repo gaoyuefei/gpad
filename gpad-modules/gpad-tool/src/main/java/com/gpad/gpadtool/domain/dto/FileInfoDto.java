@@ -26,6 +26,8 @@ public class FileInfoDto {
     private String coverImgId;
     @ApiModelProperty(value =  "标题")
     private String title;
+    @ApiModelProperty(value =  "压缩后的图片在文件服务器的存储位置或路径")
+    private String zipFilePath;
     @ApiModelProperty(value =  "图片在文件服务器的存储位置或路径")
     private String filePath;
     @ApiModelProperty(value =  "文件名")

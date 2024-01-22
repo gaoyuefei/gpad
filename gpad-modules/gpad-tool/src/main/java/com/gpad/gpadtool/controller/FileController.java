@@ -77,11 +77,17 @@ public class FileController {
         String newFilename = UuidUtil.generateUuidWithDate() + "." + suffix;
         FileUtil.uploadFile(file, filePath, newFilename);
 
+        //图片压缩
+        String zipFilePath = filePath.concat("zips").concat(File.separator);
+        FileUtil.uploadFileByZip(file,zipFilePath,newFilename);
+
         String result = filePath.concat(newFilename).replaceAll("\\\\", "/");
         String subResult = result.substring(4);
+        zipFilePath = zipFilePath.concat(newFilename).replaceAll("\\\\", "/").substring(4);
         UploadFileOutputDto uploadFileOutputDto = new UploadFileOutputDto();
         uploadFileOutputDto.setFileName(newFilename);
         uploadFileOutputDto.setFilePath(subResult);
+        uploadFileOutputDto.setZipFilePath(zipFilePath);
         log.info("文件上传!结束返回接口参数为 {}", JSON.toJSONString(uploadFileOutputDto));
         MonitorUtil.finish("uploadFile");
         return R.ok(uploadFileOutputDto);

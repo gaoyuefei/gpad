@@ -13,9 +13,12 @@ import lombok.Data;
 @Data
 public class UploadFileOutputDto {
 
-    @ApiModelProperty(value =  "id")
+    @ApiModelProperty(value =  "fileName")
     private String fileName;
 
-    @ApiModelProperty(value =  "id")
+    @ApiModelProperty(value =  "filePath")
     private String filePath;
+
+    @ApiModelProperty(value =  "zipFilePath")
+    private String zipFilePath;
 }

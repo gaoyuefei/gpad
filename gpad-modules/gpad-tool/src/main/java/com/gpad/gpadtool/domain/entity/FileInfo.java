@@ -16,6 +16,7 @@ public class FileInfo {
     private Integer linkType;
     private String coverImgId;
     private String title;
+    private String zipFilePath;
     private String filePath;
     private String fileName;
     private Integer fileType;
