@@ -83,6 +83,7 @@ public class FileController {
 
         String result = filePath.concat(newFilename).replaceAll("\\\\", "/");
         String subResult = result.substring(4);
+        log.info("压缩文件存储路径==【{}】 文件名=【{}】",zipFilePath,newFilename);
         zipFilePath = zipFilePath.concat(newFilename).replaceAll("\\\\", "/").substring(4);
         UploadFileOutputDto uploadFileOutputDto = new UploadFileOutputDto();
         uploadFileOutputDto.setFileName(newFilename);
