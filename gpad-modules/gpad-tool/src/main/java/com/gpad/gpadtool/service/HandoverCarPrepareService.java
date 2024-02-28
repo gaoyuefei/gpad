@@ -204,6 +204,7 @@ public class HandoverCarPrepareService {
 
         OrderDetailResultDto orderDetailResultDto = data.get(0);
         //读取订单详情状态
+        //GRT返回的属性赋值给返回前端的Bo
         readyDeliverCarOutBO.setPaymentMethod(PayMethodToCodeEnum.getPadValueByType(orderDetailResultDto.getPaymentMethod()));
         readyDeliverCarOutBO.setInvoiceStatus(grtChineseToEnumValue(orderDetailResultDto.getInvoiceStatus()));
         readyDeliverCarOutBO.setPayOffStatus(grtChineseToEnumValue(orderDetailResultDto.getPayOffStatus()));
@@ -221,6 +222,7 @@ public class HandoverCarPrepareService {
             if (StringUtils.isNotEmpty(id)){
                 readyDeliverCarOutBO.setLoanStatus(handoverCarPrepare.getLoanStatus());
                 readyDeliverCarOutBO.setUnifiedSalesInvoice(handoverCarPrepare.getUnifiedSalesInvoice());
+                //TODO 新增的四个字段，到这一步骤，直接取数据库，不取GRT
                 log.info("进入开始交车，强制不能更改-》》》{}",nodeNum);
             }
         }
@@ -249,6 +251,8 @@ public class HandoverCarPrepareService {
     public HandoverCarPrepareOutBO getStatusByDbOrGRT(HandoverCarPrepare handoverCarPrepare, HandoverCarPrepareOutBO readyDeliverCarOutBO) {
         String supplies = handoverCarPrepare.getSupplies();
         readyDeliverCarOutBO.setSupplies(supplies);
+
+        //TODO  GRT返回的值赋值给返回前端的值
 
         //状态转换
         if (null == handoverCarPrepare.getLoanStatus()){

@@ -79,6 +79,16 @@ public class OrderDetailResultDto {
 
     @ApiModelProperty(value = "销售日期")
     private String sheetCreateDate;
+    @ApiModelProperty(value = "发票图片链接")
+    private String invoiceImgUrl;
+    @ApiModelProperty(value = "交强险投保单号")
+    private String compulsoryInsuranceNo;
+    @ApiModelProperty(value = "交强险保险公司")
+    private String compulsoryInsuranceCompanyId;
+    @ApiModelProperty(value = "商业险投保单号")
+    private String commercialInsuranceNo;
+    @ApiModelProperty(value = "商保保险公司")
+    private String commercialInsuranceCompanyId;
     @ApiModelProperty(value = "PDI单号")
     private String pdiOrderNo;
     @ApiModelProperty(value = "PDI实施状态")
