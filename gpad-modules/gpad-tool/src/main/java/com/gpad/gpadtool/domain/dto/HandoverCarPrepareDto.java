@@ -32,6 +32,21 @@ public class HandoverCarPrepareDto {
     @ApiModelProperty(value = "销售统一发票 0:未开具，1:已开具")
     private Integer unifiedSalesInvoice;
 
+    @ApiModelProperty(value = "发票图片链接")
+    private String invoiceImgUrl;
+
+    @ApiModelProperty(value = "交强险投保单号")
+    private String compulsoryInsuranceNo;
+
+    @ApiModelProperty(value = "交强险保险公司")
+    private String compulsoryInsuranceCompanyId;
+
+    @ApiModelProperty(value = "商业险投保单号")
+    private String commercialInsuranceNo;
+
+    @ApiModelProperty(value = "商保保险公司")
+    private String commercialInsuranceCompanyId;
+
     @ApiModelProperty(value = "购置税办理 0:未办理，1:已办理")
     private Integer purchaseTax;
 

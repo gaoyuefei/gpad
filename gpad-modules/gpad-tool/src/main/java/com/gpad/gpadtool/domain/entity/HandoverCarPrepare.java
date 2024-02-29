@@ -36,6 +36,32 @@ public class HandoverCarPrepare implements Serializable {
      *  销售统一发票
      **/
     private Integer unifiedSalesInvoice;
+
+    /**
+     *  发票图片链接
+     **/
+    private String invoiceImgUrl;
+
+    /**
+     *  交强险投保单号
+     **/
+    private String compulsoryInsuranceNo;
+
+    /**
+     *  交强险保险公司
+     **/
+    private String compulsoryInsuranceCompanyId;
+
+    /**
+     *  商业险投保单号
+     **/
+    private String commercialInsuranceNo;
+
+    /**
+     *  商保保险公司
+     **/
+    private String commercialInsuranceCompanyId;
+
     /**
      *  是否购置税
      **/

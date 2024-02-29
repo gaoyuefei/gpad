@@ -69,6 +69,21 @@ public class HandoverCarPrepareOutBO {
     @ApiModelProperty(value = "0：未完成交车，1：已完成交车")
     private Integer isDelivery;
 
+    @ApiModelProperty(value = "发票图片链接")
+    private String invoiceImgUrl;
+
+    @ApiModelProperty(value = "交强险投保单号")
+    private String compulsoryInsuranceNo;
+
+    @ApiModelProperty(value = "交强险保险公司")
+    private String compulsoryInsuranceCompanyId;
+
+    @ApiModelProperty(value = "商业险投保单号")
+    private String commercialInsuranceNo;
+
+    @ApiModelProperty(value = "商保保险公司")
+    private String commercialInsuranceCompanyId;
+
     private Date createTime;
 
     private Date updateTime;
