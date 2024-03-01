@@ -20,5 +20,8 @@ public class ExhibitionMixPadInputBO {
     @ApiModelProperty(value =  "派生代码")
     private String packageCode;
 
+    @ApiModelProperty(value =  "goodsId")
+    private String exhibitionNewCarId;
+
 }
 

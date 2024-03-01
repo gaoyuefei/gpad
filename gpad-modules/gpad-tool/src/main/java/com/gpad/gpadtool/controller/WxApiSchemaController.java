@@ -99,6 +99,10 @@ public class WxApiSchemaController {
     @PostMapping("/exhibition/queryExhibitionMixPad")
     public R queryExhibitionMixPad(@RequestBody ExhibitionMixPadInputBO exhibitionMixPadInputBO){
         log.info(" -queryExhibitionMixPad入参-->>> queryExhibitionMixPad = {}", JSON.toJSONString(exhibitionMixPadInputBO));
+
+        if (StringUtils.isEmpty(exhibitionMixPadInputBO.getPackageCode()) && StringUtils.isEmpty(exhibitionMixPadInputBO.getExhibitionNewCarId()) ){
+            return R.fail("参数不合法，参数至少需要存在一个值");
+        }
         return wxApiSchemaService.queryExhibitionMixPad(exhibitionMixPadInputBO);
     }
 
