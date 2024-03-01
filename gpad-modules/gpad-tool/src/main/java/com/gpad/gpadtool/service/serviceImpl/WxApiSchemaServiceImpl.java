@@ -325,14 +325,7 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         headers.add("Authorization",token);
         headers.setContentType(MediaType.APPLICATION_JSON);
         JSONObject jsonObject = new JSONObject();
-
-        if (StringUtils.isNotEmpty(exhibitionMixPadInputBO.getPackageCode())){
-            jsonObject.put("deriveCode", exhibitionMixPadInputBO.getPackageCode());
-        }
-
-        if (StringUtils.isNotEmpty(exhibitionMixPadInputBO.getExhibitionNewCarId())){
-            jsonObject.put("exhibitionNewCarId", exhibitionMixPadInputBO.getExhibitionNewCarId());
-        }
+        jsonObject.put("deriveCode", exhibitionMixPadInputBO.getPackageCode());
         String json = com.alibaba.fastjson.JSONObject.toJSONString(jsonObject);
         log.info("素材请求头为:  {}", headers);
 
