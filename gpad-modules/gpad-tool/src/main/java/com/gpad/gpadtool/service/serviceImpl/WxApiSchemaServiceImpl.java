@@ -331,6 +331,7 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         //封装请求
         HttpEntity request = new HttpEntity(json, headers);
         log.info("素材请求头为:  {}", headers);
+        log.info("素材请求参数为:  {}", JSONObject.toJSONString(request));
         ResponseEntity<String> response = null;
         try {
             response = restTemplate.postForEntity(url, request, String.class);
