@@ -327,10 +327,10 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("exhibitionNewCarId", exhibitionMixPadInputBO.getExhibitionNewCarId());
         String json = com.alibaba.fastjson.JSONObject.toJSONString(jsonObject);
-        log.info("素材请求头为:  {}", headers);
 
         //封装请求
         HttpEntity request = new HttpEntity(json, headers);
+        log.info("素材请求头为:  {}", headers);
         ResponseEntity<String> response = null;
         try {
             response = restTemplate.postForEntity(url, request, String.class);
