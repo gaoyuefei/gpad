@@ -5,6 +5,7 @@ import com.gpad.common.core.domain.R;
 import com.gpad.common.core.utils.StringUtils;
 import com.gpad.gpadtool.domain.dto.wxapi.ExhibitionMixPadInputBO;
 import com.gpad.gpadtool.domain.dto.wxapi.WxApiCommentInputBO;
+import com.gpad.gpadtool.domain.vo.ExhibitionMixPadVo;
 import com.gpad.gpadtool.domain.vo.OrderCommentUrlVo;
 import com.gpad.gpadtool.service.WxApiSchemaService;
 import io.swagger.annotations.Api;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.List;
 
 
 /**
@@ -97,8 +99,8 @@ public class WxApiSchemaController {
      */
     @Operation(summary = "获取素材连接")
     @PostMapping("/exhibition/queryExhibitionMixPad")
-    public R queryExhibitionMixPad(@RequestBody ExhibitionMixPadInputBO exhibitionMixPadInputBO){
-        log.info(" -queryExhibitionMixPad入参-->>> queryExhibitionMixPad = {}", JSON.toJSONString(exhibitionMixPadInputBO));
+    public R<List<ExhibitionMixPadVo>> queryExhibitionMixPad(@RequestBody ExhibitionMixPadInputBO exhibitionMixPadInputBO){
+        log.info(" 获取展厅大屏素材-queryExhibitionMixPad入参-->>> {}", JSON.toJSONString(exhibitionMixPadInputBO));
         return wxApiSchemaService.queryExhibitionMixPad(exhibitionMixPadInputBO);
     }
 

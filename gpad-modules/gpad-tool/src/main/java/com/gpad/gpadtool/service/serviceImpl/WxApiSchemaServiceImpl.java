@@ -17,6 +17,7 @@ import com.gpad.gpadtool.domain.vo.*;
 import com.gpad.gpadtool.enums.WxToPadSchemaUrlTypeEnum;
 import com.gpad.gpadtool.service.WxApiSchemaService;
 import com.gpad.gpadtool.utils.UrlSchemaUntils;
+import io.swagger.util.Json;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +29,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -53,6 +55,9 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
 
     @Value("${wx.app-commentUrlExt}")
     private String commentUrlExt;
+
+    @Value("${wx.queryExhibitionMisePadV2}")
+    private String queryExhibitionMisePadV2;
 
     @Value("${wx.app-getWxToken}")
     private String app_getWxToken;
@@ -112,7 +117,7 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
     }
 
     @Override
-    public R queryExhibitionMixPad(ExhibitionMixPadInputBO exhibitionMixPadInputBO) {
+    public R<List<ExhibitionMixPadVo>> queryExhibitionMixPad(ExhibitionMixPadInputBO exhibitionMixPadInputBO) {
 
         LoginResVo tokenUerName = UrlSchemaUntils.getTokenUerName();
         log.info("data参数获取成功1:  {}", JSON.toJSONString(tokenUerName));
@@ -313,54 +318,33 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
 
     }
 
-    public R queryExhibitionMixPadExt(ExhibitionMixPadInputBO exhibitionMixPadInputBO, WxTokenVO wxTokenVO) {
-        // commentUrlExt
-//        String url = commentUrlExt+"big-screen-bff/fronted/exhibition/content/queryExhibitionMisePad";  还原用这个
-        //2024-02-29 新增用这个  https://presale-test.gacmotor.com/mall/big-screen-bff/customer/goodsCars/getGoodsIdAndNewVIdByCode
-        String url = commentUrlExt+"big-screen-bff/fronted/exhibition/content/queryExhibitionMisePadV2";
-        log.info("打印请求URL:  {}", JSON.toJSONString(url));
-
-        String token = wxTokenVO.getToken();
+    public R<List<ExhibitionMixPadVo>> queryExhibitionMixPadExt(ExhibitionMixPadInputBO exhibitionMixPadInputBO, WxTokenVO wxTokenVO) {
+        String url = commentUrlExt.concat(queryExhibitionMisePadV2);
+        log.info("获取用车指南素材--->>> URL = 【{}】",url);
+        String bodyJsonData = com.alibaba.fastjson.JSONObject.toJSONString(exhibitionMixPadInputBO);
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization",token);
+        headers.add("Authorization",wxTokenVO.getToken());
         headers.setContentType(MediaType.APPLICATION_JSON);
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("exhibitionNewCarId", exhibitionMixPadInputBO.getExhibitionNewCarId());
-        String json = com.alibaba.fastjson.JSONObject.toJSONString(jsonObject);
+        HttpEntity<String> request = new HttpEntity<>(bodyJsonData, headers);
+        log.info("获取用车指南素材--->>> 请求参数 【{}】",JSONObject.toJSONString(request));
+        ResponseEntity<ExhibitionMixPadOutBO> response = restTemplate.exchange(url, HttpMethod.POST, request, ExhibitionMixPadOutBO.class);
+        log.info("获取用车指南素材--->>> 响应 【{}】",JSONObject.toJSONString(response));
 
-        //封装请求
-        HttpEntity request = new HttpEntity(json, headers);
-        log.info("素材请求头为:  {}", headers);
-        log.info("素材请求参数为:  {}", JSONObject.toJSONString(request));
-        ResponseEntity<String> response = null;
-        try {
-            response = restTemplate.postForEntity(url, request, String.class);
-        } catch (RestClientException e) {
-            log.info("打印捕获信息:  {}", JSON.toJSONString(response));
-            e.printStackTrace();
-        }
         if (ObjectUtil.isEmpty(response)){
             throw new ServiceException("网络开小差了，请联系稍后重试或联系管理员",CommCode.NETWORK_READ_TIMED_OUT.getCode());
         }
-        log.info("素材返回参数为:  {}", response);
-        ExhibitionMixPadOutBO exhibitionMixPadOutBO = null;
-        try {
-            exhibitionMixPadOutBO = com.alibaba.fastjson.JSONObject.parseObject(response.getBody(), ExhibitionMixPadOutBO.class);
-        } catch (Exception e) {
-            log.info("打印捕获转换异常信息:  {}", JSON.toJSONString(response));
-            e.printStackTrace();
-        }
+        ExhibitionMixPadOutBO exhibitionMixPadOutBO = response.getBody();
 
-        if (ObjectUtil.isEmpty(exhibitionMixPadOutBO)){
+        if (exhibitionMixPadOutBO == null){
            return R.fail(null,-1,"数据不合法");
         }
 
         if (!"0000".equals(exhibitionMixPadOutBO.getCode())){
-            log.info("打印正式异常信息:  {}", JSON.toJSONString(exhibitionMixPadOutBO.getMsg()));
-          return   R.ok(null,"请上传对应的派生车型视频");
+            log.info("获取用车指南素材 大屏接口返回错误信息:  {}", JSON.toJSONString(exhibitionMixPadOutBO.getMsg()));
+            return R.ok(null,"请上传对应的派生车型视频");
         }
 
-        log.info("素材转换后得数据为:  {}", JSON.toJSONString(exhibitionMixPadOutBO));
+        log.info("获取用车指南素材:  返回前端【{}】", JSON.toJSONString(exhibitionMixPadOutBO));
         return R.ok(exhibitionMixPadOutBO.getData());
     }
 
