@@ -317,7 +317,7 @@ public class WxApiSchemaServiceImpl implements WxApiSchemaService {
         // commentUrlExt
 //        String url = commentUrlExt+"big-screen-bff/fronted/exhibition/content/queryExhibitionMisePad";  还原用这个
         //2024-02-29 新增用这个  https://presale-test.gacmotor.com/mall/big-screen-bff/customer/goodsCars/getGoodsIdAndNewVIdByCode
-        String url = commentUrlExt+"big-screen-bff/customer/goodsCars/getGoodsIdAndNewVIdByCode";
+        String url = commentUrlExt+"https://presale-test.gacmotor.com/mall/big-screen-bff/fronted/exhibition/content/queryExhibitionMisePadV2";
         log.info("打印请求URL:  {}", JSON.toJSONString(url));
 
         String token = wxTokenVO.getToken();
