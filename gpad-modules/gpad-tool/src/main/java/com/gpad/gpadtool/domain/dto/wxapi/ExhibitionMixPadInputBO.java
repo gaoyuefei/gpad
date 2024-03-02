@@ -17,8 +17,8 @@ import javax.validation.constraints.NotBlank;
 public class ExhibitionMixPadInputBO {
 
 
-    @ApiModelProperty(value =  "派生代码")
-    private String packageCode;
+    @ApiModelProperty(value =  "车型ID")
+    private String exhibitionNewCarId;
 
 }
 
