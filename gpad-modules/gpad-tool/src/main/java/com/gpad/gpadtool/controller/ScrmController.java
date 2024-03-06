@@ -154,7 +154,6 @@ public class ScrmController {
             dealerCode = wxCropUserInfoOutputDto.getDeptCode();
             log.info("扫码登录信息结果成功显示userID---》》》{},----employeeNo 》》》{},dealerCode 》》》 {}",userId,employeeNo,dealerCode);
         }
-        log.info("扫码登录信息结果成功显示userId 》》》{}",userId);
         LoginUser loginUser = new LoginUser();
         SysUser sysUser = new SysUser();
         sysUser.setUserId(System.currentTimeMillis());
