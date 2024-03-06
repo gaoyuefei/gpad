@@ -19,12 +19,15 @@ public class WxCropUserInfoOutputDto {
     @ApiModelProperty(value = "手机")
     private String mobile;
 
+    //对应SCRM中的realName
     @ApiModelProperty(value = "成员名称")
     private String name;
 
+    //对应SCRM中的dealerCode
     @ApiModelProperty(value = "门店编码")
     private String deptCode;
 
+    //对应SCRM中的account账号
     @ApiModelProperty(value = "工号")
     private String employeeNo;
 

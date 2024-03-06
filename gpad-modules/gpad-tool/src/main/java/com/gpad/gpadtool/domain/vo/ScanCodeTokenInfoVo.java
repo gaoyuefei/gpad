@@ -25,5 +25,8 @@ public class ScanCodeTokenInfoVo {
 
     @ApiModelProperty(value = "token")
     private String token;
+
+    @ApiModelProperty(value = "销售顾问信息")
+    private SalesConsultantVo salesConsultantVo;
 }
 
