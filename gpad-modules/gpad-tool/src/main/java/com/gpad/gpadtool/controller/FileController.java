@@ -79,7 +79,7 @@ public class FileController {
 
         //图片压缩
         String zipFilePath = filePath.concat("zips").concat(File.separator);
-        FileUtil.uploadFileByZip(file,zipFilePath,newFilename);
+//        FileUtil.uploadFileByZip(file,zipFilePath,newFilename);
 
         String result = filePath.concat(newFilename).replaceAll("\\\\", "/");
         String subResult = result.substring(4);
